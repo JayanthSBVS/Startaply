@@ -5,8 +5,11 @@ import JobDetailsPanel from './JobDetailsPanel';
 
 const FreshJobs = () => {
   const { jobs } = useJobs();
-  // Sort by id desc (newest added first) and take top 4
-  const fresh = [...jobs].reverse().slice(0, 4);
+  // Exclude featured jobs so this section shows different jobs
+  const fresh = [...jobs]
+    .filter((job) => !job.isFeatured && !job.featured)
+    .reverse()
+    .slice(0, 4);
   const [selectedJob, setSelectedJob] = useState(null);
 
   return (

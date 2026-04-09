@@ -17,7 +17,15 @@ const features = [
 
 const WhySection = () => {
   return (
-    <section className="py-16 bg-gradient-to-br from-green-600 to-green-700 text-white">
+    <section 
+      className="py-20 text-white relative"
+      style={{
+        backgroundImage: `linear-gradient(rgba(20, 83, 45, 0.45), rgba(20, 83, 45, 0.6)), url('/rear-view-adult-man-searching-new-job-working-writing-his-resume-laptop.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
 
       <div className="max-w-6xl mx-auto px-4">
 

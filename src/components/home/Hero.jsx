@@ -114,7 +114,7 @@ const Hero = ({ onSearch }) => {
         </h1>
 
         <p className="text-sm md:text-base text-gray-500 mt-4 max-w-xl mx-auto px-2">
-          Stop scrolling endlessly. Start finding the right jobs.
+          Your Next Big Career Move Awaits. Start finding the right jobs.
         </p>
 
         {/* ===== SEARCH BAR ===== */}

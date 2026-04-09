@@ -1,10 +1,11 @@
 import React from 'react';
-import { companiesData } from '../../data/jobsData';
-
 import { Link } from 'react-router-dom';
-import CompanyLogo from '../common/CompanyLogo';
+import { useJobs } from '../../context/JobsContext';
 
 const TrendingCompanies = () => {
+  const { companies } = useJobs();
+
+  if (!companies || companies.length === 0) return null;
   return (
     <section className="py-10 bg-white overflow-hidden">
 
@@ -18,9 +19,15 @@ const TrendingCompanies = () => {
 
         <div className="companies-track">
 
-          {[...companiesData, ...companiesData].map((c, i) => (
-            <Link key={i} to={`/jobs?company=${encodeURIComponent(c.name)}`} className="company-card hover:bg-gray-50 flex items-center justify-center gap-2">
-              <CompanyLogo company={c.name} size={28} color={c.color || '#16A34A'} />
+          {[...companies, ...companies].map((c, i) => (
+            <Link key={i} to={`/jobs?company=${encodeURIComponent(c.name)}`} className="company-card hover:bg-gray-50 flex items-center justify-center gap-2 px-6 py-3 border border-gray-100 rounded-xl whitespace-nowrap min-w-[160px]">
+              {c.logo ? (
+                <img src={c.logo} alt={c.name} className="w-8 h-8 object-contain" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white uppercase" style={{ background: c.color || '#16A34A' }}>
+                  {c.name.charAt(0)}
+                </div>
+              )}
               <p className="text-sm font-medium text-gray-700">
                 {c.name}
               </p>

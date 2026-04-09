@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   X, MapPin, Clock, Briefcase, GraduationCap, DollarSign,
   CheckCircle2, Layers, Building2, Gift, Wifi, Monitor, Building,
+  Share2, UploadCloud
 } from 'lucide-react';
 import { CompanyLogo } from '../common/CompanyLogo';
 import { useTimeAgo } from '../../utils/timeAgo';
+import { useJobs } from '../../context/JobsContext';
 
 const modeIcon = {
   Remote:   Wifi,
@@ -14,11 +16,26 @@ const modeIcon = {
 
 const JobDetailsPanel = ({ job, onClose }) => {
   const livePostedTime = useTimeAgo(job?.createdAt);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+  const [resumeBase64, setResumeBase64] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const { trackJobView } = useJobs();
 
   // Lock body scroll when panel is open
   useEffect(() => {
     if (job) {
       document.body.style.overflow = 'hidden';
+      setShowForm(false);
+      setSuccess(false);
+      setFormData({ name: '', email: '', phone: '' });
+      setResumeBase64('');
+      
+      // Track view automatically when opened
+      trackJobView(job.id);
     } else {
       document.body.style.overflow = '';
     }
@@ -35,6 +52,77 @@ const JobDetailsPanel = ({ job, onClose }) => {
   if (!job) return null;
 
   const ModeIcon = modeIcon[job.mode] || Monitor;
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/jobs?jobId=${job.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${job.title} at ${job.company}`,
+          text: `Check out this job opportunity on Strataply: ${job.title}`,
+          url,
+        });
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const handleApplyClick = () => {
+    if (job.applyType === 'easy') {
+      setShowForm(true);
+    } else {
+      if (job.applyUrl) {
+        window.open(job.applyUrl, '_blank');
+      } else {
+        alert('No external application link provided.');
+      }
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setResumeBase64(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !resumeBase64) {
+      alert('Please fill out Name, Email, and attach a Resume.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/jobs/${job.id}/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          resume: resumeBase64
+        })
+      });
+      if (res.ok) {
+        setSuccess(true);
+      } else {
+        alert('Failed to submit application. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error. Failed to apply.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const renderList = (items) => {
     if (!items) return <p className="text-gray-400 text-sm">Not specified</p>;
@@ -74,37 +162,41 @@ const JobDetailsPanel = ({ job, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[200] flex">
-
       {/* Dark overlay — click to close */}
       <div
-        className="flex-1 bg-black/40 backdrop-blur-sm"
+        className="flex-1 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Right Panel */}
-      <div className="w-full max-w-[520px] h-full bg-white shadow-2xl flex flex-col z-[200]">
-
-        {/* ── SCROLLABLE CONTENT ── */}
-        <div className="flex-1 overflow-y-auto">
-
-          {/* Header */}
-          <div className="sticky top-0 z-10 bg-white border-b px-6 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 flex items-center justify-center rounded-lg border flex-shrink-0"
-                style={{ background: `${job.companyColor}15`, borderColor: `${job.companyColor}30` }}
-              >
-                {job.companyLogo ? (
-                  <img src={job.companyLogo} alt={job.company} className="w-6 h-6 object-contain" />
-                ) : (
-                  <CompanyLogo company={job.company} color={job.companyColor || '#16A34A'} size={18} />
-                )}
-              </div>
-              <div>
-                <h2 className="font-bold text-gray-900 text-base leading-tight">{job.title}</h2>
-                <p className="text-xs text-gray-500">{job.company}</p>
-              </div>
+      <div className="w-full max-w-[520px] h-full bg-white shadow-2xl flex flex-col z-[200] relative">
+        
+        {/* Header */}
+        <div className="sticky top-0 z-20 bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 flex items-center justify-center rounded-lg border flex-shrink-0"
+              style={{ background: `${job.companyColor}15`, borderColor: `${job.companyColor}30` }}
+            >
+              {job.companyLogo ? (
+                <img src={job.companyLogo} alt={job.company} className="w-6 h-6 object-contain" />
+              ) : (
+                <CompanyLogo company={job.company} color={job.companyColor || '#16A34A'} size={18} />
+              )}
             </div>
+            <div>
+              <h2 className="font-bold text-gray-900 text-base leading-tight">{job.title}</h2>
+              <p className="text-xs text-gray-500">{job.company}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 text-green-600 transition-colors flex-shrink-0"
+              title="Share Job"
+            >
+              <Share2 size={14} />
+            </button>
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors flex-shrink-0"
@@ -112,6 +204,10 @@ const JobDetailsPanel = ({ job, onClose }) => {
               <X size={16} />
             </button>
           </div>
+        </div>
+
+        {/* ── SCROLLABLE CONTENT ── */}
+        <div className="flex-1 overflow-y-auto relative p-0 m-0">
 
           {/* Meta Chips */}
           <div className="px-6 pt-5 pb-3 flex flex-wrap gap-2">
@@ -157,7 +253,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
                 <Briefcase size={14} className="text-green-600" />
                 Full Job Description
               </h3>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                 {job.fullDescription || job.description || 'No description provided.'}
               </p>
             </div>
@@ -192,7 +288,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
                 <Building2 size={14} className="text-green-600" />
                 About Company
               </h3>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                 {job.aboutCompany || 'No company information provided.'}
               </p>
             </div>
@@ -209,22 +305,70 @@ const JobDetailsPanel = ({ job, onClose }) => {
             </div>
 
           </div>
+          
+          {/* EASY APPLY SLIDE-UP OVERLAY */}
+          <div className={`absolute bottom-0 left-0 right-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-300 z-30 flex flex-col ${showForm ? 'translate-y-0 relative' : 'translate-y-full hidden'}`}>
+            <div className="p-6 border-t border-gray-100">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-gray-900">Easy Apply to {job.company}</h3>
+                <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600"><X size={16}/></button>
+              </div>
+              
+              {success ? (
+                <div className="text-center py-8">
+                  <CheckCircle2 size={48} className="text-green-500 mx-auto mb-3" />
+                  <h4 className="font-bold text-gray-900 text-lg mb-1">Application Sent!</h4>
+                  <p className="text-sm text-gray-500">Your resume has been sent to the employer.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name *</label>
+                    <input required type="text" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 outline-none" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address *</label>
+                    <input required type="email" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 outline-none" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+                    <input type="tel" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 outline-none" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+1 234 567 8900"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Resume (PDF/DOC) *</label>
+                    <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition">
+                      <UploadCloud size={20} className="mx-auto text-gray-400 mb-2" />
+                      <p className="text-xs text-gray-600 font-medium">Click to upload resume</p>
+                      {resumeBase64 && <p className="text-[10px] text-green-600 mt-1 font-bold">Resume Uploaded Successfully!</p>}
+                    </div>
+                    <input required={!resumeBase64} type="file" accept=".pdf,.doc,.docx" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+                  </div>
+                  <button type="submit" disabled={isSubmitting} className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors text-sm flex justify-center items-center gap-2 disabled:bg-gray-400">
+                    {isSubmitting ? 'Sending...' : 'Submit Final Application'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
         </div>
 
         {/* ── STICKY APPLY BUTTON ── */}
-        <div className="border-t bg-white px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-          <button
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3.5 rounded-xl transition-colors text-sm"
-          >
-            Apply Now
-          </button>
-          <p className="text-center text-[11px] text-gray-400 mt-2">
-            You'll be redirected to the company's official application
-          </p>
-        </div>
+        {!showForm && (
+          <div className="border-t bg-white px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-20 sticky bottom-0">
+            <button
+              onClick={handleApplyClick}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold flex items-center justify-center gap-2 py-3.5 rounded-xl transition-transform active:scale-95 text-sm"
+            >
+              {job.applyType === 'easy' ? 'Apply Now (Easy Apply)' : 'Apply on Company Site'}
+            </button>
+            <p className="text-center text-[11px] text-gray-400 mt-2">
+              {job.applyType === 'easy' ? 'Takes less than 1 minute to apply here' : 'You\'ll be redirected to the company\'s official application'}
+            </p>
+          </div>
+        )}
 
       </div>
-
     </div>
   );
 };

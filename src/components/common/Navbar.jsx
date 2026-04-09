@@ -16,7 +16,7 @@ const Navbar = () => {
   const navLinks = [
     { label: 'Jobs', path: '/jobs' },
     { label: 'Companies', path: '/companies' },
-    { label: 'Resources', path: '/interview-prep' },
+    { label: 'About Us', path: '/about' },
   ];
 
   return (

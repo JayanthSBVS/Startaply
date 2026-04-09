@@ -10,6 +10,7 @@ import WhySection from '../components/home/WhySection';
 import InterviewPrep from '../components/home/InterviewPrep';
 import TodaysJobs from '../components/jobs/TodaysJobs';
 import JobAlerts from '../components/home/JobAlerts';
+import FeedbackForm from '../components/home/FeedbackForm';
 import Footer from '../components/common/Footer';
 import CategoryGrid from '../components/home/CategoryGrid';
 import FreshJobs from '../components/jobs/FreshJobs';
@@ -32,6 +33,7 @@ const Home = () => {
       <WhySection />
       <InterviewPrep />
       <JobAlerts />
+      <FeedbackForm />
       <Footer />
 
     </div>

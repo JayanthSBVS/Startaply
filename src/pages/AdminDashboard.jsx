@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard, PlusCircle, Briefcase, Trash2, Edit2,
-  Check, X, ChevronLeft, LogOut, Upload, MessageSquare
+  Check, X, ChevronLeft, LogOut, Upload, MessageSquare, Users, Building2
 } from 'lucide-react';
 import { useJobs } from '../context/JobsContext';
+import { useNavigate } from 'react-router-dom';
 
 const INITIAL_FORM = {
   title: '',
@@ -24,12 +25,21 @@ const INITIAL_FORM = {
   techStack: '',
   aboutCompany: '',
   benefits: '',
+  applyType: 'external',
+  applyUrl: '',
 };
 
 const INITIAL_QNA_FORM = {
   question: '',
   answer: '',
   category: '',
+};
+
+const INITIAL_COMPANY_FORM = {
+  name: '',
+  logo: '',
+  color: '#16a34a',
+  industry: '',
 };
 
 const Field = ({ label, children, required }) => (
@@ -46,15 +56,30 @@ const textareaCls = `${inputCls} resize-none`;
 const selectCls = `${inputCls} cursor-pointer`;
 
 const AdminDashboard = () => {
-  const { jobs, addJob, deleteJob, updateJob, qnas, addQna, deleteQna, updateQna } = useJobs();
+  const { jobs, addJob, deleteJob, updateJob, qnas, addQna, deleteQna, updateQna, companies, addCompany, deleteCompany, feedbacks, deleteFeedback } = useJobs();
   const [activeTab, setActiveTab] = useState('add');
   const [form, setForm] = useState(INITIAL_FORM);
   const [qnaForm, setQnaForm] = useState(INITIAL_QNA_FORM);
+  const [companyForm, setCompanyForm] = useState(INITIAL_COMPANY_FORM);
   const [successMsg, setSuccessMsg] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editingQnaId, setEditingQnaId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleteQnaConfirm, setDeleteQnaConfirm] = useState(null);
+  const [deleteCompanyConfirm, setDeleteCompanyConfirm] = useState(null);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin-login');
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    navigate('/admin-login');
+  };
 
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -110,6 +135,8 @@ const AdminDashboard = () => {
       techStack: Array.isArray(job.techStack) ? job.techStack.join(', ') : (job.techStack || ''),
       aboutCompany: job.aboutCompany || '',
       benefits: Array.isArray(job.benefits) ? job.benefits.join(', ') : (job.benefits || ''),
+      applyType: job.applyType || 'external',
+      applyUrl: job.applyUrl || '',
     });
     setEditingId(job.id);
     setActiveTab('add');
@@ -161,12 +188,56 @@ const AdminDashboard = () => {
     setTimeout(() => setSuccessMsg(''), 2000);
   };
 
+  const handleCompanyChange = (key, value) => {
+    setCompanyForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleCompanyLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => handleCompanyChange('logo', ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleCompanySubmit = () => {
+    if (!companyForm.name) {
+      alert('Please fill in Company Name');
+      return;
+    }
+    addCompany(companyForm);
+    setSuccessMsg('Company added successfully!');
+    setCompanyForm(INITIAL_COMPANY_FORM);
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
+  const handleCompanyDelete = (id) => {
+    deleteCompany(id);
+    setDeleteCompanyConfirm(null);
+    setSuccessMsg('Company deleted.');
+    setTimeout(() => setSuccessMsg(''), 2000);
+  };
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'add', label: 'Add Job', icon: PlusCircle },
     { id: 'manage', label: 'Manage Jobs', icon: Briefcase },
+    { id: 'applications', label: 'Manage Apps', icon: Users },
+    { id: 'companies', label: 'Manage Companies', icon: Building2 },
     { id: 'qna', label: 'Manage Q&A', icon: MessageSquare },
+    { id: 'feedback', label: 'Manage Feedback', icon: MessageSquare },
   ];
+
+  const [applications, setApplications] = useState([]);
+  
+  React.useEffect(() => {
+    if (activeTab === 'applications') {
+      fetch('http://localhost:5000/api/jobs/applications/all')
+        .then(res => res.json())
+        .then(data => setApplications(data))
+        .catch(console.error);
+    }
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-slate-900 flex text-white relative">
@@ -243,7 +314,7 @@ const AdminDashboard = () => {
             </button>
             <div>
               <h1 className="text-sm md:text-base font-bold text-white flex items-center gap-2">
-                {activeTab === 'add' ? (editingId ? 'Edit Job' : 'Add New Job') : activeTab === 'manage' ? 'Manage Jobs' : activeTab === 'qna' ? 'Manage Q&A' : 'Dashboard'}
+                {activeTab === 'add' ? (editingId ? 'Edit Job' : 'Add New Job') : activeTab === 'manage' ? 'Manage Jobs' : activeTab === 'qna' ? 'Manage Q&A' : activeTab === 'applications' ? 'Manage Applications' : activeTab === 'companies' ? 'Manage Companies' : activeTab === 'feedback' ? 'Manage Feedback' : 'Dashboard'}
               </h1>
               <p className="hidden md:block text-xs text-slate-400 mt-0.5">
                 {jobs.length} active job{jobs.length !== 1 ? 's' : ''} in system
@@ -258,7 +329,7 @@ const AdminDashboard = () => {
                 {successMsg}
               </div>
             )}
-            <button className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white" onClick={() => window.location.href = '/'}>
+            <button className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white" onClick={handleLogout}>
               <LogOut size={16} className="text-red-400" />
               <span className="hidden sm:block">Logout</span>
             </button>
@@ -370,10 +441,11 @@ const AdminDashboard = () => {
                     <Field label="Job Category" required>
                       <select className={selectCls} value={form.jobCategory} onChange={(e) => handleChange('jobCategory', e.target.value)}>
                         <option value="">Select Category</option>
-                        <option>IT Job</option>
-                        <option>Non-IT Job</option>
-                        <option>Government Job</option>
-                        <option>Internship</option>
+                        <option>IT & Software Jobs</option>
+                        <option>Non-IT Jobs</option>
+                        <option>Government Jobs</option>
+                        <option>Warehouse & Logistics</option>
+                        <option>Gig & Flexible Work</option>
                       </select>
                     </Field>
                     <Field label="Employment Type">
@@ -483,10 +555,36 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Section: Expiry */}
+                {/* Section: Application Settings */}
                 <div>
                   <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
                     <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">7</span>
+                    Application Configurations
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+                    <Field label="Application Type" required>
+                      <select className={selectCls} value={form.applyType} onChange={(e) => handleChange('applyType', e.target.value)}>
+                        <option value="external">External Link (Redirect)</option>
+                        <option value="easy">Easy Apply (In-App Form)</option>
+                      </select>
+                    </Field>
+                    {form.applyType !== 'easy' && (
+                      <Field label="External Apply Link">
+                        <input type="url" className={inputCls} placeholder="https://..." value={form.applyUrl} onChange={(e) => handleChange('applyUrl', e.target.value)} />
+                      </Field>
+                    )}
+                  </div>
+                  {form.applyType === 'easy' && (
+                    <div className="text-xs text-slate-400 mb-5 p-3 rounded bg-green-900/20 border border-green-800">
+                      <strong>Note:</strong> Since Easy Apply is selected, users will see a form on the job page to submit their name, email, phone, and resume directly to your database. You can view them in the 'Manage Apps' tab.
+                    </div>
+                  )}
+                </div>
+
+                {/* Section: Expiry */}
+                <div>
+                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">8</span>
                     Listing Settings
                   </h2>
                   <div className="max-w-xs">
@@ -569,9 +667,21 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-slate-700/50 pt-3 sm:pt-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-3 sm:gap-6 border-t sm:border-t-0 border-slate-700/50 pt-3 sm:pt-0">
+                      {/* Analytics */}
+                      <div className="flex gap-4">
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Views</p>
+                          <p className="text-xs text-blue-400 font-bold bg-blue-900/20 px-2 py-0.5 rounded flex items-center justify-center mt-0.5">👁 {job.views || 0}</p>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Applies</p>
+                          <p className="text-xs text-green-400 font-bold bg-green-900/20 px-2 py-0.5 rounded flex items-center justify-center mt-0.5">📝 {job.applicationCount || 0}</p>
+                        </div>
+                      </div>
+
                       {/* Expiry */}
-                      <div className="text-left sm:text-right">
+                      <div className="text-left sm:text-right border-l border-slate-700/50 pl-2 sm:pl-4">
                         <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Expires</p>
                         <p className="text-[10px] md:text-xs text-slate-300 font-medium whitespace-nowrap">
                           {job.expiryDate ? new Date(job.expiryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
@@ -616,6 +726,164 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── MANAGE APPLICATIONS ── */}
+          {activeTab === 'applications' && (
+            <div className="space-y-4">
+              <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                  <h3 className="text-sm font-bold text-white">Submitted Easy Applications</h3>
+                </div>
+                <div className="divide-y divide-slate-700/50">
+                  {applications.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400 text-xs">No applications submitted yet.</div>
+                  ) : (
+                    applications.map((app) => (
+                      <div key={app.id} className="p-4 md:p-5 hover:bg-slate-700/30 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-white font-bold text-sm mb-1">{app.name}</h4>
+                          <p className="text-slate-400 text-xs mb-1">
+                            {app.email} • {app.phone}
+                          </p>
+                          <p className="text-slate-500 text-[10px]">
+                            Applied to job ID: {app.jobId} on {new Date(app.appliedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 sm:w-32">
+                          {app.resume && (
+                            <a
+                              href={app.resume}
+                              download={`Resume_${app.name.replace(/\s+/g, '_')}`}
+                              className="w-full flex items-center justify-center gap-1.5 text-[10px] md:text-xs bg-green-600 hover:bg-green-500 text-white font-medium px-3 py-2.5 rounded-lg transition-colors border border-green-500"
+                            >
+                              Download Resume
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── MANAGE COMPANIES ── */}
+          {activeTab === 'companies' && (
+            <div className="space-y-6 pb-12">
+              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 md:p-8 shadow-sm">
+                <div className="mb-6 border-b border-slate-700 pb-4">
+                  <h2 className="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                    <Building2 className="text-green-500" size={20} />
+                    Add New Company
+                  </h2>
+                </div>
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <Field label="Company Name" required>
+                      <input
+                        type="text"
+                        placeholder="e.g. Google"
+                        value={companyForm.name}
+                        onChange={(e) => handleCompanyChange('name', e.target.value)}
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field label="Industry">
+                      <input
+                        type="text"
+                        placeholder="e.g. Technology"
+                        value={companyForm.industry}
+                        onChange={(e) => handleCompanyChange('industry', e.target.value)}
+                        className={inputCls}
+                      />
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <Field label="Brand Color">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={companyForm.color}
+                          onChange={(e) => handleCompanyChange('color', e.target.value)}
+                          className="w-12 h-10 rounded cursor-pointer border-0 bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={companyForm.color}
+                          onChange={(e) => handleCompanyChange('color', e.target.value)}
+                          className={inputCls}
+                          placeholder="#16a34a"
+                        />
+                      </div>
+                    </Field>
+                    <Field label="Company Logo">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <div className="flex items-center gap-2 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2.5 text-xs text-slate-300 hover:border-green-500 transition">
+                          <Upload size={14} />
+                          {companyForm.logo ? 'Logo uploaded ✓' : 'Upload logo'}
+                        </div>
+                        <input type="file" accept="image/*" onChange={handleCompanyLogoUpload} className="hidden" />
+                        {companyForm.logo && (
+                          <img src={companyForm.logo} alt="logo" className="w-10 h-10 rounded object-contain border border-slate-600 bg-white p-1" />
+                        )}
+                      </label>
+                    </Field>
+                  </div>
+                  <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                    <button
+                      onClick={handleCompanySubmit}
+                      className="w-full sm:w-auto bg-green-600 hover:bg-green-500 text-white font-bold px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Check size={16} />
+                      Save Company
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                  <h3 className="text-sm font-bold text-white">All Companies</h3>
+                </div>
+                <div className="divide-y divide-slate-700/50">
+                  {companies.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400 text-xs">No companies added yet.</div>
+                  ) : (
+                    companies.map((c) => (
+                      <div key={c.id} className="p-4 md:p-5 hover:bg-slate-700/30 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white border border-slate-600" style={{ borderColor: c.color }}>
+                            {c.logo ? (
+                              <img src={c.logo} alt={c.name} className="w-6 h-6 object-contain" />
+                            ) : (
+                              <Building2 size={16} style={{ color: c.color }} />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white mb-0.5">{c.name}</p>
+                            <p className="text-[10px] text-slate-400">{c.industry || 'No industry specified'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-end gap-2">
+                          {deleteCompanyConfirm === c.id ? (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => handleCompanyDelete(c.id)} className="text-[10px] md:text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg transition-colors font-bold">Confirm</button>
+                              <button onClick={() => setDeleteCompanyConfirm(null)} className="text-slate-400 hover:text-white px-1"><X size={14} /></button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setDeleteCompanyConfirm(c.id)} className="flex items-center gap-1.5 text-[10px] md:text-xs bg-red-900/30 hover:bg-red-800/40 text-red-400 px-3 py-2 rounded-lg transition-colors border border-red-900/50">
+                              <Trash2 size={12} /> Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -742,6 +1010,44 @@ const AdminDashboard = () => {
                     ))
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── MANAGE FEEDBACK ── */}
+          {activeTab === 'feedback' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+                <p className="text-xs md:text-sm text-slate-400">
+                  <span className="text-white font-bold">{feedbacks.length}</span> feedback forms
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {feedbacks.length === 0 ? (
+                  <p className="text-slate-400 text-xs">No feedback has been submitted yet.</p>
+                ) : (
+                  feedbacks.map((fb) => (
+                    <div key={fb.id} className="bg-slate-800 border border-slate-700 rounded-xl p-5 relative group">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-white font-bold text-sm">{fb.name}</p>
+                          <p className="text-slate-400 text-xs">{fb.email}</p>
+                        </div>
+                        <p className="text-slate-500 text-[10px]">{new Date(fb.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <p className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
+                        "{fb.message}"
+                      </p>
+                      <button
+                        onClick={() => deleteFeedback(fb.id)}
+                        className="absolute top-4 right-4 bg-red-900/30 text-red-400 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete Feedback"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

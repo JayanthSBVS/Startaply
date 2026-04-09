@@ -69,6 +69,12 @@ const JobCard = ({ job, onViewDetails }) => {
 
       </div>
 
+      {job.description && (
+        <p className="mt-3 text-xs text-gray-500 line-clamp-2 leading-relaxed">
+          {job.description}
+        </p>
+      )}
+
       {/* Tags */}
       {job.tags && job.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
@@ -84,13 +90,17 @@ const JobCard = ({ job, onViewDetails }) => {
 
         <div className="flex gap-2">
 
-          <span className="text-[10px] px-2 py-1 bg-green-50 text-green-600 rounded border border-green-100">
-            {job.mode}
-          </span>
+          {job.mode && (
+            <span className="text-[10px] px-2 py-1 bg-green-50 text-green-600 rounded border border-green-100">
+              {job.mode}
+            </span>
+          )}
 
-          <span className="text-[10px] px-2 py-1 bg-gray-100 text-gray-600 rounded border border-gray-200">
-            {job.type}
-          </span>
+          {job.type && (
+            <span className="text-[10px] px-2 py-1 bg-gray-100 text-gray-600 rounded border border-gray-200">
+              {job.type}
+            </span>
+          )}
 
           {job.hot && (
             <span className="text-[10px] px-2 py-1 bg-orange-50 text-orange-600 rounded border border-orange-100">

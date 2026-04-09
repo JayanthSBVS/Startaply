@@ -5,7 +5,7 @@ import JobDetailsPanel from './JobDetailsPanel';
 
 const FeaturedJobs = () => {
   const { jobs } = useJobs();
-  const featured = jobs.filter((job) => job.featured);
+  const featured = jobs.filter((job) => job.isFeatured || job.featured);
   const [selectedJob, setSelectedJob] = useState(null);
 
   return (

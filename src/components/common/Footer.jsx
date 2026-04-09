@@ -35,9 +35,9 @@ const Footer = () => {
         <div>
           <h4 className="text-white font-semibold mb-4">Connect</h4>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-green-400 transition">Twitter</a></li>
-            <li><a href="#" className="hover:text-green-400 transition">LinkedIn</a></li>
-            <li><a href="#" className="hover:text-green-400 transition">Contact Us</a></li>
+            <li><a href="#" className="hover:text-green-400 transition">WhatsApp</a></li>
+            <li><a href="#" className="hover:text-green-400 transition">Telegram</a></li>
+            <li><a href="#" className="hover:text-green-400 transition">YouTube</a></li>
           </ul>
         </div>
 

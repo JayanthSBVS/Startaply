@@ -63,7 +63,15 @@ const JobsPage = () => {
   useEffect(() => {
     const company = searchParams.get('company');
     if (company) setSearch(company);
-  }, [searchParams]);
+
+    const jobId = searchParams.get('jobId');
+    if (jobId && jobs.length > 0) {
+      const job = jobs.find(j => String(j.id) === jobId);
+      if (job) {
+        setSelectedJob(job);
+      }
+    }
+  }, [searchParams, jobs]);
 
   const filtered = useMemo(() => {
     return jobs.filter((job) => {

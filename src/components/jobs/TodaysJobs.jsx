@@ -4,12 +4,17 @@ import { useJobs } from '../../context/JobsContext';
 import JobCard from './JobCard';
 import JobDetailsPanel from './JobDetailsPanel';
 
+const isToday = (job) => {
+  if (!job.createdAt) return false;
+  return (Date.now() - job.createdAt) < 86400000;
+};
+
 const TAB_OPTIONS = [
-  { label: "Today's Jobs", filter: (jobs) => jobs.slice(0, 6) },
-  { label: 'IT Jobs', filter: (jobs) => jobs.filter((j) => j.jobCategory === 'IT Job').slice(0, 6) },
-  { label: 'Govt Jobs', filter: (jobs) => jobs.filter((j) => j.jobCategory === 'Government Job').slice(0, 6) },
-  { label: 'Internships', filter: (jobs) => jobs.filter((j) => j.jobCategory === 'Internship').slice(0, 6) },
-  { label: 'Remote', filter: (jobs) => jobs.filter((j) => j.mode === 'Remote').slice(0, 6) },
+  { label: "Today's Jobs", filter: (jobs) => jobs.filter(isToday).slice(0, 6) },
+  { label: 'IT Jobs', filter: (jobs) => jobs.filter((j) => j.jobCategory === 'IT Job' || j.jobCategory === 'IT & Software Jobs').slice(0, 6) },
+  { label: 'Govt Jobs', filter: (jobs) => jobs.filter((j) => j.jobCategory === 'Government Job' || j.jobCategory === 'Government Jobs').slice(0, 6) },
+  { label: 'Non-IT Jobs', filter: (jobs) => jobs.filter((j) => j.jobCategory === 'Non-IT Job' || j.jobCategory === 'Non-IT Jobs').slice(0, 6) },
+  { label: 'Featured', filter: (jobs) => jobs.filter((j) => j.isFeatured || j.featured).slice(0, 6) },
 ];
 
 const TodaysJobs = () => {
@@ -29,7 +34,7 @@ const TodaysJobs = () => {
             Browse Jobs
           </h2>
           <Link to="/jobs" className="text-sm text-green-600 font-medium hover:underline self-start sm:self-auto">
-            View all {jobs.length} jobs →
+            view all jobs
           </Link>
         </div>
 
