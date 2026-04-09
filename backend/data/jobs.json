@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1775566018702,
+    "title": "application manager",
+    "company": "google",
+    "location": "bengaluru",
+    "type": "Non-IT Job",
+    "salary": "1234567",
+    "description": "he is an application manager",
+    "skills": "excel sheet and data entry",
+    "techStack": "excel",
+    "aboutCompany": "google is good",
+    "benefits": "many benefits",
+    "expiryDays": "30"
+  }
+]
