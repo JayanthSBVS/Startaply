@@ -15,9 +15,11 @@
 
 /* ===== BASE ===== */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
+  scroll-behavior: smooth;
+}
+
+* {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ===== GLOBAL RHYTHM ===== */
@@ -89,6 +91,7 @@ button:hover {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -132,6 +135,7 @@ html {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -152,7 +156,7 @@ html {
 
 .company-card:hover {
   border-color: #16a34a;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 /* ===== HIDE SCROLLBAR (keep functionality) ===== */
@@ -160,6 +164,7 @@ html {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -173,11 +178,45 @@ html {
   border-radius: 8px;
   font-size: 14px;
   background: white;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .input:focus {
   outline: none;
   border-color: #16a34a;
   box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.12);
+}
+
+/* ===== TICKER SCROLL ===== */
+@keyframes tickerRun {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ===== POPUP ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }

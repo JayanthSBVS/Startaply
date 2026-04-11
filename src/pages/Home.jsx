@@ -1,41 +1,37 @@
-import React, { useState } from 'react';
-
+import React from 'react';
 import Navbar from '../components/common/Navbar';
-import StickySearch from '../components/common/StickySearch';
 import Hero from '../components/home/Hero';
 import StatsStrip from '../components/home/StatsStrip';
-import FeaturedJobs from '../components/jobs/FeaturedJobs';
-import TrendingCompanies from '../components/home/TrendingCompanies';
-import WhySection from '../components/home/WhySection';
-import InterviewPrep from '../components/home/InterviewPrep';
-import TodaysJobs from '../components/jobs/TodaysJobs';
-import JobAlerts from '../components/home/JobAlerts';
-import FeedbackForm from '../components/home/FeedbackForm';
-import Footer from '../components/common/Footer';
 import CategoryGrid from '../components/home/CategoryGrid';
-import FreshJobs from '../components/jobs/FreshJobs';
+import JobMelaTicker from '../components/home/JobMelaTicker'; // New
+import HowItWorks from '../components/home/HowItWorks';
+import FeaturedJobsSection from '../components/jobs/FeaturedJobsSection';
+import TodaysJobsSection from '../components/jobs/TodaysJobsSection';
+import WhySection from '../components/home/WhySection';
+import TrendingCompanies from '../components/home/TrendingCompanies';
+import Footer from '../components/common/Footer';
+import JobMelaPopup from '../components/home/JobMelaPopup'; // New
 
 const Home = () => {
-  const [searchQuery, setSearchQuery] = useState(null);
-
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100">
+      <JobMelaPopup /> {/* Automated Popup */}
       <Navbar />
-      <StickySearch onSearch={setSearchQuery} />
-      <Hero onSearch={setSearchQuery} />
-      <CategoryGrid />
+      <Hero />
       <StatsStrip />
-      <FreshJobs />
-      <FeaturedJobs />
-      <TodaysJobs />
-      <TrendingCompanies />
-      <WhySection />
-      <InterviewPrep />
-      <JobAlerts />
-      <FeedbackForm />
-      <Footer />
+      <CategoryGrid />
+      <JobMelaTicker /> {/* News Reader Section */}
+      <HowItWorks />
 
+      <div className="space-y-0">
+        <TodaysJobsSection />
+        <FeaturedJobsSection />
+        {/* Fixed Visibility */}
+      </div>
+
+      <WhySection />
+      <TrendingCompanies />
+      <Footer />
     </div>
   );
 };

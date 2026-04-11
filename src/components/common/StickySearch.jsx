@@ -15,8 +15,6 @@ const StickySearch = ({ onSearch }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!show) return null;
-
   const handleSearch = () => {
     if (!query.trim()) return;
     navigate(`/jobs?company=${encodeURIComponent(query.trim())}`);
@@ -24,7 +22,9 @@ const StickySearch = ({ onSearch }) => {
 
   return (
     <div
-      className="fixed left-0 right-0 bg-white border-b shadow-sm px-4 py-2"
+      className={`fixed left-0 right-0 bg-white border-b shadow-sm px-4 py-2 transition-all duration-300 ease-in-out ${
+        show ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
+      }`}
       style={{ top: '53px', zIndex: 90 }}
     >
       <div className="max-w-4xl mx-auto flex gap-2">

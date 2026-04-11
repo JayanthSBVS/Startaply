@@ -1,122 +1,66 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Monitor, Building2, TrendingUp, PieChart, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const categories = [
-  { name: 'IT & Software Jobs',      emoji: '💻', color: '#16a34a', bg: '#f0fdf4' },
-  { name: 'Non-IT Jobs',             emoji: '🏢', color: '#16a34a', bg: '#f0fdf4' },
-  { name: 'Government Jobs',         emoji: '🏛️', color: '#16a34a', bg: '#f0fdf4' },
-  { name: 'Warehouse & Logistics',   emoji: '📦', color: '#16a34a', bg: '#f0fdf4' },
-  { name: 'Gig & Flexible Work',     emoji: '⚡', color: '#16a34a', bg: '#f0fdf4' },
-  { name: 'Job Drives',              emoji: '🎯', color: '#16a34a', bg: '#f0fdf4' },
+  { name: 'IT & Software', path: 'IT Jobs', desc: 'Developer, Design & Tech roles', icon: <Monitor size={28} /> },
+  { name: 'Government Jobs', path: 'Government Jobs', desc: 'Central & State govt opportunities', icon: <Building2 size={28} /> },
+  { name: 'Marketing', path: 'Marketing', desc: 'Digital, SEO & Content roles', icon: <TrendingUp size={28} /> },
+  { name: 'Finance', path: 'Finance', desc: 'Accounting & Banking roles', icon: <PieChart size={28} /> },
+  { name: 'Gig Works', path: 'Gig Works', desc: 'Freelance & short-term tasks', icon: <Zap size={28} /> }, // Added Gig works
 ];
 
-const CategoryGrid = ({ onSelect }) => {
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } }
+};
+
+const CategoryGrid = () => {
   const navigate = useNavigate();
 
-  const handleClick = (catName) => {
-    if (onSelect) onSelect(catName);
-    navigate(`/category/${encodeURIComponent(catName)}`);
-  };
-
   return (
-    <section style={{
-      padding: '40px 0',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-      borderTop: '1px solid #e2e8f0',
-      borderBottom: '1px solid #e2e8f0',
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', textAlign: 'center' }}>
-          <div>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: '#0f172a',
-              margin: '0 0 4px 0',
-              letterSpacing: '-0.3px',
-            }}>
-              Explore by Category
-            </h2>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-              Browse jobs across popular industries
-            </p>
-          </div>
+    <section className="py-16 bg-slate-50 border-b border-slate-200">
+      <motion.div
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={containerVariants}
+        className="max-w-7xl mx-auto px-4"
+      >
+        <div className="text-center mb-10">
+          <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
+            Explore Top Categories
+          </motion.h2>
+          <motion.p variants={itemVariants} className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Find the right opportunities based on your specific career path.
+          </motion.p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {categories.map((c) => (
-            <div
-              key={c.name}
-              onClick={() => handleClick(c.name)}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #e8edf3',
-                borderRadius: '12px',
-                padding: '16px 12px',
-                cursor: 'pointer',
-                transition: 'all 0.22s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: '12px',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = `0 8px 24px ${c.color}22`;
-                e.currentTarget.style.borderColor = c.color + '55';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = '#e8edf3';
-              }}
+        {/* Adjusted to 5 columns on desktop to fit Gig Works */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {categories.map((cat) => (
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ y: -6 }}
+              key={cat.name}
+              onClick={() => navigate(`/category/${encodeURIComponent(cat.path)}`)}
+              className="cursor-pointer bg-white p-6 border border-slate-200 rounded-2xl hover:shadow-xl hover:border-emerald-400 hover:ring-1 hover:ring-emerald-400 transition-all group"
             >
-
-
-              {/* Icon Badge */}
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: c.bg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '20px',
-              }}>
-                {c.emoji}
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                {cat.icon}
               </div>
-
-              {/* Text */}
-              <div>
-                <p style={{
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  color: '#1e293b',
-                  margin: '0 0 3px 0',
-                  lineHeight: '1.3',
-                }}>
-                  {c.name}
-                </p>
-                <p style={{
-                  fontSize: '11px',
-                  color: c.color,
-                  margin: 0,
-                  fontWeight: '500',
-                }}>
-                  Explore →
-                </p>
-              </div>
-            </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">{cat.name}</h3>
+              <p className="text-sm font-medium text-slate-500">{cat.desc}</p>
+            </motion.div>
           ))}
         </div>
-
-      </div>
+      </motion.div>
     </section>
   );
 };

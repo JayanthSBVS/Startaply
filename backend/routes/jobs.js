@@ -1,11 +1,7 @@
 const express = require('express');
-const { Pool } = require('pg');
+const pool = require('../db');
 
 const router = express.Router();
-
-const pool = new Pool({
-  connectionString: 'postgresql://neondb_owner:npg_owA9tSVB4KCy@ep-restless-unit-annaio5u-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
-});
 
 // Initialize table
 async function initDb() {
@@ -64,9 +60,10 @@ async function initDb() {
     await pool.query(query1);
     await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applyType TEXT DEFAULT \'external\'');
     await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0');
+    await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE');
     await pool.query(query2);
     await pool.query(query3);
-    
+
     // Seed default admin
     await pool.query(`
       INSERT INTO admins (email, password) 
@@ -118,6 +115,7 @@ function normalizeJob(body, existing = null) {
     expiryDays: Number(body.expiryDays || 0),
 
     isFeatured: normalizeBoolean(body.isFeatured),
+    isFresh: normalizeBoolean(body.isFresh),
     isTrending: normalizeBoolean(body.isTrending),
     isToday: normalizeBoolean(body.isToday),
     isVisible: body.isVisible === undefined ? true : normalizeBoolean(body.isVisible),
@@ -150,11 +148,14 @@ function mapRow(row) {
     applyType: row.applytype || 'external',
     expiryDays: Number(row.expirydays || 0),
     isFeatured: row.isfeatured,
+    isFresh: row.isfresh,
     isTrending: row.istrending,
     isToday: row.istoday,
     isVisible: row.isvisible,
     views: Number(row.views || 0),
     applicationCount: Number(row.applicationcount || 0),
+    jobCategory: row.category,
+    mode: row.workmode,
   };
 }
 
@@ -164,16 +165,16 @@ router.get('/', async (req, res) => {
       SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount 
       FROM jobs j
     `);
-    
+
     const now = Date.now();
     let cleaned = [];
     let deleteIds = [];
-    
+
     for (const row of rows) {
       const job = mapRow(row);
       const expiryDays = job.expiryDays;
       const createdAt = job.createdAt;
-      
+
       let expired = false;
       if (expiryDays && createdAt) {
         const expiryTime = createdAt + expiryDays * 24 * 60 * 60 * 1000;
@@ -181,7 +182,7 @@ router.get('/', async (req, res) => {
           expired = true;
         }
       }
-      
+
       if (expired) {
         deleteIds.push(job.id);
       } else {
@@ -192,7 +193,7 @@ router.get('/', async (req, res) => {
     if (deleteIds.length > 0) {
       await pool.query('DELETE FROM jobs WHERE id = ANY($1::varchar[])', [deleteIds]);
     }
-    
+
     cleaned.sort((a, b) => b.createdAt - a.createdAt);
 
     res.json(cleaned);
@@ -208,35 +209,42 @@ router.post('/', async (req, res) => {
 
     const query = `
       INSERT INTO jobs (
-        id, createdAt, updatedAt, title, subtitle, description, requiredSkills, techStack,
-        aboutCompany, benefits, company, companyLogo, location, workMode, qualification,
-        experience, salary, type, category, monthTag, applyUrl, applyType, expiryDays,
-        isFeatured, isTrending, isToday, isVisible
+        id, createdAt, updatedAt, title, subtitle, description,
+        requiredSkills, techStack, aboutCompany, benefits,
+        company, companyLogo, location, workMode, qualification,
+        experience, salary, type, category, monthTag,
+        applyUrl, applyType, expiryDays,
+        isFeatured, isFresh, isTrending, isToday, isVisible
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 
-        $19, $20, $21, $22, $23, $24, $25, $26, $27
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20,
+        $21, $22, $23,
+        $24, $25, $26, $27, $28
       ) RETURNING *
     `;
     const values = [
       newJob.id, newJob.createdAt, newJob.updatedAt, newJob.title, newJob.subtitle, newJob.description,
-      newJob.requiredSkills, newJob.techStack, newJob.aboutCompany, newJob.benefits, newJob.company,
-      newJob.companyLogo, newJob.location, newJob.workMode, newJob.qualification, newJob.experience,
-      newJob.salary, newJob.type, newJob.category, newJob.monthTag, newJob.applyUrl, newJob.applyType, newJob.expiryDays,
-      newJob.isFeatured, newJob.isTrending, newJob.isToday, newJob.isVisible
+      newJob.requiredSkills, newJob.techStack, newJob.aboutCompany, newJob.benefits,
+      newJob.company, newJob.companyLogo, newJob.location, newJob.workMode, newJob.qualification,
+      newJob.experience, newJob.salary, newJob.type, newJob.category, newJob.monthTag,
+      newJob.applyUrl, newJob.applyType, newJob.expiryDays,
+      newJob.isFeatured, newJob.isFresh, newJob.isTrending, newJob.isToday, newJob.isVisible
     ];
 
     const { rows } = await pool.query(query, values);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('POST /jobs error:', err);
+    res.status(500).json({ message: 'Server error', detail: err.message });
   }
 });
+
 
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const { rows: existingRows } = await pool.query('SELECT * FROM jobs WHERE id = $1', [id]);
     if (existingRows.length === 0) {
       return res.status(404).json({ message: 'Job not found' });
@@ -251,16 +259,16 @@ router.put('/:id', async (req, res) => {
         techStack = $6, aboutCompany = $7, benefits = $8, company = $9, companyLogo = $10,
         location = $11, workMode = $12, qualification = $13, experience = $14, salary = $15,
         type = $16, category = $17, monthTag = $18, applyUrl = $19, applyType = $20, expiryDays = $21,
-        isFeatured = $22, isTrending = $23, isToday = $24, isVisible = $25
-      WHERE id = $26 RETURNING *
+        isFeatured = $22, isFresh = $23, isTrending = $24, isToday = $25, isVisible = $26
+      WHERE id = $27 RETURNING *
     `;
-    
+
     const values = [
       updatedJob.updatedAt, updatedJob.title, updatedJob.subtitle, updatedJob.description, updatedJob.requiredSkills,
       updatedJob.techStack, updatedJob.aboutCompany, updatedJob.benefits, updatedJob.company, updatedJob.companyLogo,
       updatedJob.location, updatedJob.workMode, updatedJob.qualification, updatedJob.experience, updatedJob.salary,
       updatedJob.type, updatedJob.category, updatedJob.monthTag, updatedJob.applyUrl, updatedJob.applyType, updatedJob.expiryDays,
-      updatedJob.isFeatured, updatedJob.isTrending, updatedJob.isToday, updatedJob.isVisible, id
+      updatedJob.isFeatured, updatedJob.isFresh, updatedJob.isTrending, updatedJob.isToday, updatedJob.isVisible, id
     ];
 
     const { rows: updatedRows } = await pool.query(query, values);
@@ -301,8 +309,8 @@ router.post('/:id/apply', async (req, res) => {
   try {
     const { id: jobId } = req.params;
     const { name, email, phone, resume } = req.body;
-    
-    if (!name || !email || !resume) {
+
+    if (!name || !email) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 

@@ -47,6 +47,7 @@ export default {
           from: { opacity: 0 },
           to: { opacity: 1 },
         },
+        shimmer: { '100%': { transform: 'translateX(100%)' } }
       },
       backdropBlur: {
         xs: '2px',

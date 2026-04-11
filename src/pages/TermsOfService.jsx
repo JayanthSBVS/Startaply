@@ -4,54 +4,56 @@ import Footer from '../components/common/Footer';
 
 const TermsOfService = () => {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <Navbar />
 
-      <div className="bg-slate-800 border-b border-slate-700 pt-32 pb-12">
+      <div className="bg-slate-900 border-b border-slate-800 pt-32 pb-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
-            Terms of Service
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+            Terms of <span className="text-emerald-400">Service</span>
           </h1>
-          <p className="text-slate-400 mt-4">Last updated: {new Date().toLocaleDateString()}</p>
+          <p className="text-slate-400 mt-6 font-medium">Last updated: {new Date().toLocaleDateString()}</p>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-16 prose prose-invert prose-green prose-sm sm:prose-base">
-        <p className="text-lg text-slate-300 leading-relaxed mb-8">
-          Welcome to Strataply. By accessing our centralized job discovery and application platform, you agree to these Terms of Service. Our mission is to provide you with clear, reliable job updates and help you apply easily.
-        </p>
+      <div className="max-w-3xl mx-auto px-4 py-20">
+        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-200">
+          <p className="text-lg text-slate-600 leading-relaxed mb-10 font-medium">
+            Welcome to Strataply. By accessing our centralized job discovery and application platform, you agree to these Terms of Service. Our mission is to provide you with clear, reliable job updates and help you apply easily.
+          </p>
 
-        <h3 className="font-bold text-2xl text-white mt-10 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          1. Use of the Site
-        </h3>
-        <p className="text-slate-400 leading-relaxed mb-6">
-          The Site is intended for users who are seeking employment opportunities, aiming to reduce the effort required in job searching. You agree to use the Site in accordance with all applicable laws and regulations, and to not use the site for any fraudulent job applications.
-        </p>
+          <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">1</span>
+            Use of the Site
+          </h3>
+          <p className="text-slate-600 leading-relaxed mb-6 font-medium">
+            The Site is intended for users who are seeking employment opportunities, aiming to reduce the effort required in job searching. You agree to use the Site in accordance with all applicable laws and regulations, and to not use the site for any fraudulent job applications.
+          </p>
 
-        <h3 className="font-bold text-2xl text-white mt-10 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          2. User Accounts & Information
-        </h3>
-        <p className="text-slate-400 leading-relaxed mb-6">
-          When you use our Easy Apply features, you must provide information that is accurate, complete, and current. Fake or outdated information creates confusion, which goes against our core vision of a trusted platform.
-        </p>
+          <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">2</span>
+            User Accounts & Information
+          </h3>
+          <p className="text-slate-600 leading-relaxed mb-6 font-medium">
+            When you use our Easy Apply features, you must provide information that is accurate, complete, and current. Fake or outdated information creates confusion, which goes against our core vision of a trusted platform.
+          </p>
 
-        <h3 className="font-bold text-2xl text-white mt-10 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          3. Intellectual Property
-        </h3>
-        <p className="text-slate-400 leading-relaxed mb-6">
-          The Site and its original content, features, and functionality are owned by Strataply and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
-        </p>
+          <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">3</span>
+            Intellectual Property
+          </h3>
+          <p className="text-slate-600 leading-relaxed mb-6 font-medium">
+            The Site and its original content, features, and functionality are owned by Strataply and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
+          </p>
 
-        <h3 className="font-bold text-2xl text-white mt-10 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          4. Disclaimers
-        </h3>
-        <p className="text-slate-400 leading-relaxed">
-          While we strive to eliminate fake or outdated job postings by providing real-time updates in one place, we do not guarantee that any employer will ask for your resume, ask you to interview, or hire you. We aim to help you grow your career, but your success depends on various external factors.
-        </p>
+          <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">4</span>
+            Disclaimers
+          </h3>
+          <p className="text-slate-600 leading-relaxed font-medium">
+            While we strive to eliminate fake or outdated job postings by providing real-time updates in one place, we do not guarantee that any employer will ask for your resume, ask you to interview, or hire you. We aim to help you grow your career, but your success depends on various external factors.
+          </p>
+        </div>
       </div>
 
       <Footer />

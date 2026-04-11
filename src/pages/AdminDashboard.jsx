@@ -1,728 +1,340 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   LayoutDashboard, PlusCircle, Briefcase, Trash2, Edit2,
-  Check, X, ChevronLeft, LogOut, Upload, MessageSquare, Users, Building2
+  Check, X, ChevronLeft, LogOut, Upload, MessageSquare, Users, Building2,
+  Megaphone, Calendar, MapPin, Download, Star, Zap, Clock, Search
 } from 'lucide-react';
-import { useJobs } from '../context/JobsContext';
 import { useNavigate } from 'react-router-dom';
 
-const INITIAL_FORM = {
-  title: '',
-  company: '',
-  companyColor: '#16a34a',
-  companyLogo: null,
-  location: '',
-  salary: '',
-  jobCategory: '',
-  type: '',
-  mode: '',
-  experience: '',
-  qualification: '',
-  expiryDays: '30',
-  description: '',
-  fullDescription: '',
-  requiredSkills: '',
-  techStack: '',
-  aboutCompany: '',
-  benefits: '',
-  applyType: 'external',
-  applyUrl: '',
-};
-
-const INITIAL_QNA_FORM = {
-  question: '',
-  answer: '',
-  category: '',
-};
-
-const INITIAL_COMPANY_FORM = {
-  name: '',
-  logo: '',
-  color: '#16a34a',
-  industry: '',
-};
-
-const Field = ({ label, children, required }) => (
-  <div>
-    <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-      {label} {required && <span className="text-red-400">*</span>}
-    </label>
-    {children}
-  </div>
-);
-
-const inputCls = "w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition";
-const textareaCls = `${inputCls} resize-none`;
-const selectCls = `${inputCls} cursor-pointer`;
+const inputCls = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none transition";
+const selectCls = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white cursor-pointer focus:ring-2 focus:ring-emerald-500 outline-none transition";
+const textareaCls = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none";
 
 const AdminDashboard = () => {
-  const { jobs, addJob, deleteJob, updateJob, qnas, addQna, deleteQna, updateQna, companies, addCompany, deleteCompany, feedbacks, deleteFeedback } = useJobs();
-  const [activeTab, setActiveTab] = useState('add');
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [qnaForm, setQnaForm] = useState(INITIAL_QNA_FORM);
-  const [companyForm, setCompanyForm] = useState(INITIAL_COMPANY_FORM);
-  const [successMsg, setSuccessMsg] = useState('');
-  const [editingId, setEditingId] = useState(null);
-  const [editingQnaId, setEditingQnaId] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [deleteQnaConfirm, setDeleteQnaConfirm] = useState(null);
-  const [deleteCompanyConfirm, setDeleteCompanyConfirm] = useState(null);
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
-  React.useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin-login');
-    }
+  // Core Data States
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [melas, setMelas] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  // Form States
+  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30 });
+  const [editingJobId, setEditingJobId] = useState(null);
+  const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '' });
+  const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true });
+  const [appSearch, setAppSearch] = useState('');
+
+  const fetchData = async () => {
+    try {
+      const [jobsRes, appsRes, compRes, melaRes, fbRes] = await Promise.all([
+        axios.get('http://localhost:5000/api/jobs'),
+        axios.get('http://localhost:5000/api/jobs/applications/all'),
+        axios.get('http://localhost:5000/api/companies'),
+        axios.get('http://localhost:5000/api/job-mela'),
+        axios.get('http://localhost:5000/api/feedback')
+      ]);
+      setJobs(jobsRes.data);
+      setApplications(appsRes.data);
+      setCompanies(compRes.data);
+      setMelas(melaRes.data);
+      setFeedbacks(fbRes.data);
+    } catch (err) { console.error("Sync Error:", err); }
+  };
+
+  useEffect(() => {
+    if (!localStorage.getItem('adminToken')) navigate('/admin-login');
+    fetchData();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    navigate('/admin-login');
+  const showMsg = (msg) => { setSuccessMsg(msg); setTimeout(() => setSuccessMsg(''), 3000); };
+
+  // --- OPTIMISTIC TOGGLE LOGIC ---
+  const handleToggle = (job, field) => {
+    const updatedJob = { ...job, [field]: !job[field] };
+    setJobs(prev => prev.map(j => j.id === job.id ? updatedJob : j));
+    axios.put(`http://localhost:5000/api/jobs/${job.id}`, updatedJob).catch(() => {
+      setJobs(prev => prev.map(j => j.id === job.id ? job : j));
+      alert("Database sync failed.");
+    });
   };
 
-  const handleChange = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  // --- JOB MANAGEMENT ---
+  const handleJobSubmit = async () => {
+    try {
+      if (editingJobId) {
+        await axios.put(`http://localhost:5000/api/jobs/${editingJobId}`, jobForm);
+        showMsg('Job Updated');
+      } else {
+        await axios.post('http://localhost:5000/api/jobs', jobForm);
+        showMsg('Job Published');
+      }
+      setJobForm({ applyType: 'external', expiryDays: 30 }); setEditingJobId(null); setActiveTab('manage'); fetchData();
+    } catch (err) { alert('Error saving job data'); }
   };
 
-  const handleLogoUpload = (e) => {
+  const handleJobDelete = async (id) => {
+    if (!window.confirm('Permanently delete this job?')) return;
+    await axios.delete(`http://localhost:5000/api/jobs/${id}`);
+    fetchData(); showMsg('Job Removed');
+  };
+
+  // --- MEDIA HANDLERS ---
+  const handleFileUpload = (e, formType, field) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => handleChange('companyLogo', ev.target.result);
+    reader.onload = (ev) => {
+      if (formType === 'job') setJobForm({ ...jobForm, [field]: ev.target.result });
+      if (formType === 'company') setCompanyForm({ ...companyForm, [field]: ev.target.result });
+      if (formType === 'mela') setMelaForm({ ...melaForm, [field]: ev.target.result });
+    };
     reader.readAsDataURL(file);
-  };
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const handleSubmit = () => {
-    if (!form.title || !form.company || !form.jobCategory) {
-      alert('Please fill in required fields: Job Title, Company, and Job Category');
-      return;
-    }
-
-    if (editingId) {
-      updateJob(editingId, form);
-      setSuccessMsg('Job updated successfully!');
-      setEditingId(null);
-    } else {
-      addJob(form);
-      setSuccessMsg('Job added successfully!');
-    }
-
-    setForm(INITIAL_FORM);
-    setTimeout(() => setSuccessMsg(''), 3000);
-    setActiveTab('manage');
-  };
-
-  const handleEdit = (job) => {
-    setForm({
-      title: job.title || '',
-      company: job.company || '',
-      companyColor: job.companyColor || '#16a34a',
-      companyLogo: job.companyLogo || null,
-      location: job.location || '',
-      salary: job.salary || '',
-      jobCategory: job.jobCategory || '',
-      type: job.type || '',
-      mode: job.mode || '',
-      experience: job.experience || '',
-      qualification: job.qualification || '',
-      expiryDays: job.expiryDays?.toString() || '30',
-      description: job.description || '',
-      fullDescription: job.fullDescription || '',
-      requiredSkills: Array.isArray(job.requiredSkills) ? job.requiredSkills.join(', ') : (job.requiredSkills || ''),
-      techStack: Array.isArray(job.techStack) ? job.techStack.join(', ') : (job.techStack || ''),
-      aboutCompany: job.aboutCompany || '',
-      benefits: Array.isArray(job.benefits) ? job.benefits.join(', ') : (job.benefits || ''),
-      applyType: job.applyType || 'external',
-      applyUrl: job.applyUrl || '',
-    });
-    setEditingId(job.id);
-    setActiveTab('add');
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleDelete = (id) => {
-    deleteJob(id);
-    setDeleteConfirm(null);
-    setSuccessMsg('Job deleted.');
-    setTimeout(() => setSuccessMsg(''), 2000);
-  };
-
-  const handleQnaChange = (key, value) => {
-    setQnaForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleQnaSubmit = () => {
-    if (!qnaForm.question || !qnaForm.answer || !qnaForm.category) {
-      alert('Please fill in required fields: Question, Answer, and Category');
-      return;
-    }
-    if (editingQnaId) {
-      updateQna(editingQnaId, qnaForm);
-      setSuccessMsg('Q&A updated successfully!');
-      setEditingQnaId(null);
-    } else {
-      addQna(qnaForm);
-      setSuccessMsg('Q&A added successfully!');
-    }
-    setQnaForm(INITIAL_QNA_FORM);
-    setTimeout(() => setSuccessMsg(''), 3000);
-  };
-
-  const handleQnaEdit = (qna) => {
-    setQnaForm({
-      question: qna.question,
-      answer: qna.answer,
-      category: qna.category,
-    });
-    setEditingQnaId(qna.id);
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleQnaDelete = (id) => {
-    deleteQna(id);
-    setDeleteQnaConfirm(null);
-    setSuccessMsg('Q&A deleted.');
-    setTimeout(() => setSuccessMsg(''), 2000);
-  };
-
-  const handleCompanyChange = (key, value) => {
-    setCompanyForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleCompanyLogoUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => handleCompanyChange('logo', ev.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleCompanySubmit = () => {
-    if (!companyForm.name) {
-      alert('Please fill in Company Name');
-      return;
-    }
-    addCompany(companyForm);
-    setSuccessMsg('Company added successfully!');
-    setCompanyForm(INITIAL_COMPANY_FORM);
-    setTimeout(() => setSuccessMsg(''), 3000);
-  };
-
-  const handleCompanyDelete = (id) => {
-    deleteCompany(id);
-    setDeleteCompanyConfirm(null);
-    setSuccessMsg('Company deleted.');
-    setTimeout(() => setSuccessMsg(''), 2000);
   };
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'add', label: 'Add Job', icon: PlusCircle },
-    { id: 'manage', label: 'Manage Jobs', icon: Briefcase },
-    { id: 'applications', label: 'Manage Apps', icon: Users },
-    { id: 'companies', label: 'Manage Companies', icon: Building2 },
-    { id: 'qna', label: 'Manage Q&A', icon: MessageSquare },
-    { id: 'feedback', label: 'Manage Feedback', icon: MessageSquare },
+    { id: 'dashboard', label: 'Analytics', icon: LayoutDashboard },
+    { id: 'add', label: 'Post Job', icon: PlusCircle },
+    { id: 'manage', label: 'Jobs List', icon: Briefcase },
+    { id: 'applications', label: 'Applicants', icon: Users },
+    { id: 'companies', label: 'Companies', icon: Building2 },
+    { id: 'jobmela', label: 'Job Mela', icon: Megaphone },
+    { id: 'feedback', label: 'Feedback', icon: MessageSquare },
   ];
 
-  const [applications, setApplications] = useState([]);
-  
-  React.useEffect(() => {
-    if (activeTab === 'applications') {
-      fetch('http://localhost:5000/api/jobs/applications/all')
-        .then(res => res.json())
-        .then(data => setApplications(data))
-        .catch(console.error);
-    }
-  }, [activeTab]);
-
   return (
-    <div className="min-h-screen bg-slate-900 flex text-white relative">
-
-      {/* ── MOBILE OVERLAY ── */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* ── SIDEBAR ── */}
-      <div className={`
-        fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-800 border-r border-slate-700 flex flex-col flex-shrink-0 z-[150] transition-transform duration-300 md:translate-x-0
-        ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
-      `}>
-
-        {/* Logo */}
-        <div className="px-6 py-5 border-b border-slate-700 flex items-center justify-between">
-          <div>
-            <p className="text-lg font-black tracking-tight">
-              STRATA<span className="text-green-400">PLY</span>
-            </p>
-            <p className="text-xs text-slate-400 mt-0.5">Admin Panel</p>
-          </div>
-          <button className="md:hidden text-slate-400" onClick={() => setIsMobileMenuOpen(false)}>
-            <X size={20} />
-          </button>
+    <div className="min-h-screen bg-slate-950 flex text-white font-sans">
+      {/* SIDEBAR */}
+      <div className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-[100] transition-transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+          <h2 className="text-xl font-black tracking-tighter">STRATA<span className="text-emerald-500">ADMIN</span></h2>
+          <button className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
         </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => { setActiveTab(id); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === id
-                  ? 'bg-green-600 text-white'
-                  : 'text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              <Icon size={16} />
-              {label}
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+          {navItems.map(item => (
+            <button key={item.id} onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === item.id ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+              <item.icon size={18} /> {item.label}
             </button>
           ))}
         </nav>
-
-        {/* Footer */}
-        <div className="px-4 py-4 border-t border-slate-700">
-          <a
-            href="/"
-            className="flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors"
-          >
-            <ChevronLeft size={14} />
-            Back to Website
-          </a>
+        <div className="p-4 border-t border-slate-800">
+          <button onClick={() => { localStorage.removeItem('adminToken'); navigate('/admin-login'); }} className="flex items-center gap-2 text-red-400 text-sm font-bold w-full p-3 hover:bg-red-950/20 rounded-xl transition-colors"><LogOut size={16} /> Sign Out</button>
         </div>
       </div>
 
-      {/* ── MAIN CONTENT ── */}
-      <div className="flex-1 overflow-y-auto">
-
-        {/* Top bar (Desktop & Mobile) */}
-        <div className="bg-slate-800 border-b border-slate-700 px-4 md:px-8 py-3.5 md:py-4 flex justify-between items-center sticky top-0 z-[130]">
-          <div className="flex items-center gap-3">
-            {/* Hamburger Toggle */}
-            <button 
-              className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white"
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <LayoutDashboard size={20} />
-            </button>
-            <div>
-              <h1 className="text-sm md:text-base font-bold text-white flex items-center gap-2">
-                {activeTab === 'add' ? (editingId ? 'Edit Job' : 'Add New Job') : activeTab === 'manage' ? 'Manage Jobs' : activeTab === 'qna' ? 'Manage Q&A' : activeTab === 'applications' ? 'Manage Applications' : activeTab === 'companies' ? 'Manage Companies' : activeTab === 'feedback' ? 'Manage Feedback' : 'Dashboard'}
-              </h1>
-              <p className="hidden md:block text-xs text-slate-400 mt-0.5">
-                {jobs.length} active job{jobs.length !== 1 ? 's' : ''} in system
-              </p>
-            </div>
+      {/* MAIN VIEW */}
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.05),transparent)]">
+        <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 p-4 md:px-8 flex justify-between items-center sticky top-0 z-50">
+          <div className="flex items-center gap-4">
+            <button className="md:hidden text-slate-400" onClick={() => setIsMobileMenuOpen(true)}><LayoutDashboard size={24} /></button>
+            <h1 className="text-xl font-black uppercase tracking-tight">{activeTab}</h1>
           </div>
+          {successMsg && <span className="bg-emerald-500 text-white px-4 py-1.5 rounded-full text-xs font-black animate-bounce shadow-lg shadow-emerald-500/40">{successMsg}</span>}
+        </header>
 
-          <div className="flex items-center gap-3">
-            {successMsg && (
-              <div className="flex items-center gap-2 bg-green-900/50 text-green-400 text-[10px] md:text-xs font-medium px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-green-800">
-                <Check size={14} className="hidden xs:block" />
-                {successMsg}
-              </div>
-            )}
-            <button className="flex items-center gap-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white" onClick={handleLogout}>
-              <LogOut size={16} className="text-red-400" />
-              <span className="hidden sm:block">Logout</span>
-            </button>
-          </div>
-        </div>
+        <main className="p-4 md:p-8">
 
-        <div className="p-4 md:p-8">
-
-          {/* ── DASHBOARD ── */}
+          {/* 1. ANALYTICS DASHBOARD */}
           {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5">
-                  <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-2">Total Active Jobs</p>
-                  <p className="text-2xl md:text-3xl font-black text-green-400">{jobs.length}</p>
-                </div>
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5">
-                  <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-2">IT Jobs</p>
-                  <p className="text-2xl md:text-3xl font-black text-blue-400">{jobs.filter(j => j.jobCategory === 'IT Job').length}</p>
-                </div>
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5">
-                  <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-2">Govt Jobs</p>
-                  <p className="text-2xl md:text-3xl font-black text-yellow-400">{jobs.filter(j => j.jobCategory === 'Government Job').length}</p>
-                </div>
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5">
-                  <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-2">Internships</p>
-                  <p className="text-2xl md:text-3xl font-black text-orange-400">{jobs.filter(j => j.jobCategory === 'Internship').length}</p>
-                </div>
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5">
-                  <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-2">Non-IT Jobs</p>
-                  <p className="text-2xl md:text-3xl font-black text-purple-400">{jobs.filter(j => j.jobCategory === 'Non-IT Job').length}</p>
-                </div>
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-5">
-                  <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider mb-2">Remote Jobs</p>
-                  <p className="text-2xl md:text-3xl font-black text-cyan-400">{jobs.filter(j => j.mode === 'Remote').length}</p>
-                </div>
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl"><p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Live Jobs</p><p className="text-4xl font-black text-emerald-400">{jobs.length}</p></div>
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl"><p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Total Applies</p><p className="text-4xl font-black text-blue-400">{applications.length}</p></div>
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl"><p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Global Views</p><p className="text-4xl font-black text-amber-400">{jobs.reduce((s, j) => s + (j.views || 0), 0)}</p></div>
+                <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl"><p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Feedbacks</p><p className="text-4xl font-black text-purple-400">{feedbacks.length}</p></div>
               </div>
 
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-300 mb-3">Recent Jobs</h3>
-                <div className="space-y-2">
-                  {jobs.slice(0, 5).map((job) => (
-                    <div key={job.id} className="flex justify-between items-center py-2 border-b border-slate-700">
-                      <div>
-                        <p className="text-sm font-medium text-white">{job.title}</p>
-                        <p className="text-xs text-slate-400">{job.company} · {job.jobCategory}</p>
-                      </div>
-                      <span className="text-xs text-slate-500">{job.postedTime}</span>
-                    </div>
-                  ))}
+              <div className="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+                <div className="p-6 border-b border-slate-800 bg-slate-800/30 font-black text-sm uppercase tracking-widest text-slate-400">User Analysis & Job Performance</div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-950 text-slate-500 font-bold border-b border-slate-800">
+                      <tr><th className="p-5">Job Title</th><th className="p-5">Category</th><th className="p-5 text-center">Views</th><th className="p-5 text-center">Applies</th><th className="p-5 text-center">CTR</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {jobs.map(job => (
+                        <tr key={job.id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="p-5 font-bold text-white">{job.title}<br /><span className="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">{job.company}</span></td>
+                          <td className="p-5 text-slate-400 font-medium">{job.jobCategory}</td>
+                          <td className="p-5 text-center font-black text-amber-400">{job.views || 0}</td>
+                          <td className="p-5 text-center font-black text-blue-400">{job.applicationCount || 0}</td>
+                          <td className="p-5 text-center text-emerald-400 font-black">
+                            {job.views ? Math.round(((job.applicationCount || 0) / job.views) * 100) : 0}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── ADD / EDIT JOB FORM ── */}
+          {/* 2. ADD/EDIT JOB FORM */}
           {activeTab === 'add' && (
-            <div className="max-w-4xl">
-              {editingId && (
-                <div className="mb-4 flex items-center gap-3 bg-blue-900/30 border border-blue-800 rounded-lg px-4 py-3">
-                  <Edit2 size={14} className="text-blue-400" />
-                  <p className="text-sm text-blue-300">Editing job — make your changes and click Update Job</p>
-                  <button
-                    onClick={() => { setEditingId(null); setForm(INITIAL_FORM); }}
-                    className="ml-auto text-xs text-slate-400 hover:text-white"
-                  >
-                    Cancel Edit
-                  </button>
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-2xl max-w-5xl mx-auto">
+              <h2 className="text-2xl font-black mb-10 border-b border-slate-800 pb-6 text-emerald-400 flex items-center gap-3">
+                <PlusCircle /> {editingJobId ? 'Edit Performance Listing' : 'Publish Comprehensive Job'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Job Title *</label><input className={inputCls} value={jobForm.title || ''} onChange={e => setJobForm({ ...jobForm, title: e.target.value })} placeholder="Software Engineer" /></div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Company *</label><input className={inputCls} value={jobForm.company || ''} onChange={e => setJobForm({ ...jobForm, company: e.target.value })} placeholder="Amazon" /></div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Category *</label>
+                  <select className={selectCls} value={jobForm.jobCategory || ''} onChange={e => setJobForm({ ...jobForm, jobCategory: e.target.value })}>
+                    <option value="">Select Category</option>
+                    <option>IT & Software Jobs</option><option>Government Jobs</option><option>Non-IT Jobs</option><option>Gig Works</option>
+                  </select>
                 </div>
-              )}
-
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 md:p-8 space-y-8">
-
-                {/* Section: Basic Info */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">1</span>
-                    Basic Information
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field label="Job Title" required>
-                      <input className={inputCls} placeholder="e.g. Senior Software Engineer" value={form.title} onChange={(e) => handleChange('title', e.target.value)} />
-                    </Field>
-                    <Field label="Company Name" required>
-                      <input className={inputCls} placeholder="e.g. Google" value={form.company} onChange={(e) => handleChange('company', e.target.value)} />
-                    </Field>
-                    <Field label="Salary / Stipend">
-                      <input className={inputCls} placeholder="e.g. ₹12L – ₹18L or ₹25k/month" value={form.salary} onChange={(e) => handleChange('salary', e.target.value)} />
-                    </Field>
-                    <Field label="Location">
-                      <input className={inputCls} placeholder="e.g. Bangalore, India or Remote" value={form.location} onChange={(e) => handleChange('location', e.target.value)} />
-                    </Field>
-                    <Field label="Experience Required">
-                      <input className={inputCls} placeholder="e.g. 2-5 years or Fresher" value={form.experience} onChange={(e) => handleChange('experience', e.target.value)} />
-                    </Field>
-                    <Field label="Qualification">
-                      <input className={inputCls} placeholder="e.g. Bachelor's / Master's" value={form.qualification} onChange={(e) => handleChange('qualification', e.target.value)} />
-                    </Field>
-                  </div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Application Flow</label>
+                  <select className={selectCls} value={jobForm.applyType || 'external'} onChange={e => setJobForm({ ...jobForm, applyType: e.target.value })}>
+                    <option value="external">Third Party (Redirect)</option><option value="easy">Internal (Easy Apply)</option>
+                  </select>
                 </div>
-
-                {/* Section: Job Classification */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">2</span>
-                    Job Classification
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <Field label="Job Category" required>
-                      <select className={selectCls} value={form.jobCategory} onChange={(e) => handleChange('jobCategory', e.target.value)}>
-                        <option value="">Select Category</option>
-                        <option>IT & Software Jobs</option>
-                        <option>Non-IT Jobs</option>
-                        <option>Government Jobs</option>
-                        <option>Warehouse & Logistics</option>
-                        <option>Gig & Flexible Work</option>
-                      </select>
-                    </Field>
-                    <Field label="Employment Type">
-                      <select className={selectCls} value={form.type} onChange={(e) => handleChange('type', e.target.value)}>
-                        <option value="">Select Type</option>
-                        <option>Full-time</option>
-                        <option>Part-time</option>
-                        <option>Internship</option>
-                        <option>Contract</option>
-                        <option>Freelance</option>
-                      </select>
-                    </Field>
-                    <Field label="Work Mode">
-                      <select className={selectCls} value={form.mode} onChange={(e) => handleChange('mode', e.target.value)}>
-                        <option value="">Select Mode</option>
-                        <option>Remote</option>
-                        <option>Hybrid</option>
-                        <option>On-site</option>
-                      </select>
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Section: Company Branding */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">3</span>
-                    Company Branding
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field label="Company Brand Color">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={form.companyColor}
-                          onChange={(e) => handleChange('companyColor', e.target.value)}
-                          className="w-12 h-10 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <input
-                          className={inputCls}
-                          value={form.companyColor}
-                          onChange={(e) => handleChange('companyColor', e.target.value)}
-                          placeholder="#16a34a"
-                        />
-                      </div>
-                    </Field>
-                    <Field label="Company Logo">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <div className="flex items-center gap-2 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2.5 text-xs text-slate-300 hover:border-green-500 transition">
-                          <Upload size={14} />
-                          {form.companyLogo ? 'Logo uploaded ✓' : 'Upload logo'}
-                        </div>
-                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                        {form.companyLogo && (
-                          <img src={form.companyLogo} alt="logo" className="w-10 h-10 rounded object-contain border border-slate-600" />
-                        )}
-                      </label>
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Section: Job Description */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">4</span>
-                    Job Description
-                  </h2>
-                  <div className="space-y-5">
-                    <Field label="Short Description (shown on card)">
-                      <textarea className={textareaCls} rows={2} placeholder="Brief 1-2 sentence summary for the job card..." value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
-                    </Field>
-                    <Field label="Full Job Description">
-                      <textarea className={textareaCls} rows={5} placeholder="Detailed job description — role, responsibilities, day-to-day work..." value={form.fullDescription} onChange={(e) => handleChange('fullDescription', e.target.value)} />
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Section: Skills & Stack */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">5</span>
-                    Skills & Technology
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field label="Required Skills (comma-separated)">
-                      <textarea className={textareaCls} rows={3} placeholder="React, Node.js, SQL, Communication..." value={form.requiredSkills} onChange={(e) => handleChange('requiredSkills', e.target.value)} />
-                    </Field>
-                    <Field label="Tech Stack (comma-separated)">
-                      <textarea className={textareaCls} rows={3} placeholder="React, TypeScript, AWS, Docker..." value={form.techStack} onChange={(e) => handleChange('techStack', e.target.value)} />
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Section: Company & Benefits */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">6</span>
-                    Company Info & Benefits
-                  </h2>
-                  <div className="space-y-5">
-                    <Field label="About Company">
-                      <textarea className={textareaCls} rows={3} placeholder="Tell candidates about the company — mission, scale, culture..." value={form.aboutCompany} onChange={(e) => handleChange('aboutCompany', e.target.value)} />
-                    </Field>
-                    <Field label="Benefits & Perks (comma-separated)">
-                      <textarea className={textareaCls} rows={3} placeholder="Health insurance, RSUs, Remote work, Gym reimbursement..." value={form.benefits} onChange={(e) => handleChange('benefits', e.target.value)} />
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Section: Application Settings */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">7</span>
-                    Application Configurations
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-                    <Field label="Application Type" required>
-                      <select className={selectCls} value={form.applyType} onChange={(e) => handleChange('applyType', e.target.value)}>
-                        <option value="external">External Link (Redirect)</option>
-                        <option value="easy">Easy Apply (In-App Form)</option>
-                      </select>
-                    </Field>
-                    {form.applyType !== 'easy' && (
-                      <Field label="External Apply Link">
-                        <input type="url" className={inputCls} placeholder="https://..." value={form.applyUrl} onChange={(e) => handleChange('applyUrl', e.target.value)} />
-                      </Field>
-                    )}
-                  </div>
-                  {form.applyType === 'easy' && (
-                    <div className="text-xs text-slate-400 mb-5 p-3 rounded bg-green-900/20 border border-green-800">
-                      <strong>Note:</strong> Since Easy Apply is selected, users will see a form on the job page to submit their name, email, phone, and resume directly to your database. You can view them in the 'Manage Apps' tab.
-                    </div>
-                  )}
-                </div>
-
-                {/* Section: Expiry */}
-                <div>
-                  <h2 className="text-[10px] md:text-xs text-green-400 font-semibold uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <span className="w-5 h-5 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">8</span>
-                    Listing Settings
-                  </h2>
-                  <div className="max-w-xs">
-                    <Field label="Job Expiry (days)">
-                      <input
-                        type="number"
-                        min="1"
-                        max="365"
-                        className={inputCls}
-                        placeholder="e.g. 30"
-                        value={form.expiryDays}
-                        onChange={(e) => handleChange('expiryDays', e.target.value)}
-                      />
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        Job will be automatically removed after this many days
-                      </p>
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Submit */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <button
-                    onClick={handleSubmit}
-                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg text-sm font-semibold transition-colors w-full sm:w-auto"
-                  >
-                    <Check size={16} />
-                    {editingId ? 'Update Job' : 'Add Job'}
-                  </button>
-                  {editingId && (
-                    <button
-                      onClick={() => { setEditingId(null); setForm(INITIAL_FORM); }}
-                      className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-300 px-5 py-3 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto"
-                    >
-                      <X size={14} />
-                      Cancel
-                    </button>
-                  )}
-                </div>
-
+                {jobForm.applyType === 'external' && <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Third Party URL</label><input className={inputCls} value={jobForm.applyUrl || ''} onChange={e => setJobForm({ ...jobForm, applyUrl: e.target.value })} placeholder="https://careers.google.com/..." /></div>}
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Salary Package</label><input className={inputCls} value={jobForm.salary || ''} onChange={e => setJobForm({ ...jobForm, salary: e.target.value })} placeholder="12 LPA - 15 LPA" /></div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Work Location</label><input className={inputCls} value={jobForm.location || ''} onChange={e => setJobForm({ ...jobForm, location: e.target.value })} placeholder="Bangalore / Remote" /></div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Experience</label><input className={inputCls} value={jobForm.experience || ''} onChange={e => setJobForm({ ...jobForm, experience: e.target.value })} placeholder="2+ Years" /></div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Qualification</label><input className={inputCls} value={jobForm.qualification || ''} onChange={e => setJobForm({ ...jobForm, qualification: e.target.value })} placeholder="B.Tech / MCA" /></div>
+                <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Detailed Description</label><textarea rows="5" className={textareaCls} value={jobForm.fullDescription || ''} onChange={e => setJobForm({ ...jobForm, fullDescription: e.target.value })} placeholder="Full job scope..."></textarea></div>
+                <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Required Skills (Comma separated)</label><input className={inputCls} value={jobForm.requiredSkills || ''} onChange={e => setJobForm({ ...jobForm, requiredSkills: e.target.value })} placeholder="React, Python, SQL" /></div>
               </div>
+              <button onClick={handleJobSubmit} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-emerald-900/20 mt-10 transition-all active:scale-95">{editingJobId ? 'Update & Sync Job' : 'Publish to Live Portal'}</button>
             </div>
           )}
 
-          {/* ── MANAGE JOBS ── */}
+          {/* 3. MANAGE JOBS LIST */}
           {activeTab === 'manage' && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
-                <p className="text-xs md:text-sm text-slate-400">
-                  <span className="text-white font-bold">{jobs.length}</span> jobs in the system
-                </p>
-                <button
-                  onClick={() => { setForm(INITIAL_FORM); setEditingId(null); setActiveTab('add'); }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2.5 rounded-lg text-xs md:text-sm font-medium transition-colors"
-                >
-                  <PlusCircle size={14} />
-                  Add New Job
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {jobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-4"
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {/* Color dot */}
-                      <div
-                        className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold text-white shadow-lg"
-                        style={{ background: job.companyColor || '#16a34a' }}
-                      >
-                        {job.company?.[0] || '?'}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{job.title}</p>
-                        <p className="text-[10px] md:text-xs text-slate-400 truncate">{job.company} · {job.jobCategory}</p>
-                      </div>
+              {jobs.map(job => (
+                <div key={job.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 hover:border-emerald-900/50 transition-all shadow-lg">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-black text-white">{job.title}</h3>
+                    <p className="text-sm text-slate-500 font-bold uppercase tracking-tighter">{job.company} • {job.jobCategory}</p>
+                    <div className="flex gap-3 mt-4">
+                      <button onClick={() => handleToggle(job, 'isFeatured')} className={`px-4 py-1.5 rounded-full text-[10px] font-black flex items-center gap-2 border transition-all ${job.isFeatured ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}><Star size={12} /> Featured</button>
+                      <button onClick={() => handleToggle(job, 'isFresh')} className={`px-4 py-1.5 rounded-full text-[10px] font-black flex items-center gap-2 border transition-all ${job.isFresh ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-500'}`}><Zap size={12} /> Today's Job</button>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-center px-5 border-r border-slate-800"><p className="text-2xl font-black text-amber-400">{job.views || 0}</p><p className="text-[10px] text-slate-500 uppercase font-black">Views</p></div>
+                    <div className="text-center px-5 border-r border-slate-800"><p className="text-2xl font-black text-blue-400">{job.applicationCount || 0}</p><p className="text-[10px] text-slate-500 uppercase font-black">Applies</p></div>
+                    <button onClick={() => { setJobForm(job); setEditingJobId(job.id); setActiveTab('add'); }} className="p-4 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-2xl transition"><Edit2 size={20} /></button>
+                    <button onClick={() => handleJobDelete(job.id)} className="p-4 bg-red-950/30 hover:bg-red-900/50 text-red-400 rounded-2xl transition"><Trash2 size={20} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-3 sm:gap-6 border-t sm:border-t-0 border-slate-700/50 pt-3 sm:pt-0">
-                      {/* Analytics */}
-                      <div className="flex gap-4">
-                        <div className="text-left">
-                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Views</p>
-                          <p className="text-xs text-blue-400 font-bold bg-blue-900/20 px-2 py-0.5 rounded flex items-center justify-center mt-0.5">👁 {job.views || 0}</p>
+          {/* 4. APPLICATIONS TRACKER */}
+          {activeTab === 'applications' && (
+            <div className="space-y-8">
+              {Object.entries(
+                applications.reduce((acc, app) => {
+                  const job = jobs.find(j => String(j.id) === String(app.jobId));
+                  const key = job ? `${job.title} — ${job.company}` : 'Unknown Listing';
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(app);
+                  return acc;
+                }, {})
+              ).map(([group, apps]) => (
+                <div key={group} className="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+                  <div className="bg-slate-800/50 p-5 px-8 font-black text-sm text-emerald-400 flex justify-between items-center border-b border-slate-800 uppercase tracking-widest">
+                    <span>{group}</span>
+                    <span className="bg-emerald-950 text-emerald-400 px-3 py-1 rounded-full text-[10px]">{apps.length} Leads</span>
+                  </div>
+                  <div className="divide-y divide-slate-800">
+                    {apps.map(app => (
+                      <div key={app.id} className="p-6 flex flex-col md:flex-row justify-between md:items-center gap-6 hover:bg-slate-800/20">
+                        <div>
+                          <p className="font-black text-lg text-white">{app.name}</p>
+                          <p className="text-sm text-slate-500 font-bold">{app.email} • {app.phone}</p>
                         </div>
-                        <div className="text-left">
-                          <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Applies</p>
-                          <p className="text-xs text-green-400 font-bold bg-green-900/20 px-2 py-0.5 rounded flex items-center justify-center mt-0.5">📝 {job.applicationCount || 0}</p>
-                        </div>
-                      </div>
-
-                      {/* Expiry */}
-                      <div className="text-left sm:text-right border-l border-slate-700/50 pl-2 sm:pl-4">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Expires</p>
-                        <p className="text-[10px] md:text-xs text-slate-300 font-medium whitespace-nowrap">
-                          {job.expiryDate ? new Date(job.expiryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}
-                        </p>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(job)}
-                          className="flex items-center gap-1.5 text-[10px] md:text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-2 rounded-lg transition-colors border border-slate-600"
-                        >
-                          <Edit2 size={12} />
-                          <span className="hidden xs:inline">Edit</span>
-                        </button>
-
-                        {deleteConfirm === job.id ? (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleDelete(job.id)}
-                              className="text-[10px] md:text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg transition-colors font-bold"
-                            >
-                              Confirm
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm(null)}
-                              className="text-slate-400 hover:text-white px-1"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setDeleteConfirm(job.id)}
-                            className="flex items-center gap-1.5 text-[10px] md:text-xs bg-red-900/30 hover:bg-red-800/40 text-red-400 px-3 py-2 rounded-lg transition-colors border border-red-900/50"
-                          >
-                            <Trash2 size={12} />
-                            <span className="hidden xs:inline">Delete</span>
-                          </button>
+                        {app.resume && (
+                          <a href={app.resume} download={`Resume_${app.name}`} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 transition-all"><Download size={16} /> Download CV</a>
                         )}
                       </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 5. MANAGE COMPANIES */}
+          {activeTab === 'companies' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 lg:col-span-1 h-fit shadow-2xl">
+                <h3 className="font-black text-xl mb-6 text-emerald-400">Onboard Company</h3>
+                <div className="space-y-5">
+                  <input className={inputCls} placeholder="Official Name" value={companyForm.name} onChange={e => setCompanyForm({ ...companyForm, name: e.target.value })} />
+                  <input className={inputCls} placeholder="Industry (Tech, Finance...)" value={companyForm.industry} onChange={e => setCompanyForm({ ...companyForm, industry: e.target.value })} />
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-3">Company Logo</label>
+                    <label className="flex items-center gap-4 cursor-pointer bg-slate-800 border-2 border-dashed border-slate-700 p-4 rounded-2xl hover:border-emerald-500 transition-all group">
+                      <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-emerald-500 group-hover:bg-emerald-600 group-hover:text-white transition-all"><Upload size={20} /></div>
+                      <span className="text-xs text-slate-400 font-bold">{companyForm.logo ? 'Logo Loaded ✓' : 'Select Image'}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={e => handleFileUpload(e, 'company', 'logo')} />
+                    </label>
+                    {companyForm.logo && <img src={companyForm.logo} alt="p" className="mt-4 w-full h-24 object-contain rounded-xl bg-white p-2" />}
+                  </div>
+                  <button onClick={() => { axios.post('http://localhost:5000/api/companies', companyForm).then(() => { setCompanyForm({ name: '', industry: '', logo: '' }); fetchData(); showMsg('Company Onboarded'); }); }} className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95">Save Company</button>
+                </div>
+              </div>
+              <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-6">
+                {companies.map(c => (
+                  <div key={c.id} className="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center relative group shadow-xl hover:border-emerald-900/40 transition-all">
+                    <div className="w-20 h-20 bg-slate-800 border border-slate-700 mx-auto rounded-3xl flex items-center justify-center mb-6 overflow-hidden">
+                      {c.logo ? <img src={c.logo} className="w-full h-full object-contain p-2 bg-white" alt="c" /> : <span className="text-3xl font-black text-emerald-500">{c.name[0]}</span>}
+                    </div>
+                    <p className="font-black text-lg text-white line-clamp-1">{c.name}</p>
+                    <p className="text-[10px] text-slate-500 uppercase font-black">{c.industry}</p>
+                    <button onClick={() => { if (window.confirm('Delete company?')) axios.delete(`http://localhost:5000/api/companies/${c.id}`).then(fetchData); }} className="absolute top-4 right-4 p-2.5 bg-red-950/40 text-red-400 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-900/50"><Trash2 size={16} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 6. JOB MELA EVENTS */}
+          {activeTab === 'jobmela' && (
+            <div className="space-y-10">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-10 shadow-2xl max-w-4xl mx-auto">
+                <h3 className="font-black text-2xl mb-8 text-emerald-400 flex items-center gap-3"><Megaphone /> Host Recruiting Drive</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2"><input className={inputCls} placeholder="Mega Drive Name" value={melaForm.title} onChange={e => setMelaForm({ ...melaForm, title: e.target.value })} /></div>
+                  <input className={inputCls} type="date" value={melaForm.date} onChange={e => setMelaForm({ ...melaForm, date: e.target.value })} />
+                  <input className={inputCls} placeholder="Venue Details" value={melaForm.venue} onChange={e => setMelaForm({ ...melaForm, venue: e.target.value })} />
+                  <input className={inputCls} placeholder="Reporting Time" value={melaForm.time} onChange={e => setMelaForm({ ...melaForm, time: e.target.value })} />
+                  <div className="md:col-span-2"><textarea rows="3" className={textareaCls} placeholder="Event Description / Eligibility" value={melaForm.description} onChange={e => setMelaForm({ ...melaForm, description: e.target.value })}></textarea></div>
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-3">Event Banner / Ad Image</label>
+                    <label className="flex items-center gap-4 cursor-pointer bg-slate-800 border-2 border-dashed border-slate-700 p-6 rounded-2xl hover:border-emerald-500 transition-all group">
+                      <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:bg-emerald-600 group-hover:text-white transition-all"><Upload size={24} /></div>
+                      <span className="text-sm text-slate-400 font-bold">{melaForm.image ? 'Banner Loaded ✓' : 'Click to Upload Flyer'}</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'mela', 'image')} />
+                    </label>
+                  </div>
+                  <div className="md:col-span-2"><button onClick={() => { axios.post('http://localhost:5000/api/job-mela', melaForm).then(() => { setMelaForm({ title: '', date: '', venue: '', time: '', isActive: true }); fetchData(); showMsg('Mela Published'); }); }} className="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 mt-4">Broadcast Event</button></div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {melas.map(m => (
+                  <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden relative group shadow-2xl">
+                    {m.image && <img src={m.image} alt="m" className="w-full h-48 object-cover brightness-50 group-hover:brightness-75 transition-all" />}
+                    <div className="p-8">
+                      <h4 className="font-black text-xl mb-4 text-white uppercase tracking-tight">{m.title}</h4>
+                      <div className="space-y-2 mb-6">
+                        <p className="flex items-center gap-3 text-xs font-bold text-slate-400"><Calendar size={14} className="text-emerald-500" /> {m.date}</p>
+                        <p className="flex items-center gap-3 text-xs font-bold text-slate-400"><MapPin size={14} className="text-emerald-500" /> {m.venue}</p>
+                      </div>
+                      <button onClick={() => { if (window.confirm('Cancel event?')) axios.delete(`http://localhost:5000/api/job-mela/${m.id}`).then(fetchData); }} className="absolute top-4 right-4 bg-red-950/80 text-red-400 p-3 rounded-2xl hover:bg-red-900 transition-all"><Trash2 size={18} /></button>
                     </div>
                   </div>
                 ))}
@@ -730,329 +342,23 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* ── MANAGE APPLICATIONS ── */}
-          {activeTab === 'applications' && (
-            <div className="space-y-4">
-              <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-                  <h3 className="text-sm font-bold text-white">Submitted Easy Applications</h3>
-                </div>
-                <div className="divide-y divide-slate-700/50">
-                  {applications.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 text-xs">No applications submitted yet.</div>
-                  ) : (
-                    applications.map((app) => (
-                      <div key={app.id} className="p-4 md:p-5 hover:bg-slate-700/30 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-white font-bold text-sm mb-1">{app.name}</h4>
-                          <p className="text-slate-400 text-xs mb-1">
-                            {app.email} • {app.phone}
-                          </p>
-                          <p className="text-slate-500 text-[10px]">
-                            Applied to job ID: {app.jobId} on {new Date(app.appliedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 sm:w-32">
-                          {app.resume && (
-                            <a
-                              href={app.resume}
-                              download={`Resume_${app.name.replace(/\s+/g, '_')}`}
-                              className="w-full flex items-center justify-center gap-1.5 text-[10px] md:text-xs bg-green-600 hover:bg-green-500 text-white font-medium px-3 py-2.5 rounded-lg transition-colors border border-green-500"
-                            >
-                              Download Resume
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── MANAGE COMPANIES ── */}
-          {activeTab === 'companies' && (
-            <div className="space-y-6 pb-12">
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 md:p-8 shadow-sm">
-                <div className="mb-6 border-b border-slate-700 pb-4">
-                  <h2 className="text-base md:text-lg font-bold text-white flex items-center gap-2">
-                    <Building2 className="text-green-500" size={20} />
-                    Add New Company
-                  </h2>
-                </div>
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field label="Company Name" required>
-                      <input
-                        type="text"
-                        placeholder="e.g. Google"
-                        value={companyForm.name}
-                        onChange={(e) => handleCompanyChange('name', e.target.value)}
-                        className={inputCls}
-                      />
-                    </Field>
-                    <Field label="Industry">
-                      <input
-                        type="text"
-                        placeholder="e.g. Technology"
-                        value={companyForm.industry}
-                        onChange={(e) => handleCompanyChange('industry', e.target.value)}
-                        className={inputCls}
-                      />
-                    </Field>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field label="Brand Color">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="color"
-                          value={companyForm.color}
-                          onChange={(e) => handleCompanyChange('color', e.target.value)}
-                          className="w-12 h-10 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={companyForm.color}
-                          onChange={(e) => handleCompanyChange('color', e.target.value)}
-                          className={inputCls}
-                          placeholder="#16a34a"
-                        />
-                      </div>
-                    </Field>
-                    <Field label="Company Logo">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <div className="flex items-center gap-2 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2.5 text-xs text-slate-300 hover:border-green-500 transition">
-                          <Upload size={14} />
-                          {companyForm.logo ? 'Logo uploaded ✓' : 'Upload logo'}
-                        </div>
-                        <input type="file" accept="image/*" onChange={handleCompanyLogoUpload} className="hidden" />
-                        {companyForm.logo && (
-                          <img src={companyForm.logo} alt="logo" className="w-10 h-10 rounded object-contain border border-slate-600 bg-white p-1" />
-                        )}
-                      </label>
-                    </Field>
-                  </div>
-                  <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-                    <button
-                      onClick={handleCompanySubmit}
-                      className="w-full sm:w-auto bg-green-600 hover:bg-green-500 text-white font-bold px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Check size={16} />
-                      Save Company
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-                  <h3 className="text-sm font-bold text-white">All Companies</h3>
-                </div>
-                <div className="divide-y divide-slate-700/50">
-                  {companies.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 text-xs">No companies added yet.</div>
-                  ) : (
-                    companies.map((c) => (
-                      <div key={c.id} className="p-4 md:p-5 hover:bg-slate-700/30 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white border border-slate-600" style={{ borderColor: c.color }}>
-                            {c.logo ? (
-                              <img src={c.logo} alt={c.name} className="w-6 h-6 object-contain" />
-                            ) : (
-                              <Building2 size={16} style={{ color: c.color }} />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-white mb-0.5">{c.name}</p>
-                            <p className="text-[10px] text-slate-400">{c.industry || 'No industry specified'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end gap-2">
-                          {deleteCompanyConfirm === c.id ? (
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => handleCompanyDelete(c.id)} className="text-[10px] md:text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg transition-colors font-bold">Confirm</button>
-                              <button onClick={() => setDeleteCompanyConfirm(null)} className="text-slate-400 hover:text-white px-1"><X size={14} /></button>
-                            </div>
-                          ) : (
-                            <button onClick={() => setDeleteCompanyConfirm(c.id)} className="flex items-center gap-1.5 text-[10px] md:text-xs bg-red-900/30 hover:bg-red-800/40 text-red-400 px-3 py-2 rounded-lg transition-colors border border-red-900/50">
-                              <Trash2 size={12} /> Delete
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── MANAGE Q&A ── */}
-          {activeTab === 'qna' && (
-            <div className="space-y-6 pb-12">
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 md:p-8 shadow-sm">
-                <div className="mb-6 border-b border-slate-700 pb-4">
-                  <h2 className="text-base md:text-lg font-bold text-white flex items-center gap-2">
-                    <MessageSquare className="text-green-500" size={20} />
-                    {editingQnaId ? 'Edit Q&A' : 'Add New Q&A'}
-                  </h2>
-                </div>
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field label="Category" required>
-                      <select
-                        value={qnaForm.category}
-                        onChange={(e) => handleQnaChange('category', e.target.value)}
-                        className={selectCls}
-                      >
-                        <option value="">Select a category</option>
-                        <option value="IT Job">IT Job</option>
-                        <option value="Government Job">Government Job</option>
-                        <option value="Non-IT Job">Non-IT Job</option>
-                        <option value="HR">HR</option>
-                        <option value="Aptitude">Aptitude</option>
-                      </select>
-                    </Field>
-                    <Field label="Question" required>
-                      <input
-                        type="text"
-                        placeholder="e.g. What is React?"
-                        value={qnaForm.question}
-                        onChange={(e) => handleQnaChange('question', e.target.value)}
-                        className={inputCls}
-                      />
-                    </Field>
-                  </div>
-                  <Field label="Answer" required>
-                    <textarea
-                      rows={3}
-                      placeholder="e.g. React is a JavaScript library..."
-                      value={qnaForm.answer}
-                      onChange={(e) => handleQnaChange('answer', e.target.value)}
-                      className={textareaCls}
-                    />
-                  </Field>
-                  <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-                    <button
-                      onClick={handleQnaSubmit}
-                      className="w-full sm:w-auto bg-green-600 hover:bg-green-500 text-white font-bold px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Check size={16} />
-                      {editingQnaId ? 'Update' : 'Save Q&A'}
-                    </button>
-                    {editingQnaId && (
-                      <button
-                        onClick={() => { setEditingQnaId(null); setQnaForm(INITIAL_QNA_FORM); }}
-                        className="w-full sm:w-auto text-slate-400 hover:text-white px-4 py-2"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-                  <h3 className="text-sm font-bold text-white">All Questions & Answers</h3>
-                </div>
-                <div className="divide-y divide-slate-700/50">
-                  {qnas.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 text-xs">No Q&As added yet.</div>
-                  ) : (
-                    qnas.map((q) => (
-                      <div key={q.id} className="p-4 md:p-5 hover:bg-slate-700/30 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="bg-green-900/30 text-green-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-green-800/50">
-                              {q.category}
-                            </span>
-                          </div>
-                          <h4 className="text-white font-bold text-sm mb-1 line-clamp-1">{q.question}</h4>
-                          <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed">{q.answer}</p>
-                        </div>
-                        <div className="flex items-center gap-2 sm:flex-col sm:items-stretch sm:w-24">
-                          <button
-                            onClick={() => handleQnaEdit(q)}
-                            className="flex-1 flex items-center justify-center gap-1.5 text-[10px] md:text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg transition-colors border border-slate-600"
-                          >
-                            <Edit2 size={12} />
-                            Edit
-                          </button>
-
-                          {deleteQnaConfirm === q.id ? (
-                            <div className="flex-1 flex items-center gap-1">
-                              <button
-                                onClick={() => handleQnaDelete(q.id)}
-                                className="w-full text-[10px] md:text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-2 rounded-lg transition-colors font-bold"
-                              >
-                                OK
-                              </button>
-                              <button
-                                onClick={() => setDeleteQnaConfirm(null)}
-                                className="text-slate-400 hover:text-white"
-                              >
-                                <X size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setDeleteQnaConfirm(q.id)}
-                              className="flex-1 flex items-center justify-center gap-1.5 text-[10px] md:text-xs bg-red-900/20 hover:bg-red-800/40 text-red-400 px-3 py-2 rounded-lg transition-colors border border-red-900/40"
-                            >
-                              <Trash2 size={12} />
-                              Del
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── MANAGE FEEDBACK ── */}
+          {/* 7. FEEDBACK VIEWER */}
           {activeTab === 'feedback' && (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
-                <p className="text-xs md:text-sm text-slate-400">
-                  <span className="text-white font-bold">{feedbacks.length}</span> feedback forms
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {feedbacks.length === 0 ? (
-                  <p className="text-slate-400 text-xs">No feedback has been submitted yet.</p>
-                ) : (
-                  feedbacks.map((fb) => (
-                    <div key={fb.id} className="bg-slate-800 border border-slate-700 rounded-xl p-5 relative group">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <p className="text-white font-bold text-sm">{fb.name}</p>
-                          <p className="text-slate-400 text-xs">{fb.email}</p>
-                        </div>
-                        <p className="text-slate-500 text-[10px]">{new Date(fb.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <p className="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
-                        "{fb.message}"
-                      </p>
-                      <button
-                        onClick={() => deleteFeedback(fb.id)}
-                        className="absolute top-4 right-4 bg-red-900/30 text-red-400 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Delete Feedback"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {feedbacks.map(fb => (
+                <div key={fb.id} className="bg-slate-900 border border-slate-800 p-8 rounded-3xl relative shadow-xl hover:border-emerald-900/40 transition-all">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-emerald-900/30 text-emerald-500 rounded-2xl flex items-center justify-center font-black text-xl">{fb.name[0]}</div>
+                    <div><p className="font-black text-white">{fb.name}</p><p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{fb.email}</p></div>
+                  </div>
+                  <p className="text-sm text-slate-400 font-medium leading-relaxed italic border-l-2 border-emerald-900/50 pl-4">"{fb.message}"</p>
+                  <button onClick={() => { axios.delete(`http://localhost:5000/api/feedback/${fb.id}`).then(fetchData); }} className="absolute top-6 right-6 text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
+                </div>
+              ))}
             </div>
           )}
 
-        </div>
+        </main>
       </div>
     </div>
   );

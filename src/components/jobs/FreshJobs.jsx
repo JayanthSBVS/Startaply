@@ -5,9 +5,9 @@ import JobDetailsPanel from './JobDetailsPanel';
 
 const FreshJobs = () => {
   const { jobs } = useJobs();
-  // Exclude featured jobs so this section shows different jobs
+  // Filter by the manual isFresh flag
   const fresh = [...jobs]
-    .filter((job) => !job.isFeatured && !job.featured)
+    .filter((job) => job.isFresh)
     .reverse()
     .slice(0, 4);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -21,7 +21,7 @@ const FreshJobs = () => {
           <h2 className="text-lg font-semibold">
             Recently Added Jobs
           </h2>
-          <a href="/jobs" className="text-sm text-green-600 font-medium hover:underline">
+          <a href="/jobs?filter=fresh" className="text-sm text-green-600 font-medium hover:underline">
             View all
           </a>
         </div>

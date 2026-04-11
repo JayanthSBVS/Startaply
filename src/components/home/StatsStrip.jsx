@@ -1,63 +1,35 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, useInView, animate } from 'framer-motion';
 
 const stats = [
-  { target: 10000, suffix: '+', label: 'Jobs', },
-  { target: 500, suffix: '+', label: 'Companies', },
-  { target: 100, suffix: '%', label: 'Free', },
+  { target: 10000, suffix: '+', label: 'Verified Jobs', start: 9000 },
+  { target: 500, suffix: '+', label: 'Top Companies', start: 450 },
+  { target: 100, suffix: '%', label: 'Free Platform', start: 100 },
 ];
 
-function useCountUp(target, duration = 1500, start = false) {
-  const [count, setCount] = useState(0);
+const StatItem = ({ target, suffix, label, start, started }) => {
+  const [count, setCount] = useState(start);
+
   useEffect(() => {
-    if (!start) return;
-    let startTime = null;
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      setCount(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [start, target, duration]);
-  return count;
-}
+    if (started) {
+      const controls = animate(start, target, {
+        duration: 1.5, // Snappier
+        ease: "easeOut",
+        onUpdate: (value) => setCount(Math.floor(value)),
+      });
+      return () => controls.stop();
+    }
+  }, [started, start, target]);
 
-const StatItem = ({ target, suffix, label, icon, started }) => {
-  const count = useCountUp(target, 1800, started);
   const display = count >= 1000 ? `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}K` : count;
+
   return (
-    <div style={{ textAlign: 'center', padding: '0 32px', position: 'relative' }}>
-      {/* Divider line between items */}
-      <div style={{
-        position: 'absolute',
-        left: 0, top: '50%',
-        transform: 'translateY(-50%)',
-        height: '50px', width: '1px',
-        background: 'rgba(255,255,255,0.2)',
-      }} />
-
-      <div style={{ fontSize: '22px', marginBottom: '6px' }}>{icon}</div>
-
-      <p style={{
-        fontSize: '42px',
-        fontWeight: '900',
-        lineHeight: 1,
-        margin: '0 0 6px 0',
-        letterSpacing: '-1px',
-        color: '#ffffff',
-        textShadow: '0 2px 12px rgba(0,0,0,0.15)',
-      }}>
-        {display}{suffix}
+    <div className="relative text-center px-4 md:px-8 py-4 md:py-6 w-full md:w-auto flex-1 group">
+      <div className="absolute inset-0 bg-emerald-400/0 group-hover:bg-emerald-400/10 rounded-3xl transition-colors duration-500" />
+      <p className="text-3xl md:text-5xl font-black text-white mb-1 md:mb-2 tracking-tighter drop-shadow-md">
+        {display}<span className="text-emerald-400">{suffix}</span>
       </p>
-      <p style={{
-        fontSize: '14px',
-        fontWeight: '500',
-        color: 'rgba(255,255,255,0.85)',
-        margin: 0,
-        letterSpacing: '0.5px',
-        textTransform: 'uppercase',
-      }}>
+      <p className="text-[10px] md:text-sm font-bold text-emerald-100/80 uppercase tracking-widest whitespace-nowrap">
         {label}
       </p>
     </div>
@@ -66,70 +38,27 @@ const StatItem = ({ target, suffix, label, icon, started }) => {
 
 const StatsStrip = () => {
   const ref = useRef(null);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setStarted(true); observer.disconnect(); } },
-      { threshold: 0.4 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <div
-      ref={ref}
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-        padding: '48px 0',
-        background: 'linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%)',
-      }}
-    >
-      {/* Dot-grid texture overlay */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)`,
-        backgroundSize: '22px 22px',
-        pointerEvents: 'none',
-      }} />
+    // Changed to emerald-950 to separate from Hero's slate-900 background
+    <div className="relative bg-emerald-950 py-12 border-b border-emerald-900 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-emerald-600/20 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Radial glow accents */}
-      <div style={{
-        position: 'absolute',
-        top: '-60px', left: '5%',
-        width: '320px', height: '320px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '-60px', right: '10%',
-        width: '280px', height: '280px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-
-      {/* Stats */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        maxWidth: '900px',
-        margin: '0 auto',
-        padding: '0 24px',
-        display: 'flex',
-        justifyContent: 'space-around',
-        flexWrap: 'wrap',
-        gap: '32px',
-      }}>
-        {stats.map((s) => (
-          <StatItem key={s.label} {...s} started={started} />
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 30 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 max-w-5xl mx-auto grid grid-cols-2 md:flex md:flex-row justify-between items-center divide-y md:divide-y-0 md:divide-x divide-emerald-800/80 bg-emerald-900/40 backdrop-blur-md rounded-3xl border border-emerald-800/50 shadow-2xl overflow-hidden"
+      >
+        {stats.map((s, idx) => (
+          <div key={s.label} className={`${idx === stats.length - 1 && stats.length % 2 !== 0 ? 'col-span-2' : 'col-span-1'} flex justify-center`}>
+            <StatItem {...s} started={isInView} />
+          </div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
