@@ -28,6 +28,7 @@
     { "src": "/api/auth", "dest": "/api/auth.js" },
     { "src": "/api/qna/([^/]+)", "dest": "/api/qna.js" },
     { "src": "/api/qna", "dest": "/api/qna.js" },
+    { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
