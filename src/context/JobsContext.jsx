@@ -5,6 +5,9 @@ const JobsContext = createContext();
 
 export const useJobs = () => useContext(JobsContext);
 
+// Works both locally (Vite proxy) and on Vercel (relative /api)
+const API = '/api';
+
 export const JobsProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -14,9 +17,9 @@ export const JobsProvider = ({ children }) => {
     const fetchPublicData = async () => {
       try {
         const [jobsRes, compRes, qnaRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/jobs').catch(() => ({ data: [] })),
-          axios.get('http://localhost:5000/api/companies').catch(() => ({ data: [] })),
-          axios.get('http://localhost:5000/api/qna').catch(() => ({ data: [] }))
+          axios.get(`${API}/jobs`).catch(() => ({ data: [] })),
+          axios.get(`${API}/companies`).catch(() => ({ data: [] })),
+          axios.get(`${API}/qna`).catch(() => ({ data: [] }))
         ]);
         setJobs(jobsRes.data);
         setCompanies(compRes.data);

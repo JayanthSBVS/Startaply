@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { X, MapPin, Briefcase, DollarSign, CheckCircle2, Upload, ArrowRight } from 'lucide-react';
+import { X, MapPin, Briefcase, DollarSign, CheckCircle2, Upload, ArrowRight, Eye, Users, GraduationCap, Share2 } from 'lucide-react';
 import axios from 'axios';
+
+const API = '/api';
 
 const JobDetailsPanel = ({ job, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -16,6 +18,20 @@ const JobDetailsPanel = ({ job, onClose }) => {
     resume: ''
   });
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `${job.title} at ${job.company}`,
+      text: `Check out this ${job.title} opportunity at ${job.company} on Strataply!`,
+      url: window.location.origin + `/jobs?id=${job.id}`,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (err) {}
+    } else {
+      navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+      alert("Job details copied to clipboard!");
+    }
+  };
+
   useEffect(() => {
     if (job) {
       document.body.style.overflow = 'hidden';
@@ -25,7 +41,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
       setFormData({ name: '', email: '', phone: '', resume: '' });
 
       // Increment view count in backend
-      axios.post(`http://localhost:5000/api/jobs/${job.id}/view`).catch(console.error);
+      axios.post(`${API}/jobs/${job.id}/view`).catch(console.error);
     } else {
       setIsVisible(false);
       document.body.style.overflow = '';
@@ -48,7 +64,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
 
     try {
       // 1. Save applicant lead to the admin database
-      await axios.post(`http://localhost:5000/api/jobs/${job.id}/apply`, formData);
+      await axios.post(`${API}/jobs/${job.id}/apply`, formData);
 
       setApplied(true);
       setIsSubmitting(false);
@@ -85,9 +101,14 @@ const JobDetailsPanel = ({ job, onClose }) => {
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">{job.title}</h2>
             <p className="text-sm font-bold text-emerald-600 mt-1">{job.company}</p>
           </div>
-          <button onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
-            <X size={20} />
-          </button>
+          <div className="flex gap-2">
+            <button onClick={handleShare} className="p-2 bg-emerald-50 hover:bg-emerald-100 rounded-full text-emerald-600 transition-colors shadow-sm border border-emerald-100" title="Share Job">
+              <Share2 size={18} />
+            </button>
+            <button onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* CONTENT SWITCHER */}
@@ -135,12 +156,21 @@ const JobDetailsPanel = ({ job, onClose }) => {
               {job.location && <span className="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5"><MapPin size={14} className="text-emerald-500" /> {job.location}</span>}
               {job.type && <span className="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5"><Briefcase size={14} className="text-emerald-500" /> {job.type}</span>}
               {job.salary && <span className="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5"><DollarSign size={14} className="text-emerald-500" /> {job.salary}</span>}
+              {job.workMode && <span className="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5"><MapPin size={14} className="text-emerald-500" /> {job.workMode}</span>}
+              {job.qualification && <span className="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5"><GraduationCap size={14} className="text-emerald-500" /> {job.qualification}</span>}
             </div>
 
             <div>
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-2">Job Description</h3>
-              <div className="text-slate-700 font-medium leading-relaxed text-sm whitespace-pre-line">{job.fullDescription || job.description}</div>
+              <div className="text-slate-600 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{job.fullDescription || job.description || 'No detailed description provided.'}</div>
             </div>
+
+            {job.benefits && (
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 border-b border-slate-100 pb-2">Benefits & Perks</h3>
+                <div className="text-slate-600 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{job.benefits}</div>
+              </div>
+            )}
 
             {job.requiredSkills && (
               <div>

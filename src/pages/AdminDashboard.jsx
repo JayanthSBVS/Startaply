@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+const API = '/api';
+
 const inputCls = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none transition";
 const selectCls = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white cursor-pointer focus:ring-2 focus:ring-emerald-500 outline-none transition";
 const textareaCls = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none";
@@ -28,17 +30,17 @@ const AdminDashboard = () => {
   const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30 });
   const [editingJobId, setEditingJobId] = useState(null);
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '' });
-  const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true });
+  const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '' });
   const [appSearch, setAppSearch] = useState('');
 
   const fetchData = async () => {
     try {
       const [jobsRes, appsRes, compRes, melaRes, fbRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/jobs'),
-        axios.get('http://localhost:5000/api/jobs/applications/all'),
-        axios.get('http://localhost:5000/api/companies'),
-        axios.get('http://localhost:5000/api/job-mela'),
-        axios.get('http://localhost:5000/api/feedback')
+        axios.get(`${API}/jobs`),
+        axios.get(`${API}/jobs/applications/all`),
+        axios.get(`${API}/companies`),
+        axios.get(`${API}/job-mela`),
+        axios.get(`${API}/feedback`)
       ]);
       setJobs(jobsRes.data);
       setApplications(appsRes.data);
@@ -59,7 +61,7 @@ const AdminDashboard = () => {
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
     setJobs(prev => prev.map(j => j.id === job.id ? updatedJob : j));
-    axios.put(`http://localhost:5000/api/jobs/${job.id}`, updatedJob).catch(() => {
+    axios.put(`${API}/jobs/${job.id}`, updatedJob).catch(() => {
       setJobs(prev => prev.map(j => j.id === job.id ? job : j));
       alert("Database sync failed.");
     });
@@ -69,10 +71,10 @@ const AdminDashboard = () => {
   const handleJobSubmit = async () => {
     try {
       if (editingJobId) {
-        await axios.put(`http://localhost:5000/api/jobs/${editingJobId}`, jobForm);
+        await axios.put(`${API}/jobs/${editingJobId}`, jobForm);
         showMsg('Job Updated');
       } else {
-        await axios.post('http://localhost:5000/api/jobs', jobForm);
+        await axios.post(`${API}/jobs`, jobForm);
         showMsg('Job Published');
       }
       setJobForm({ applyType: 'external', expiryDays: 30 }); setEditingJobId(null); setActiveTab('manage'); fetchData();
@@ -81,7 +83,7 @@ const AdminDashboard = () => {
 
   const handleJobDelete = async (id) => {
     if (!window.confirm('Permanently delete this job?')) return;
-    await axios.delete(`http://localhost:5000/api/jobs/${id}`);
+    await axios.delete(`${API}/jobs/${id}`);
     fetchData(); showMsg('Job Removed');
   };
 
@@ -201,8 +203,22 @@ const AdminDashboard = () => {
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Work Location</label><input className={inputCls} value={jobForm.location || ''} onChange={e => setJobForm({ ...jobForm, location: e.target.value })} placeholder="Bangalore / Remote" /></div>
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Experience</label><input className={inputCls} value={jobForm.experience || ''} onChange={e => setJobForm({ ...jobForm, experience: e.target.value })} placeholder="2+ Years" /></div>
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Qualification</label><input className={inputCls} value={jobForm.qualification || ''} onChange={e => setJobForm({ ...jobForm, qualification: e.target.value })} placeholder="B.Tech / MCA" /></div>
+                <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Short Description (Card preview)</label><textarea rows="2" className={textareaCls} value={jobForm.description || ''} onChange={e => setJobForm({ ...jobForm, description: e.target.value })} placeholder="Brief summary of the job..."></textarea></div>
+                <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Benefits & Perks</label><textarea rows="3" className={textareaCls} value={jobForm.benefits || ''} onChange={e => setJobForm({ ...jobForm, benefits: e.target.value })} placeholder="Provide details about health insurance, PTO, bonuses..."></textarea></div>
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Detailed Description</label><textarea rows="5" className={textareaCls} value={jobForm.fullDescription || ''} onChange={e => setJobForm({ ...jobForm, fullDescription: e.target.value })} placeholder="Full job scope..."></textarea></div>
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Required Skills (Comma separated)</label><input className={inputCls} value={jobForm.requiredSkills || ''} onChange={e => setJobForm({ ...jobForm, requiredSkills: e.target.value })} placeholder="React, Python, SQL" /></div>
+                <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Detail Fields</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <select className={selectCls} value={jobForm.workMode || ''} onChange={e => setJobForm({ ...jobForm, workMode: e.target.value })}>
+                      <option value="">Work Mode</option>
+                      <option>On-site</option><option>Remote</option><option>Hybrid</option>
+                    </select>
+                    <select className={selectCls} value={jobForm.type || ''} onChange={e => setJobForm({ ...jobForm, type: e.target.value })}>
+                      <option value="">Job Type</option>
+                      <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option>
+                    </select>
+                  </div>
+                </div>
               </div>
               <button onClick={handleJobSubmit} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-emerald-900/20 mt-10 transition-all active:scale-95">{editingJobId ? 'Update & Sync Job' : 'Publish to Live Portal'}</button>
             </div>
@@ -256,9 +272,12 @@ const AdminDashboard = () => {
                           <p className="font-black text-lg text-white">{app.name}</p>
                           <p className="text-sm text-slate-500 font-bold">{app.email} • {app.phone}</p>
                         </div>
-                        {app.resume && (
-                          <a href={app.resume} download={`Resume_${app.name}`} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 transition-all"><Download size={16} /> Download CV</a>
-                        )}
+                        <div className="flex gap-2">
+                          {app.resume && (
+                            <a href={app.resume} download={`Resume_${app.name}`} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 transition-all"><Download size={16} /> Download CV</a>
+                          )}
+                          <button onClick={() => { if (window.confirm('Delete applicant?')) axios.delete(`${API}/jobs/applications/${app.id}`).then(fetchData); }} className="bg-red-950/40 hover:bg-red-900/50 text-red-400 px-4 py-3 rounded-2xl transition" title="Delete Applicant"><Trash2 size={16} /></button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -284,7 +303,7 @@ const AdminDashboard = () => {
                     </label>
                     {companyForm.logo && <img src={companyForm.logo} alt="p" className="mt-4 w-full h-24 object-contain rounded-xl bg-white p-2" />}
                   </div>
-                  <button onClick={() => { axios.post('http://localhost:5000/api/companies', companyForm).then(() => { setCompanyForm({ name: '', industry: '', logo: '' }); fetchData(); showMsg('Company Onboarded'); }); }} className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95">Save Company</button>
+                  <button onClick={() => { axios.post(`${API}/companies`, companyForm).then(() => { setCompanyForm({ name: '', industry: '', logo: '' }); fetchData(); showMsg('Company Onboarded'); }); }} className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95">Save Company</button>
                 </div>
               </div>
               <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-6">
@@ -295,7 +314,7 @@ const AdminDashboard = () => {
                     </div>
                     <p className="font-black text-lg text-white line-clamp-1">{c.name}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-black">{c.industry}</p>
-                    <button onClick={() => { if (window.confirm('Delete company?')) axios.delete(`http://localhost:5000/api/companies/${c.id}`).then(fetchData); }} className="absolute top-4 right-4 p-2.5 bg-red-950/40 text-red-400 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-900/50"><Trash2 size={16} /></button>
+                    <button onClick={() => { if (window.confirm('Delete company?')) axios.delete(`${API}/companies/${c.id}`).then(fetchData); }} className="absolute top-4 right-4 p-2.5 bg-red-950/40 text-red-400 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-900/50"><Trash2 size={16} /></button>
                   </div>
                 ))}
               </div>
@@ -309,6 +328,8 @@ const AdminDashboard = () => {
                 <h3 className="font-black text-2xl mb-8 text-emerald-400 flex items-center gap-3"><Megaphone /> Host Recruiting Drive</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2"><input className={inputCls} placeholder="Mega Drive Name" value={melaForm.title} onChange={e => setMelaForm({ ...melaForm, title: e.target.value })} /></div>
+                  <input className={inputCls} placeholder="Organizing Company" value={melaForm.company} onChange={e => setMelaForm({ ...melaForm, company: e.target.value })} />
+                  <input className={inputCls} placeholder="Registration Link (Optional)" value={melaForm.registrationLink} onChange={e => setMelaForm({ ...melaForm, registrationLink: e.target.value })} />
                   <input className={inputCls} type="date" value={melaForm.date} onChange={e => setMelaForm({ ...melaForm, date: e.target.value })} />
                   <input className={inputCls} placeholder="Venue Details" value={melaForm.venue} onChange={e => setMelaForm({ ...melaForm, venue: e.target.value })} />
                   <input className={inputCls} placeholder="Reporting Time" value={melaForm.time} onChange={e => setMelaForm({ ...melaForm, time: e.target.value })} />
@@ -321,7 +342,7 @@ const AdminDashboard = () => {
                       <input type="file" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'mela', 'image')} />
                     </label>
                   </div>
-                  <div className="md:col-span-2"><button onClick={() => { axios.post('http://localhost:5000/api/job-mela', melaForm).then(() => { setMelaForm({ title: '', date: '', venue: '', time: '', isActive: true }); fetchData(); showMsg('Mela Published'); }); }} className="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 mt-4">Broadcast Event</button></div>
+                  <div className="md:col-span-2"><button onClick={() => { axios.post(`${API}/job-mela`, melaForm).then(() => { setMelaForm({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '' }); fetchData(); showMsg('Mela Published'); }); }} className="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 mt-4">Broadcast Event</button></div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -334,7 +355,7 @@ const AdminDashboard = () => {
                         <p className="flex items-center gap-3 text-xs font-bold text-slate-400"><Calendar size={14} className="text-emerald-500" /> {m.date}</p>
                         <p className="flex items-center gap-3 text-xs font-bold text-slate-400"><MapPin size={14} className="text-emerald-500" /> {m.venue}</p>
                       </div>
-                      <button onClick={() => { if (window.confirm('Cancel event?')) axios.delete(`http://localhost:5000/api/job-mela/${m.id}`).then(fetchData); }} className="absolute top-4 right-4 bg-red-950/80 text-red-400 p-3 rounded-2xl hover:bg-red-900 transition-all"><Trash2 size={18} /></button>
+                      <button onClick={() => { if (window.confirm('Cancel event?')) axios.delete(`${API}/job-mela/${m.id}`).then(fetchData); }} className="absolute top-4 right-4 bg-red-950/80 text-red-400 p-3 rounded-2xl hover:bg-red-900 transition-all"><Trash2 size={18} /></button>
                     </div>
                   </div>
                 ))}
@@ -352,7 +373,7 @@ const AdminDashboard = () => {
                     <div><p className="font-black text-white">{fb.name}</p><p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{fb.email}</p></div>
                   </div>
                   <p className="text-sm text-slate-400 font-medium leading-relaxed italic border-l-2 border-emerald-900/50 pl-4">"{fb.message}"</p>
-                  <button onClick={() => { axios.delete(`http://localhost:5000/api/feedback/${fb.id}`).then(fetchData); }} className="absolute top-6 right-6 text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
+                  <button onClick={() => { axios.delete(`${API}/feedback/${fb.id}`).then(fetchData); }} className="absolute top-6 right-6 text-slate-600 hover:text-red-400 transition-colors"><Trash2 size={18} /></button>
                 </div>
               ))}
             </div>

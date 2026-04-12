@@ -1,12 +1,33 @@
 {
-  "experimentalServices": {
-    "frontend": {
-      "routePrefix": "/",
-      "framework": "vite"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
     },
-    "backend": {
-      "entrypoint": "backend",
-      "routePrefix": "/_/backend"
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
     }
-  }
+  ],
+  "routes": [
+    { "src": "/api/jobs/applications/all", "dest": "/api/jobs.js" },
+    { "src": "/api/jobs/([^/]+)/view", "dest": "/api/jobs.js" },
+    { "src": "/api/jobs/([^/]+)/apply", "dest": "/api/jobs.js" },
+    { "src": "/api/jobs/([^/]+)", "dest": "/api/jobs.js" },
+    { "src": "/api/jobs", "dest": "/api/jobs.js" },
+    { "src": "/api/companies/([^/]+)", "dest": "/api/companies.js" },
+    { "src": "/api/companies", "dest": "/api/companies.js" },
+    { "src": "/api/job-mela/active", "dest": "/api/job-mela.js" },
+    { "src": "/api/job-mela/([^/]+)", "dest": "/api/job-mela.js" },
+    { "src": "/api/job-mela", "dest": "/api/job-mela.js" },
+    { "src": "/api/feedback/([^/]+)", "dest": "/api/feedback.js" },
+    { "src": "/api/feedback", "dest": "/api/feedback.js" },
+    { "src": "/api/auth/(.*)", "dest": "/api/auth.js" },
+    { "src": "/api/auth", "dest": "/api/auth.js" },
+    { "src": "/api/qna/([^/]+)", "dest": "/api/qna.js" },
+    { "src": "/api/qna", "dest": "/api/qna.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }

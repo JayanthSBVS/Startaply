@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Briefcase, GraduationCap, Building2, Users, PartyPopper, PlusCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -15,6 +14,7 @@ const Navbar = () => {
   ];
 
   return (
+    <>
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
       <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -45,57 +45,49 @@ const Navbar = () => {
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 top-[73px] bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
-            />
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-[73px] right-0 bottom-0 w-[280px] bg-white z-50 md:hidden border-l border-slate-100 shadow-2xl overflow-y-auto"
-            >
-              <div className="p-6 space-y-6">
-                <div className="space-y-1">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-4 px-4 py-3.5 text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-semibold group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                        <item.icon size={20} className="text-slate-500 group-hover:text-emerald-600" />
-                      </div>
-                      <span className="text-base">{item.name}</span>
-                    </Link>
-                  ))}
-                </div>
-
-                <div className="pt-6 border-t border-slate-100">
-                  <Link 
-                    to="/jobs" 
-                    onClick={() => setOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-emerald-600/20 active:scale-[0.98] transition-all"
-                  >
-                    <PlusCircle size={20} /> Browse All Jobs
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </nav>
+
+    {/* Mobile Menu */}
+    {open && (
+      <div className="md:hidden">
+        <div 
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 top-[73px] bg-slate-900/40 backdrop-blur-sm z-[90]"
+        />
+        <div 
+          className="fixed top-[73px] right-0 bottom-0 w-[280px] bg-white z-[100] border-l border-slate-100 shadow-2xl overflow-y-auto animate-in slide-in-from-right-8 duration-300"
+        >
+          <div className="p-6 space-y-6">
+            <div className="space-y-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-4 px-4 py-3.5 text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all font-semibold group"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                    <item.icon size={20} className="text-slate-500 group-hover:text-emerald-600" />
+                  </div>
+                  <span className="text-base">{item.name}</span>
+                </Link>
+              ))}
+            </div>
+
+            <div className="pt-6 border-t border-slate-100">
+              <Link 
+                to="/jobs" 
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold text-lg shadow-sm transition-all"
+              >
+                <PlusCircle size={20} /> Browse All Jobs
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

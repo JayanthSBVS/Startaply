@@ -7,7 +7,7 @@ const JobMelaTicker = () => {
 
   useEffect(() => {
     // Fetches the latest active mela which contains the ticker text 
-    axios.get('http://localhost:5000/api/job-mela/active')
+    axios.get('/api/job-mela/active')
       .then(res => {
         if (res.data && res.data.tickertext) {
           setActiveMela(res.data);

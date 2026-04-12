@@ -11,7 +11,7 @@ const FeedbackWidget = () => {
         e.preventDefault();
         setStatus('sending');
         try {
-            await axios.post('http://localhost:5000/api/feedback', form);
+            await axios.post('/api/feedback', form);
             setStatus('success');
             setTimeout(() => { setIsOpen(false); setStatus(''); setForm({ name: '', email: '', message: '' }); }, 2000);
         } catch (err) {

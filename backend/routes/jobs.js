@@ -61,6 +61,7 @@ async function initDb() {
     await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applyType TEXT DEFAULT \'external\'');
     await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0');
     await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE');
+    await pool.query('ALTER TABLE jobs ADD COLUMN IF NOT EXISTS benefits TEXT');
     await pool.query(query2);
     await pool.query(query3);
 
@@ -299,6 +300,17 @@ router.get('/applications/all', async (req, res) => {
       appliedAt: Number(r.appliedat),
       jobId: r.jobid
     })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.delete('/applications/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM applications WHERE id = $1', [id]);
+    res.json({ message: 'Deleted successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

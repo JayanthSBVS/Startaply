@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
-import { Calendar, MapPin, Clock, Megaphone, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Clock, Megaphone, ArrowRight, Building2, ExternalLink } from 'lucide-react';
 import EmptyState from '../components/common/EmptyState';
 
 const JobMelaPage = () => {
@@ -10,7 +10,7 @@ const JobMelaPage = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/job-mela')
+        axios.get('/api/job-mela')
             .then(res => {
                 // Fix typos programmatically for a professional feel
                 const cleaned = res.data.map(m => ({
@@ -67,16 +67,32 @@ const JobMelaPage = () => {
                                     </div>
                                 </div>
                                 <div className="p-8 flex-1 flex flex-col">
-                                    <h2 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors">{mela.title}</h2>
+                                    <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">{mela.title}</h2>
+                                    {mela.company && (
+                                        <div className="flex items-center gap-2 text-slate-500 font-bold mb-4">
+                                            <Building2 size={16} /> {mela.company}
+                                        </div>
+                                    )}
                                     <p className="text-slate-500 font-medium mb-8 leading-relaxed flex-1 line-clamp-3">{mela.description}</p>
                                     <div className="space-y-3 bg-slate-50 p-6 rounded-3xl border border-slate-100 group-hover:bg-emerald-50/30 group-hover:border-emerald-100 transition-colors">
                                         {mela.date && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Calendar className="text-emerald-500" size={18} /> {mela.date}</p>}
                                         {mela.time && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Clock className="text-emerald-500" size={18} /> {mela.time}</p>}
                                         {mela.venue && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><MapPin className="text-emerald-500" size={18} /> {mela.venue}</p>}
                                     </div>
-                                    <button className="mt-8 bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
-                                        Register Now <ArrowRight size={18} />
-                                    </button>
+                                    
+                                    {mela.registrationlink ? (
+                                        <a 
+                                            href={mela.registrationlink.startsWith('http') ? mela.registrationlink : `https://${mela.registrationlink}`} 
+                                            target="_blank" rel="noreferrer"
+                                            className="mt-8 bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                                        >
+                                            Register Now <ExternalLink size={18} />
+                                        </a>
+                                    ) : (
+                                        <button className="mt-8 bg-slate-100 text-slate-400 font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed">
+                                            Link Pending <ArrowRight size={18} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
