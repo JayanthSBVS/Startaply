@@ -11,19 +11,16 @@ const API = '/api';
 export const JobsProvider = ({ children }) => {
   const [jobs, setJobs] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [qnas, setQnas] = useState([]);
 
   useEffect(() => {
     const fetchPublicData = async () => {
       try {
-        const [jobsRes, compRes, qnaRes] = await Promise.all([
+        const [jobsRes, compRes] = await Promise.all([
           axios.get(`${API}/jobs`).catch(() => ({ data: [] })),
-          axios.get(`${API}/companies`).catch(() => ({ data: [] })),
-          axios.get(`${API}/qna`).catch(() => ({ data: [] }))
+          axios.get(`${API}/companies`).catch(() => ({ data: [] }))
         ]);
         setJobs(jobsRes.data);
         setCompanies(compRes.data);
-        setQnas(qnaRes.data);
       } catch (err) {
         console.error("Public API Fetch Error:", err);
       }
@@ -32,7 +29,7 @@ export const JobsProvider = ({ children }) => {
   }, []);
 
   return (
-    <JobsContext.Provider value={{ jobs, companies, qnas }}>
+    <JobsContext.Provider value={{ jobs, companies }}>
       {children}
     </JobsContext.Provider>
   );

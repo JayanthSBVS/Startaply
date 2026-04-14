@@ -15,7 +15,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/job-mela', require('./routes/jobmela'));
-app.use('/api/qna', require('./routes/qna'));
+app.use('/api/testimonials', require('./routes/testimonials')); // MUST BE ADDED
+app.use('/api/prep-data', require('./routes/prepData')); // MUST BE ADDED
 
 app.get('/', (req, res) => {
   res.send('API running');

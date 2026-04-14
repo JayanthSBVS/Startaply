@@ -21,7 +21,6 @@ const FeedbackWidget = () => {
 
     return (
         <>
-            {/* Floating Button */}
             <button
                 onClick={() => setIsOpen(true)}
                 className="fixed bottom-6 right-6 bg-emerald-600 text-white p-4 rounded-full shadow-2xl hover:bg-emerald-500 hover:scale-110 transition-all z-50 flex items-center justify-center"
@@ -29,15 +28,14 @@ const FeedbackWidget = () => {
                 <MessageSquare size={24} />
             </button>
 
-            {/* Modal */}
             {isOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-[fadeIn_0.2s_ease-out]">
-                        <button onClick={() => setIsOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600">
-                            <X size={20} />
+                    <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative animate-[fadeIn_0.2s_ease-out]">
+                        <button onClick={() => setIsOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 bg-slate-100 p-2 rounded-full transition-colors">
+                            <X size={16} />
                         </button>
                         <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Send Feedback</h2>
-                        <p className="text-slate-500 text-sm mb-6">Help us improve Strataply by sharing your thoughts or reporting issues.</p>
+                        <p className="text-slate-500 text-sm font-medium mb-6">Help us improve Strataply by sharing your thoughts or reporting issues.</p>
 
                         {status === 'success' ? (
                             <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl font-bold text-center border border-emerald-100">
@@ -45,10 +43,10 @@ const FeedbackWidget = () => {
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <input required type="text" placeholder="Your Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" />
-                                <input required type="email" placeholder="Your Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" />
-                                <textarea required rows="4" placeholder="Your message..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none"></textarea>
-                                <button type="submit" disabled={status === 'sending'} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
+                                <input required type="text" placeholder="Your Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full border border-slate-200 rounded-full px-5 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium" />
+                                <input required type="email" placeholder="Your Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full border border-slate-200 rounded-full px-5 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium" />
+                                <textarea required rows="4" placeholder="Your message..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full border border-slate-200 rounded-[1.25rem] px-5 py-4 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none font-medium"></textarea>
+                                <button type="submit" disabled={status === 'sending'} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-full shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
                                     {status === 'sending' ? 'Sending...' : <><Send size={18} /> Submit Feedback</>}
                                 </button>
                             </form>

@@ -7,7 +7,7 @@ const FreshJobs = () => {
   const { jobs } = useJobs();
   // Filter by the manual isFresh flag
   const fresh = [...jobs]
-    .filter((job) => job.isFresh)
+    .filter((job) => job.isToday || job.isFresh)
     .reverse()
     .slice(0, 4);
   const [selectedJob, setSelectedJob] = useState(null);

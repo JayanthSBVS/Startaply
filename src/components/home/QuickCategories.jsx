@@ -1,29 +1,25 @@
 import React from 'react';
 
 const categories = [
-  'Fresher Jobs',
+  'IT & Non-IT Jobs',
   'Remote Jobs',
   'Internships',
-  'IT Jobs',
   'Government Jobs',
 ];
 
 const QuickCategories = ({ onSelect }) => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-
       <div className="flex flex-wrap gap-3 justify-center">
-
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => onSelect?.(cat)}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm hover:bg-green-50 hover:border-green-300 transition"
+            className="px-6 py-2.5 bg-white border border-slate-200 rounded-full text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all shadow-sm"
           >
             {cat}
           </button>
         ))}
-
       </div>
     </div>
   );

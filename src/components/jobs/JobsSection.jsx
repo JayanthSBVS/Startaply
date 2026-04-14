@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import JobCard from './JobCard';
 import JobDetailsPanel from './JobDetailsPanel';
 import { useJobs } from '../../context/JobsContext';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const JobsSection = ({ searchQuery }) => {
   const { jobs } = useJobs();
@@ -22,20 +24,17 @@ const JobsSection = ({ searchQuery }) => {
 
   return (
     <section className="py-12">
-
       <div className="max-w-6xl mx-auto px-4">
-
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-xl font-semibold">
-            {filteredJobs.length} Jobs Found
+        <div className="mb-8 flex justify-between items-center px-2">
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            {filteredJobs.length} <span className="text-emerald-600">Jobs Found</span>
           </h2>
-          <a href="/jobs" className="text-sm text-green-600 font-medium hover:underline">
-            Browse all jobs
-          </a>
+          <Link to="/jobs" className="text-sm text-emerald-600 font-bold hover:text-emerald-700 flex items-center gap-1 transition-colors bg-emerald-50 px-4 py-2 rounded-full">
+            Browse all jobs <ArrowRight size={14} />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredJobs.map((job) => (
             <JobCard
               key={job.id}
@@ -43,13 +42,9 @@ const JobsSection = ({ searchQuery }) => {
               onViewDetails={setSelectedJob}
             />
           ))}
-
         </div>
-
       </div>
-
       <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
-
     </section>
   );
 };

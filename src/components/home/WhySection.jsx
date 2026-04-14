@@ -20,7 +20,7 @@ const cardVariants = {
 
 const WhySection = () => {
   return (
-    <section className="py-16 bg-slate-950 text-white relative overflow-hidden">
+    <section className="py-20 bg-slate-950 text-white relative overflow-hidden border-b border-slate-900">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-900/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-900/20 rounded-full blur-[120px] pointer-events-none" />
 
@@ -29,11 +29,11 @@ const WhySection = () => {
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
-        className="relative z-10 max-w-6xl mx-auto px-4"
+        className="relative z-10 max-w-7xl mx-auto px-4"
       >
-        <div className="text-center mb-12">
-          <motion.h2 variants={cardVariants} className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
-            Why Choose <span className="text-emerald-400">Startaply?</span>
+        <div className="text-center mb-14">
+          <motion.h2 variants={cardVariants} className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
+            Why Choose <span className="text-emerald-400">Strataply?</span>
           </motion.h2>
           <motion.p variants={cardVariants} className="text-lg text-slate-400 max-w-2xl mx-auto font-medium">
             Built specifically for speed, clarity, and successful hiring outcomes.
@@ -46,12 +46,12 @@ const WhySection = () => {
               variants={cardVariants}
               whileHover={{ y: -6 }}
               key={f.title}
-              className="bg-slate-900/60 backdrop-blur-md p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-emerald-900/30 transition-all duration-300 group"
+              className="bg-slate-900/60 backdrop-blur-md p-8 rounded-[2rem] border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-emerald-900/30 transition-all duration-300 group"
             >
-              <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-900/40 transition-colors">
+              <div className="w-14 h-14 bg-slate-800 rounded-[1.25rem] flex items-center justify-center mb-6 border border-slate-700 group-hover:bg-emerald-900/40 group-hover:border-emerald-500/30 transition-colors">
                 <CheckCircle2 className="text-emerald-400" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-100 group-hover:text-emerald-300 transition-colors">{f.title}</h3>
+              <h3 className="text-xl font-black mb-3 text-slate-100 group-hover:text-emerald-300 transition-colors">{f.title}</h3>
               <p className="text-slate-400 leading-relaxed font-medium text-sm">{f.desc}</p>
             </motion.div>
           ))}

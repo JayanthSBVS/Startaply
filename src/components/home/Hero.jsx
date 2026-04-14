@@ -51,8 +51,6 @@ const Hero = () => {
 
   return (
     <section className="relative bg-slate-900 border-b border-slate-800 overflow-hidden" style={{ minHeight: 'min(85vh, 700px)' }}>
-
-      {/* Background Carousel */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-slate-900">
         <AnimatePresence mode="popLayout">
           <motion.img
@@ -66,12 +64,10 @@ const Hero = () => {
             alt=""
           />
         </AnimatePresence>
-        {/* Gradient overlays for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/30 to-slate-900/90" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-transparent" />
       </div>
 
-      {/* Dot indicators */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
         {images.map((_, i) => (
           <button
@@ -82,15 +78,8 @@ const Hero = () => {
         ))}
       </div>
 
-      {/* Content */}
       <div className="relative z-10 flex items-center justify-center min-h-[min(85vh,700px)] px-4 py-16 md:py-20">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="w-full max-w-4xl mx-auto text-center"
-        >
-          {/* Category pills */}
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="w-full max-w-4xl mx-auto text-center">
           <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-2 mb-6">
             <span className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-500/30 backdrop-blur-md">
               <GraduationCap size={13} /> Freshers
@@ -99,33 +88,24 @@ const Hero = () => {
               <Building2 size={13} /> Govt Jobs
             </span>
             <span className="flex items-center gap-1.5 bg-teal-500/20 text-teal-300 px-3 py-1.5 rounded-full text-xs font-bold border border-teal-500/30 backdrop-blur-md">
-              <Briefcase size={13} /> Private
+              <Briefcase size={13} /> Gig & Services
             </span>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            variants={itemVariants}
-            className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-4 drop-shadow-xl"
-          >
-            Find Your Next Job.{' '}
+          <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-4 drop-shadow-xl">
+            Your Career Starts Here.{' '}
             <br className="hidden sm:block" />
             <span className="text-emerald-400 drop-shadow-md">
               Zero Fees. Zero Friction.
             </span>
           </motion.h1>
 
-          {/* Subtitle */}
-          <motion.p
-            variants={itemVariants}
-            className="text-sm sm:text-lg text-slate-300 max-w-xl mx-auto mb-8 font-medium leading-relaxed px-2"
-          >
-            100% free platform. No login required. Browse verified opportunities and apply instantly.
+          <motion.p variants={itemVariants} className="text-sm sm:text-lg text-slate-300 max-w-xl mx-auto mb-8 font-medium leading-relaxed px-2">
+            The ultimate launchpad for Freshers and Gig Workers. 100% free platform. No login required. Browse verified opportunities and apply instantly.
           </motion.p>
 
-          {/* Search bar */}
           <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8">
-            <div className="flex bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden shadow-2xl focus-within:ring-2 focus-within:ring-emerald-500/60 focus-within:border-emerald-400 transition-all">
+            <div className="flex bg-white/10 backdrop-blur-md border border-white/20 rounded-[2rem] overflow-hidden shadow-2xl focus-within:ring-2 focus-within:ring-emerald-500/60 focus-within:border-emerald-400 transition-all pl-2">
               <div className="flex items-center pl-4 shrink-0">
                 <Search size={18} className="text-emerald-400" />
               </div>
@@ -138,7 +118,7 @@ const Hero = () => {
               />
               <button
                 onClick={handleSearch}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 sm:px-8 font-bold transition-colors flex items-center justify-center shrink-0 gap-1.5 text-sm sm:text-base"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 sm:px-8 font-bold transition-colors flex items-center justify-center shrink-0 gap-1.5 text-sm sm:text-base rounded-r-full"
               >
                 <span className="hidden xs:inline">Search</span>
                 <Search size={18} className="xs:hidden" />
@@ -146,15 +126,6 @@ const Hero = () => {
             </div>
           </motion.div>
 
-          {/* CTA buttons */}
-          <motion.div variants={itemVariants} className="flex justify-center mt-6">
-            <button
-              onClick={() => navigate('/jobs')}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold text-base shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 w-fit mx-auto"
-            >
-              Browse Jobs <ChevronRight size={18} />
-            </button>
-          </motion.div>
         </motion.div>
       </div>
     </section>

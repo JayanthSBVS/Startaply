@@ -3,13 +3,13 @@ import { MapPin, Monitor } from 'lucide-react';
 
 const Filters = ({ filters, setFilters }) => {
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-5">
+    <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm space-y-5">
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-          <MapPin size={14} /> Location
+        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-3">
+          <MapPin size={14} className="text-emerald-500" /> Location
         </label>
         <select
-          className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium transition-all"
+          className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 px-5 py-3.5 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-sm cursor-pointer transition-all hover:bg-slate-100"
           value={filters.location}
           onChange={(e) => setFilters({ ...filters, location: e.target.value })}
         >
@@ -22,11 +22,11 @@ const Filters = ({ filters, setFilters }) => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-          <Monitor size={14} /> Work Mode
+        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-3 pt-2 border-t border-slate-100">
+          <Monitor size={14} className="text-emerald-500" /> Work Mode
         </label>
         <select
-          className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium transition-all"
+          className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 px-5 py-3.5 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-sm cursor-pointer transition-all hover:bg-slate-100"
           value={filters.mode}
           onChange={(e) => setFilters({ ...filters, mode: e.target.value })}
         >

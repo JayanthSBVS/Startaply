@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
-import { Calendar, MapPin, Clock, Megaphone, ArrowRight, Building2, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Clock, Megaphone, ArrowRight, Building2, ExternalLink, GraduationCap } from 'lucide-react';
 import EmptyState from '../components/common/EmptyState';
 
 const JobMelaPage = () => {
@@ -12,11 +12,10 @@ const JobMelaPage = () => {
     useEffect(() => {
         axios.get('/api/job-mela')
             .then(res => {
-                // Fix typos programmatically for a professional feel
                 const cleaned = res.data.map(m => ({
                     ...m,
                     description: m.description?.replace(/thei sjob mea/gi, 'this job mela')
-                })).filter(m => m.isactive);
+                })).filter(m => m.isActive);
                 setMelas(cleaned);
                 setLoading(false);
             })
@@ -38,7 +37,19 @@ const JobMelaPage = () => {
                 </p>
             </div>
 
-            <div className="max-w-6xl mx-auto px-4 py-16 -mt-10 relative z-10">
+            {/* NEW: College Collaboration Banner */}
+            <div className="bg-emerald-600 text-white py-4 border-b border-emerald-700">
+                <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center sm:text-left">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                        <GraduationCap size={20} className="text-white" />
+                    </div>
+                    <p className="font-bold text-sm sm:text-base">
+                        Proudly collaborating with <span className="text-emerald-200 font-black">Top Degree & Engineering Colleges</span> nationwide to bring exclusive campus recruitment drives directly to you.
+                    </p>
+                </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto px-4 py-16 relative z-10">
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[1, 2].map(i => (
@@ -46,7 +57,7 @@ const JobMelaPage = () => {
                         ))}
                     </div>
                 ) : melas.length === 0 ? (
-                    <EmptyState 
+                    <EmptyState
                         title="No Upcoming Events"
                         message="There are no active Job Melas at the moment. We recommend staying tuned for upcoming recruitment drives."
                         onReset={() => window.location.href = '/'}
@@ -54,13 +65,13 @@ const JobMelaPage = () => {
                     />
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         {melas.map(mela => (
+                        {melas.map(mela => (
                             <div key={mela.id} className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col group hover:border-emerald-200 transition-all duration-300">
                                 <div className="relative h-64 overflow-hidden">
-                                    <img 
-                                        src={mela.image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070'} 
-                                        alt={mela.title} 
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    <img
+                                        src={mela.image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070'}
+                                        alt={mela.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-700 border border-white/20">
                                         Live Event
@@ -79,10 +90,10 @@ const JobMelaPage = () => {
                                         {mela.time && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Clock className="text-emerald-500" size={18} /> {mela.time}</p>}
                                         {mela.venue && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><MapPin className="text-emerald-500" size={18} /> {mela.venue}</p>}
                                     </div>
-                                    
-                                    {mela.registrationlink ? (
-                                        <a 
-                                            href={mela.registrationlink.startsWith('http') ? mela.registrationlink : `https://${mela.registrationlink}`} 
+
+                                    {mela.registrationLink ? (
+                                        <a
+                                            href={mela.registrationLink.startsWith('http') ? mela.registrationLink : `https://${mela.registrationLink}`}
                                             target="_blank" rel="noreferrer"
                                             className="mt-8 bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
                                         >

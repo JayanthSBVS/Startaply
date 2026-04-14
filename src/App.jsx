@@ -8,7 +8,7 @@ import CompaniesPage from './pages/CompaniesPage';
 import CategoryJobsPage from './pages/CategoryJobsPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
-import InterviewPrepPage from './pages/InterviewPrepPage';
+import PreparationPage from './pages/PreparationPage';
 import AboutUs from './pages/AboutUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -30,7 +30,7 @@ function App() {
           <Route path="/category/:categoryName" element={<CategoryJobsPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/interview-prep" element={<InterviewPrepPage />} />
+          <Route path="/preparation" element={<PreparationPage />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />

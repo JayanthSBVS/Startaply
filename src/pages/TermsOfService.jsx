@@ -17,13 +17,13 @@ const TermsOfService = () => {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-20">
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200">
           <p className="text-lg text-slate-600 leading-relaxed mb-10 font-medium">
             Welcome to Strataply. By accessing our centralized job discovery and application platform, you agree to these Terms of Service. Our mission is to provide you with clear, reliable job updates and help you apply easily.
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">1</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">1</span>
             Use of the Site
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6 font-medium">
@@ -31,7 +31,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">2</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">2</span>
             User Accounts & Information
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6 font-medium">
@@ -39,7 +39,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">3</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">3</span>
             Intellectual Property
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6 font-medium">
@@ -47,7 +47,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">4</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">4</span>
             Disclaimers
           </h3>
           <p className="text-slate-600 leading-relaxed font-medium">

@@ -1,15 +1,16 @@
 import React from 'react';
-import { Target, Eye, AlertCircle, CheckCircle2, Award, Zap } from 'lucide-react';
+import { Target, Eye, CheckCircle2, Award, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import CategoryGrid from '../components/home/CategoryGrid';
+import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 
 const AboutUs = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <Navbar />
 
-      {/* Hero Section */}
       <div className="relative pt-32 pb-20 overflow-hidden bg-slate-900 border-b border-slate-800">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-20 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500 rounded-full blur-[120px]"></div>
@@ -30,7 +31,6 @@ const AboutUs = () => {
         </motion.div>
       </div>
 
-      {/* Stats/Core Concept */}
       <div className="max-w-6xl mx-auto px-4 py-20 -mt-10 relative z-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
@@ -44,7 +44,7 @@ const AboutUs = () => {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
               key={i}
-              className="p-8 rounded-2xl bg-white shadow-xl shadow-slate-200/50 border border-slate-200 hover:border-emerald-400 hover:-translate-y-1 transition-all group"
+              className="p-8 rounded-[2rem] bg-white shadow-xl shadow-slate-200/50 border border-slate-200 hover:border-emerald-400 hover:-translate-y-1 transition-all group"
             >
               <div className="w-14 h-14 bg-emerald-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:scale-110 transition-all duration-300">
                 <item.icon className="text-emerald-600 group-hover:text-white transition-colors" size={28} />
@@ -56,8 +56,12 @@ const AboutUs = () => {
         </div>
       </div>
 
-      {/* Mission & Vision */}
+      {/* Category Integration */}
       <div className="bg-white border-y border-slate-200">
+        <CategoryGrid />
+      </div>
+
+      <div className="bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -82,12 +86,15 @@ const AboutUs = () => {
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="max-w-4xl mx-auto px-4 py-32 text-center">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-8 tracking-tight">Ready to elevate your career?</h2>
-        <a href="/jobs" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-1 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/30 text-lg">
-          Explore All Jobs
-        </a>
+      <CollegeCollabBanner />
+
+      <div className="bg-white border-t border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 py-32 text-center">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-8 tracking-tight">Ready to elevate your career?</h2>
+          <a href="/jobs" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-1 text-white px-10 py-4 rounded-full font-bold transition-all shadow-lg shadow-emerald-600/30 text-lg">
+            Explore All Jobs
+          </a>
+        </div>
       </div>
 
       <Footer />

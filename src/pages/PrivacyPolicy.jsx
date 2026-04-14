@@ -17,13 +17,13 @@ const PrivacyPolicy = () => {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-20">
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200">
           <p className="text-lg text-slate-600 leading-relaxed mb-10 font-medium">
             At Strataply, our mission is to make job searching simple, fast, and accessible. In providing you with reliable and easy-to-understand job information, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">1</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">1</span>
             Information We Collect
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6 font-medium">
@@ -31,20 +31,20 @@ const PrivacyPolicy = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">2</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">2</span>
             Use of Your Information
           </h3>
           <p className="text-slate-600 leading-relaxed mb-6 font-medium">
             Having accurate information about you permits us to provide you with a structured, efficient, and customized experience. Specifically, we may use information collected about you via the Site to:
           </p>
           <ul className="space-y-4 text-slate-600 font-medium mb-6">
-            <li className="flex items-start gap-3"><div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0"></div> Provide real-time updates on your job applications.</li>
-            <li className="flex items-start gap-3"><div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0"></div> Email you directly regarding your chosen opportunities.</li>
-            <li className="flex items-start gap-3"><div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0"></div> Fulfill and manage your job applications quickly and securely.</li>
+            <li className="flex items-start gap-3"><div className="w-2 h-2 mt-2.5 rounded-full bg-emerald-500 shrink-0"></div> Provide real-time updates on your job applications.</li>
+            <li className="flex items-start gap-3"><div className="w-2 h-2 mt-2.5 rounded-full bg-emerald-500 shrink-0"></div> Email you directly regarding your chosen opportunities.</li>
+            <li className="flex items-start gap-3"><div className="w-2 h-2 mt-2.5 rounded-full bg-emerald-500 shrink-0"></div> Fulfill and manage your job applications quickly and securely.</li>
           </ul>
 
           <h3 className="font-extrabold text-2xl text-slate-900 mt-12 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">3</span>
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-base">3</span>
             Data Security
           </h3>
           <p className="text-slate-600 leading-relaxed font-medium">

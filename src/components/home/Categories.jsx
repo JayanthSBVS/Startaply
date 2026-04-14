@@ -1,11 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Landmark, Building2, Settings2, GraduationCap, ArrowRight } from 'lucide-react';
-import { jobsData } from '../../data/jobsData';
 
 const iconComponents = { Landmark, Building2, Settings2, GraduationCap };
 
-const Categories = ({ onCategoryFilter }) => {
+const Categories = ({ categoriesData, onCategoryFilter }) => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -17,20 +16,21 @@ const Categories = ({ onCategoryFilter }) => {
     return () => observer.disconnect();
   }, []);
 
-  return (
-    <section className="relative py-24 px-4 sm:px-6 overflow-hidden">
-      <div className="absolute inset-0 dot-grid opacity-10"></div>
-      <div className="absolute -right-10 top-20 w-40 h-40 rounded-full border border-primary/10 pointer-events-none" style={{ animation: 'spin 40s linear infinite' }}></div>
+  if (!categoriesData) return null;
 
-      <div className="max-w-7xl mx-auto">
-        <div ref={sectionRef} className="section-fade-in text-center mb-14">
-          <div className="inline-flex items-center gap-2 glass neon-border rounded-full px-4 py-1.5 mb-4">
-            <span className="text-xs font-semibold text-primary uppercase tracking-widest">Explore Categories</span>
+  return (
+    <section className="relative py-24 px-4 sm:px-6 overflow-hidden bg-slate-900 border-b border-slate-800">
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div ref={sectionRef} className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-4">
+            <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">Explore Categories</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4">
-            Your Path, <span className="gradient-text">Your Choice</span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4 tracking-tight">
+            Your Path, <span className="text-emerald-400">Your Choice</span>
           </h2>
-          <p className="text-slate-400 max-w-xl mx-auto text-base">
+          <p className="text-slate-400 max-w-xl mx-auto text-base font-medium">
             Explore thousands of opportunities across every sector and career stage.
           </p>
         </div>
@@ -40,37 +40,26 @@ const Categories = ({ onCategoryFilter }) => {
             const IconComp = iconComponents[cat.iconName] || Building2;
             return (
               <motion.div
-                key={cat.id}
-                id={`category-card-${cat.id}`}
+                key={cat.id || index}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -8, rotateY: 5, rotateX: -3, scale: 1.02 }}
+                whileHover={{ y: -8, scale: 1.02 }}
                 onClick={() => onCategoryFilter(cat.title)}
-                className="relative cursor-pointer group rounded-3xl p-6 glass overflow-hidden transition-all duration-300"
-                style={{ transformStyle: 'preserve-3d' }}
+                className="relative cursor-pointer group rounded-[2rem] p-6 bg-slate-800/50 backdrop-blur-md border border-slate-700/50 hover:border-emerald-500/50 overflow-hidden transition-all duration-300"
               >
-                {/* Hover gradient bg */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl`}></div>
-
                 {/* Glow */}
-                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ boxShadow: `inset 0 0 30px ${cat.color}20, 0 0 40px ${cat.color}15` }}></div>
-
-                {/* Border */}
-                <div className="absolute inset-0 rounded-3xl border" style={{ borderColor: `${cat.color}20` }}></div>
-                <div className="absolute inset-0 rounded-3xl border opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ borderColor: `${cat.color}50` }}></div>
+                <div className="absolute inset-0 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(circle at 50% 0%, ${cat.color}20, transparent 70%)` }}></div>
 
                 {/* 3D Icon */}
-                <div className="relative z-10 mb-4">
+                <div className="relative z-10 mb-6 mt-2">
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                    className="w-14 h-14 rounded-[1.25rem] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg"
                     style={{
-                      background: `linear-gradient(135deg, ${cat.color}25, ${cat.color}10)`,
+                      background: `linear-gradient(135deg, ${cat.color}20, ${cat.color}05)`,
                       border: `1px solid ${cat.color}30`,
-                      boxShadow: `0 8px 24px ${cat.color}20`,
-                      transform: 'perspective(300px) translateZ(10px)',
                     }}
                   >
                     <IconComp size={26} strokeWidth={1.5} style={{ color: cat.color }} />
@@ -78,10 +67,10 @@ const Categories = ({ onCategoryFilter }) => {
                 </div>
 
                 <div className="relative z-10">
-                  <h3 className="text-lg font-bold text-white mb-2">{cat.title}</h3>
-                  <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors leading-relaxed mb-4">{cat.description}</p>
+                  <h3 className="text-xl font-black text-white mb-2 group-hover:text-emerald-400 transition-colors">{cat.title}</h3>
+                  <p className="text-slate-400 text-sm font-medium leading-relaxed mb-6">{cat.description}</p>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
                     <div className="text-sm font-bold" style={{ color: cat.color }}>{cat.count} jobs</div>
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0"
@@ -91,10 +80,6 @@ const Categories = ({ onCategoryFilter }) => {
                     </div>
                   </div>
                 </div>
-
-                {/* Accent dots */}
-                <div className="absolute top-4 right-4 w-2 h-2 rounded-full opacity-40 group-hover:opacity-100 transition-opacity" style={{ background: cat.color }}></div>
-                <div className="absolute top-8 right-8 w-1 h-1 rounded-full opacity-20 group-hover:opacity-60 transition-opacity" style={{ background: cat.color }}></div>
               </motion.div>
             );
           })}
