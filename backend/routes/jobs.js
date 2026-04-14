@@ -148,6 +148,27 @@ function mapRow(row) {
 
 // ── ROUTES ───────────────────────────────────────────────
 
+// GET search suggestions (titles and companies)
+router.get('/search/suggestions', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) return res.json([]);
+
+    const searchTerm = `%${q}%`;
+    const { rows } = await pool.query(`
+      (SELECT title as suggestion FROM jobs WHERE title ILIKE $1 AND isVisible = true)
+      UNION
+      (SELECT company as suggestion FROM jobs WHERE company ILIKE $1 AND isVisible = true)
+      LIMIT 8
+    `, [searchTerm]);
+
+    res.json(rows.map(r => r.suggestion));
+  } catch (err) {
+    console.error('Suggestions error:', err);
+    res.status(500).json([]);
+  }
+});
+
 // GET all jobs
 router.get('/', async (req, res) => {
   try {

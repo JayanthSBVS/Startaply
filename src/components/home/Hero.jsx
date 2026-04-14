@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Search, GraduationCap, Building2, Briefcase, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useJobs } from '../../context/JobsContext';
@@ -16,7 +17,11 @@ const Hero = () => {
   const navigate = useNavigate();
   const { heroImages } = useJobs();
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentImg, setCurrentImg] = useState(0);
+  const dropdownRef = useRef(null);
 
   const images = (heroImages && heroImages.length >= 5) ? heroImages : DEFAULT_IMAGES;
 
@@ -29,15 +34,67 @@ const Hero = () => {
     return () => clearInterval(timer);
   }, [currentImg, images]);
 
-  const handleSearch = (e) => {
-    e?.preventDefault();
-    if (!query.trim()) return;
-    navigate(`/jobs?company=${encodeURIComponent(query.trim())}`);
+  // Fetch suggestions with debouncing
+  useEffect(() => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await axios.get(`/api/jobs/search/suggestions?q=${encodeURIComponent(query)}`);
+        if (Array.isArray(res.data)) {
+          setSuggestions(res.data);
+          setShowSuggestions(res.data.length > 0);
+          setSelectedIndex(-1);
+        }
+      } catch (err) {
+        console.error("Suggestions fetch error:", err);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const handleSearch = (searchTerm) => {
+    const finalQuery = searchTerm || query;
+    if (!finalQuery.trim()) return;
+    setShowSuggestions(false);
+    navigate(`/jobs?company=${encodeURIComponent(finalQuery.trim())}`);
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleSearch();
+    if (e.key === 'Enter') {
+      if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+        setQuery(suggestions[selectedIndex]);
+        handleSearch(suggestions[selectedIndex]);
+      } else {
+        handleSearch();
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+      setShowSuggestions(true);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
   };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -104,7 +161,7 @@ const Hero = () => {
             The ultimate launchpad for Freshers and Gig Workers. 100% free platform. No login required. Browse verified opportunities and apply instantly.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8">
+          <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8 relative" ref={dropdownRef}>
             <div className="flex bg-white/10 backdrop-blur-md border border-white/20 rounded-[2rem] overflow-hidden shadow-2xl focus-within:ring-2 focus-within:ring-emerald-500/60 focus-within:border-emerald-400 transition-all pl-2">
               <div className="flex items-center pl-4 shrink-0">
                 <Search size={18} className="text-emerald-400" />
@@ -113,17 +170,52 @@ const Hero = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={() => query.length >= 2 && setShowSuggestions(true)}
                 placeholder="Job title, skills, or company..."
                 className="flex-1 min-w-0 px-3 py-3.5 sm:py-4 text-sm sm:text-base outline-none text-white placeholder-slate-400 font-medium bg-transparent"
               />
               <button
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 sm:px-8 font-bold transition-colors flex items-center justify-center shrink-0 gap-1.5 text-sm sm:text-base rounded-r-full"
               >
                 <span className="hidden xs:inline">Search</span>
                 <Search size={18} className="xs:hidden" />
               </button>
             </div>
+
+            {/* Suggestions Dropdown */}
+            <AnimatePresence>
+              {showSuggestions && suggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute left-0 right-0 mt-3 bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] py-4"
+                >
+                  <div className="px-5 mb-2 flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Suggestions</span>
+                    <span className="text-[10px] font-bold text-emerald-500/50">Press Enter to select</span>
+                  </div>
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setQuery(suggestion);
+                        handleSearch(suggestion);
+                      }}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                      className={`w-full text-left px-6 py-3.5 flex items-center gap-4 transition-all duration-150 ${index === selectedIndex ? 'bg-emerald-500/10 text-emerald-400 border-l-4 border-emerald-500' : 'text-slate-300 border-l-4 border-transparent hover:bg-slate-800/50'}`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                        {suggestion.includes(' ') ? <Briefcase size={14} className="text-slate-400" /> : <Building2 size={14} className="text-slate-400" />}
+                      </div>
+                      <span className="font-bold text-sm tracking-tight">{suggestion}</span>
+                      <ChevronRight size={14} className={`ml-auto opacity-0 transition-opacity ${index === selectedIndex ? 'opacity-100' : ''}`} />
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
         </motion.div>
