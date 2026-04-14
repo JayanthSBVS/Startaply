@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, DollarSign, Clock, Building2, ChevronRight, Share2, AlertCircle } from 'lucide-react';
+import { MapPin, IndianRupee, Clock, Building2, ChevronRight, Share2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const JobCard = ({ job, onViewDetails }) => {
@@ -62,7 +62,7 @@ const JobCard = ({ job, onViewDetails }) => {
 
       <div className="flex flex-wrap gap-2 mb-4 relative z-10">
         {job.location && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold group-hover:bg-emerald-50/50 group-hover:text-emerald-700 transition-colors duration-200"><MapPin size={13} className="text-emerald-500" /><span className="truncate max-w-[100px]">{job.location}</span></span>}
-        {job.salary && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold group-hover:bg-emerald-50/50 group-hover:text-emerald-700 transition-colors duration-200"><DollarSign size={13} className="text-emerald-500" /><span>{job.salary}</span></span>}
+        {job.salary && <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold group-hover:bg-emerald-50/50 group-hover:text-emerald-700 transition-colors duration-200"><IndianRupee size={13} className="text-emerald-500" /><span>{job.salary}</span></span>}
       </div>
 
       {(job.description || job.fullDescription) && <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2 mb-5 relative z-10 flex-1">{job.description || job.fullDescription?.substring(0, 150)}</p>}

@@ -5,7 +5,7 @@
 import {
   Landmark, Building2, Settings2, GraduationCap,
   Search, Code2, ShoppingCart, Globe, Share2, Play, Music, Brain, Zap, Home,
-  Calculator, Users, Terminal, MapPin, DollarSign, Clock, Bookmark,
+  Calculator, Users, Terminal, MapPin, IndianRupee, Clock, Bookmark,
   Filter, ChevronDown, ArrowRight, Plus, Check, X, Star,
   Briefcase, Award, TrendingUp, BarChart3, FileText, Shield,
   Loader2, ChevronUp, Layers, LayoutGrid, SlidersHorizontal,

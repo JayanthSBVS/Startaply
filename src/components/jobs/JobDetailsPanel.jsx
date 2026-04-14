@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, MapPin, Briefcase, DollarSign, CheckCircle2, ArrowRight, Share2, CalendarDays, GraduationCap, AlertCircle } from 'lucide-react';
+import { X, MapPin, Briefcase, IndianRupee, CheckCircle2, ArrowRight, Share2, CalendarDays, GraduationCap, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
 const API = '/api';
@@ -158,7 +158,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
             <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-700">
               {job.location && <span className="bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5"><MapPin size={14} className="text-emerald-500" /> {job.location}</span>}
               {job.type && <span className="bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5"><Briefcase size={14} className="text-emerald-500" /> {job.type}</span>}
-              {job.salary && <span className="bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5"><DollarSign size={14} className="text-emerald-500" /> {job.salary}</span>}
+              {job.salary && <span className="bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5"><IndianRupee size={14} className="text-emerald-500" /> {job.salary}</span>}
               {job.expiryDays && (
                 <span className="bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5">
                   <CalendarDays size={14} className="text-emerald-500" /> Auto-hides in {job.expiryDays} days

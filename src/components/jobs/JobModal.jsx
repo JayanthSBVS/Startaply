@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, DollarSign, X } from 'lucide-react';
+import { MapPin, IndianRupee, X } from 'lucide-react';
 
 const JobModal = ({ job, onClose }) => {
   if (!job) return null;
@@ -28,7 +28,7 @@ const JobModal = ({ job, onClose }) => {
             </div>
           </div>
           <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 p-4 rounded-[1.25rem]">
-            <DollarSign size={20} className="text-emerald-500 shrink-0" />
+            <IndianRupee size={20} className="text-emerald-500 shrink-0" />
             <div>
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Salary</p>
               <p className="text-sm font-bold text-slate-700">{job.salary || 'Not specified'}</p>
