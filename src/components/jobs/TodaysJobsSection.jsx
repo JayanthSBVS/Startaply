@@ -12,10 +12,14 @@ const TodaysJobsSection = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedJob, setSelectedJob] = useState(null);
 
-  const freshJobs = jobs.filter(j => j.isToday || j.isFresh); // Fallback to isFresh for safety
+  // Defensive programming: ensure arrays are used
+  const safeJobs = Array.isArray(jobs) ? jobs : [];
+  const freshJobs = safeJobs.filter(j => j.isToday || j.isFresh); // Fallback to isFresh for safety
   const filtered = activeTab === "All"
     ? freshJobs
     : freshJobs.filter(j => (j.jobCategory || j.category) === activeTab);
+
+  const safeFiltered = Array.isArray(filtered) ? filtered : [];
 
   // Exact URI Mapping for JobsPage filters
   const categoryQuery = activeTab === "All" ? "All Categories" : encodeURIComponent(activeTab);
@@ -56,7 +60,7 @@ const TodaysJobsSection = () => {
 
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
-            {filtered.slice(0, 6).map(job => (
+            {safeFiltered.slice(0, 6).map(job => (
               <motion.div
                 key={job.id}
                 layout

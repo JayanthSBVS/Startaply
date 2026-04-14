@@ -18,8 +18,8 @@ const Testimonials = () => {
     useEffect(() => {
         axios.get('/api/testimonials')
             .then(res => {
-                // Ensure we ALWAYS show at least 4 testimonials
-                if (res.data && res.data.length >= 4) {
+                // Defensive check: Ensure res.data is actually an array, not an HTML error string
+                if (Array.isArray(res.data) && res.data.length >= 4) {
                     setTestimonials(res.data);
                 } else {
                     setTestimonials(DUMMY_TESTIMONIALS);
@@ -31,7 +31,10 @@ const Testimonials = () => {
             });
     }, []);
 
-    if (!testimonials || testimonials.length === 0) return null;
+    // Safely enforce array structure before mapping
+    const safeTestimonials = Array.isArray(testimonials) ? testimonials : DUMMY_TESTIMONIALS;
+
+    if (safeTestimonials.length === 0) return null;
 
     return (
         <section className="py-24 bg-slate-900 border-b border-slate-800 overflow-hidden relative">
@@ -43,7 +46,7 @@ const Testimonials = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                    {testimonials.slice(0, 8).map((t, idx) => (
+                    {safeTestimonials.slice(0, 8).map((t, idx) => (
                         <motion.div
                             key={t.id || idx}
                             initial={{ opacity: 0, y: 30 }}

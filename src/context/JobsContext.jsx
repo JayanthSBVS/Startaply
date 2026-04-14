@@ -19,8 +19,10 @@ export const JobsProvider = ({ children }) => {
           axios.get(`${API}/jobs`).catch(() => ({ data: [] })),
           axios.get(`${API}/companies`).catch(() => ({ data: [] }))
         ]);
-        setJobs(jobsRes.data);
-        setCompanies(compRes.data);
+
+        // Defensive checks: strictly enforce arrays to prevent .map crashes
+        setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
+        setCompanies(Array.isArray(compRes.data) ? compRes.data : []);
       } catch (err) {
         console.error("Public API Fetch Error:", err);
       }

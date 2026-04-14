@@ -12,10 +12,14 @@ const FeaturedJobsSection = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedJob, setSelectedJob] = useState(null);
 
-  const featuredJobs = jobs.filter(j => j.isFeatured);
+  // Defensive programming: ensure arrays are used
+  const safeJobs = Array.isArray(jobs) ? jobs : [];
+  const featuredJobs = safeJobs.filter(j => j.isFeatured);
   const filtered = activeTab === "All"
     ? featuredJobs
     : featuredJobs.filter(j => (j.jobCategory || j.category) === activeTab);
+
+  const safeFiltered = Array.isArray(filtered) ? filtered : [];
 
   // Exact URI Mapping for JobsPage filters
   const categoryQuery = activeTab === "All" ? "All Categories" : encodeURIComponent(activeTab);
@@ -56,7 +60,7 @@ const FeaturedJobsSection = () => {
 
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
-            {filtered.slice(0, 6).map(job => (
+            {safeFiltered.slice(0, 6).map(job => (
               <motion.div
                 key={job.id}
                 layout
