@@ -39,9 +39,37 @@ const JobMelaDetailPage = () => {
 
   // Normalize DB lowercase field names vs camelCase
   const bannerImg = mela?.bannerimage || mela?.bannerImage;
-  const mapLink   = mela?.googlemaplink || mela?.googleMapLink;
+  const rawMapLink = mela?.googlemaplink || mela?.googleMapLink;
   const regLink   = mela?.registrationlink || mela?.registrationLink;
   const heroImg   = bannerImg || mela?.image;
+
+  /**
+   * Smart embed URL builder:
+   * - If the stored URL already contains '/maps/embed' or 'output=embed'  → use as-is
+   * - If it's a regular Google Maps share/place URL  → convert via venue q= param
+   * - If no URL but venue exists → build a search embed from venue text
+   * This ensures the iframe ALWAYS renders something visible.
+   */
+  const getEmbedUrl = (url, venue) => {
+    // Already a proper embed URL
+    if (url && (url.includes('/maps/embed') || url.includes('output=embed'))) return url;
+    // Venue available → build reliable search embed (no API key needed)
+    if (venue) {
+      return `https://maps.google.com/maps?q=${encodeURIComponent(venue)}&output=embed&iwloc=&z=15`;
+    }
+    // Last resort: try appending output=embed to whatever URL was given
+    if (url) {
+      try {
+        const u = new URL(url);
+        u.searchParams.set('output', 'embed');
+        return u.toString();
+      } catch { return url; }
+    }
+    return null;
+  };
+
+  const mapLink = rawMapLink || mela?.venue; // show map if either link OR venue exists
+  const embedUrl = mela ? getEmbedUrl(rawMapLink, mela.venue) : null;
 
   if (loading) {
     return (
@@ -204,30 +232,38 @@ const JobMelaDetailPage = () => {
               </ul>
             </div>
 
-            {/* ── Google Map ──
-                FIX: NO overflow-hidden on the card wrapper, and the iframe
-                uses an explicit pixel height instead of the padding-bottom
-                absolute-position trick (which was being clipped).
-            */}
-            {mapLink && (
+            {/* ── Google Map ── */}
+            {(embedUrl) && (
               <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2rem]">
-                <div className="px-8 pt-8 pb-4 flex items-center gap-3">
-                  <MapPin size={20} className="text-blue-400" />
-                  <h2 className="text-lg font-black uppercase tracking-widest text-blue-400">Event Location</h2>
+                <div className="px-8 pt-8 pb-5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <MapPin size={20} className="text-blue-400" />
+                    <h2 className="text-lg font-black uppercase tracking-widest text-blue-400">Event Location</h2>
+                  </div>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(mela.venue || 'Job Mela')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-full"
+                  >
+                    <ExternalLink size={12} /> Open in Maps
+                  </a>
                 </div>
 
-                {/* iframe with explicit height — no clipping issues */}
+                {/* Explicit pixel height iframe — no overflow-hidden clipping */}
                 <div className="px-4 pb-4">
                   <div className="rounded-2xl overflow-hidden border border-slate-700/40">
                     <iframe
-                      src={mapLink}
+                      key={embedUrl}
+                      src={embedUrl}
                       title="Job Mela Location"
                       width="100%"
                       height="420"
-                      style={{ border: 0, display: 'block' }}
+                      style={{ border: 0, display: 'block', minHeight: '420px' }}
                       allowFullScreen
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
+                      sandbox="allow-scripts allow-same-origin allow-popups"
                     />
                   </div>
                 </div>
