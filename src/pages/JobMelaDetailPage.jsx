@@ -66,7 +66,10 @@ const JobMelaDetailPage = () => {
           <Megaphone size={56} className="text-slate-700 mb-6" />
           <h2 className="text-2xl font-black text-white mb-3">Event Not Found</h2>
           <p className="text-slate-400 mb-8">This Job Mela may have been removed or is no longer active.</p>
-          <button onClick={() => navigate('/job-melas')} className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 px-8 rounded-full transition-all">
+          <button
+            onClick={() => navigate('/job-melas')}
+            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 px-8 rounded-full transition-all"
+          >
             ← Back to Job Melas
           </button>
         </div>
@@ -78,21 +81,16 @@ const JobMelaDetailPage = () => {
     <div className="min-h-screen bg-slate-950 font-sans text-white">
       <Navbar />
 
-      {/* Hero Banner */}
+      {/* ── Hero Banner ── */}
       <div className="relative w-full h-[50vh] min-h-[340px] max-h-[520px] overflow-hidden">
         {heroImg ? (
-          <img
-            src={heroImg}
-            alt={mela.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={heroImg} alt={mela.title} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-slate-900 via-emerald-950/40 to-slate-950 flex items-center justify-center">
             <Megaphone size={80} className="text-emerald-500/20" />
           </div>
         )}
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
 
         {/* Back button */}
         <button
@@ -103,12 +101,10 @@ const JobMelaDetailPage = () => {
         </button>
 
         {/* Live badge */}
-        {mela.isactive !== false && mela.isActive !== false && (
-          <div className="absolute top-28 right-6 md:right-10 z-20 inline-flex items-center gap-2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30">
-            <span className="w-2 h-2 rounded-full bg-slate-950 animate-pulse" />
-            Live Event
-          </div>
-        )}
+        <div className="absolute top-28 right-6 md:right-10 z-20 inline-flex items-center gap-2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30">
+          <span className="w-2 h-2 rounded-full bg-slate-950 animate-pulse" />
+          Live Event
+        </div>
 
         {/* Title overlay */}
         <div className="absolute bottom-0 left-0 right-0 px-6 md:px-10 pb-10 z-10">
@@ -125,11 +121,11 @@ const JobMelaDetailPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-6 md:px-10 py-12 space-y-10">
+      {/* ── Main Content ── */}
+      <div className="max-w-5xl mx-auto px-6 md:px-10 py-12">
 
-        {/* Info Cards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Quick-info pills row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           {mela.date && (
             <div className="bg-slate-900/60 border border-slate-800/60 rounded-2xl p-5 flex items-center gap-4">
               <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20 flex-shrink-0">
@@ -165,11 +161,17 @@ const JobMelaDetailPage = () => {
           )}
         </div>
 
-        {/* Body: Description + Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* ── Two-column layout ── */}
+        {/*
+          FIX: sticky is on the COLUMN wrapper (self-start + sticky top-24),
+          NOT on an inner child card. This prevents overlap/corruption.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-          {/* Description */}
+          {/* Left: main content column */}
           <div className="lg:col-span-2 space-y-8">
+
+            {/* About */}
             {mela.description && (
               <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2rem] p-8">
                 <h2 className="text-lg font-black uppercase tracking-widest text-emerald-400 mb-5 flex items-center gap-3">
@@ -181,7 +183,7 @@ const JobMelaDetailPage = () => {
               </div>
             )}
 
-            {/* Highlights */}
+            {/* Why Attend */}
             <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2rem] p-8">
               <h2 className="text-lg font-black uppercase tracking-widest text-emerald-400 mb-6 flex items-center gap-3">
                 <CheckCircle2 size={18} /> Why Attend?
@@ -202,24 +204,34 @@ const JobMelaDetailPage = () => {
               </ul>
             </div>
 
-            {/* Google Map Embed */}
+            {/* ── Google Map ──
+                FIX: NO overflow-hidden on the card wrapper, and the iframe
+                uses an explicit pixel height instead of the padding-bottom
+                absolute-position trick (which was being clipped).
+            */}
             {mapLink && (
-              <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2rem] overflow-hidden">
+              <div className="bg-slate-900/40 border border-slate-800/60 rounded-[2rem]">
                 <div className="px-8 pt-8 pb-4 flex items-center gap-3">
                   <MapPin size={20} className="text-blue-400" />
                   <h2 className="text-lg font-black uppercase tracking-widest text-blue-400">Event Location</h2>
                 </div>
-                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                  <iframe
-                    src={mapLink}
-                    title="Job Mela Location"
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="absolute inset-0 w-full h-full border-0"
-                    style={{ filter: 'grayscale(20%) contrast(1.05)' }}
-                  />
+
+                {/* iframe with explicit height — no clipping issues */}
+                <div className="px-4 pb-4">
+                  <div className="rounded-2xl overflow-hidden border border-slate-700/40">
+                    <iframe
+                      src={mapLink}
+                      title="Job Mela Location"
+                      width="100%"
+                      height="420"
+                      style={{ border: 0, display: 'block' }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
                 </div>
+
                 <div className="px-8 py-4 text-xs text-slate-500 font-bold flex items-center gap-2">
                   <MapPin size={12} /> {mela.venue || 'See map for exact location'}
                 </div>
@@ -227,11 +239,14 @@ const JobMelaDetailPage = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-5">
+          {/* ── Right: Sidebar ──
+              FIX: sticky + self-start on the COLUMN div, not an inner card.
+              This makes the whole sidebar scroll correctly without any overlap.
+          */}
+          <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start space-y-5">
 
             {/* Register CTA */}
-            <div className="bg-gradient-to-br from-emerald-600/20 to-slate-900/60 border border-emerald-500/30 rounded-[2rem] p-7 text-center shadow-xl shadow-emerald-900/20 sticky top-24">
+            <div className="bg-gradient-to-br from-emerald-600/20 to-slate-900/60 border border-emerald-500/30 rounded-[2rem] p-7 text-center shadow-xl shadow-emerald-900/20">
               <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-emerald-500/20">
                 <Users size={28} className="text-emerald-400" />
               </div>
@@ -250,12 +265,11 @@ const JobMelaDetailPage = () => {
                   Register Now <ExternalLink size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </a>
               ) : (
-                <div className="w-full bg-slate-800 text-slate-500 font-black py-4 px-6 rounded-xl text-center text-sm">
+                <div className="w-full bg-slate-800 text-slate-500 font-bold py-4 px-6 rounded-xl text-center text-sm">
                   Registration Link Coming Soon
                 </div>
               )}
 
-              {/* Share button */}
               <button
                 onClick={handleShare}
                 className="mt-4 w-full bg-slate-800/60 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 text-slate-300 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all text-sm"
@@ -297,12 +311,13 @@ const JobMelaDetailPage = () => {
                   href={`https://maps.google.com/?q=${encodeURIComponent(mela.venue || 'Job Mela')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-xs font-bold mt-2 transition-colors"
+                  className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-xs font-bold pt-1 transition-colors"
                 >
                   <MapPin size={12} /> Open in Google Maps
                 </a>
               )}
             </div>
+
           </div>
         </div>
       </div>
