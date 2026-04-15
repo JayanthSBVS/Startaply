@@ -51,13 +51,15 @@ const AdminDashboard = () => {
 
       console.log("Fetch complete. Loading data into state...");
 
-      setJobs(jobsRes.data || []);
-      setApplications(appsRes.data || []);
-      setCompanies(compRes.data || []);
-      setMelas(melaRes.data || []);
-      setFeedbacks(fbRes.data || []);
-      setTestimonials(testRes.data || []);
-      setPrepData(prepRes.data || []);
+      const toArr = (d) => (Array.isArray(d) ? d : []);
+
+      setJobs(toArr(jobsRes.data));
+      setApplications(toArr(appsRes.data));
+      setCompanies(toArr(compRes.data));
+      setMelas(toArr(melaRes.data));
+      setFeedbacks(toArr(fbRes.data));
+      setTestimonials(toArr(testRes.data));
+      setPrepData(toArr(prepRes.data));
 
     } catch (err) {
       console.error("Critical Sync Error:", err);

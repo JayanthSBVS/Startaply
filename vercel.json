@@ -48,15 +48,15 @@
     },
     {
       "src": "/api/job-mela/active",
-      "dest": "/api/jobmela.js"
+      "dest": "/api/job-mela.js"
     },
     {
       "src": "/api/job-mela/([^/]+)",
-      "dest": "/api/jobmela.js"
+      "dest": "/api/job-mela.js"
     },
     {
       "src": "/api/job-mela",
-      "dest": "/api/jobmela.js"
+      "dest": "/api/job-mela.js"
     },
     {
       "src": "/api/feedback/([^/]+)",
