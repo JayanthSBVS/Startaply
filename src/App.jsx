@@ -13,6 +13,7 @@ import AboutUs from './pages/AboutUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import JobMelaPage from './pages/JobMelaPage';
+import JobMelaDetailPage from './pages/JobMelaDetailPage';
 
 import ScrollToTop from './components/common/ScrollToTop';
 import FeedbackWidget from './components/common/FeedbackWidget';
@@ -27,6 +28,7 @@ function App() {
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           <Route path="/job-melas" element={<JobMelaPage />} />
+          <Route path="/job-mela/:id" element={<JobMelaDetailPage />} />
           <Route path="/category/:categoryName" element={<CategoryJobsPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />

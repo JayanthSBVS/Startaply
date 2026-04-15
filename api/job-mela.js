@@ -27,6 +27,8 @@ async function init() {
     await pool.query(`ALTER TABLE job_mela ADD COLUMN IF NOT EXISTS showPopup BOOLEAN DEFAULT TRUE`);
     await pool.query(`ALTER TABLE job_mela ADD COLUMN IF NOT EXISTS company TEXT`);
     await pool.query(`ALTER TABLE job_mela ADD COLUMN IF NOT EXISTS registrationLink TEXT`);
+    await pool.query(`ALTER TABLE job_mela ADD COLUMN IF NOT EXISTS bannerImage TEXT`);
+    await pool.query(`ALTER TABLE job_mela ADD COLUMN IF NOT EXISTS googleMapLink TEXT`);
   } catch (err) { console.error(err.message); }
 }
 init();
@@ -47,11 +49,11 @@ app.get('/api/job-mela/active', async (req, res) => {
 
   app.post('/api/job-mela', async (req, res) => {
     try {
-      const { title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink } = req.body;
+      const { title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, bannerImage, googleMapLink } = req.body;
       const { rows } = await pool.query(
-        `INSERT INTO job_mela (title,description,venue,date,time,image,tickerText,isActive,showPopup,company,registrationLink,createdAt)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-        [title, description, venue, date, time, image, tickerText, isActive !== false, showPopup !== false, company, registrationLink, Date.now()]
+        `INSERT INTO job_mela (title,description,venue,date,time,image,tickerText,isActive,showPopup,company,registrationLink,bannerImage,googleMapLink,createdAt)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+        [title, description, venue, date, time, image, tickerText, isActive !== false, showPopup !== false, company, registrationLink, bannerImage, googleMapLink, Date.now()]
       );
     res.status(201).json(rows[0]);
   } catch (err) { res.status(500).json({ message: 'Server error', detail: err.message }); }
@@ -59,10 +61,10 @@ app.get('/api/job-mela/active', async (req, res) => {
 
   app.put('/api/job-mela/:id', async (req, res) => {
     try {
-      const { title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink } = req.body;
+      const { title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, bannerImage, googleMapLink } = req.body;
       const { rows } = await pool.query(
-        `UPDATE job_mela SET title=$1,description=$2,venue=$3,date=$4,time=$5,image=$6,tickerText=$7,isActive=$8,showPopup=$9,company=$10,registrationLink=$11 WHERE id=$12 RETURNING *`,
-        [title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, req.params.id]
+        `UPDATE job_mela SET title=$1,description=$2,venue=$3,date=$4,time=$5,image=$6,tickerText=$7,isActive=$8,showPopup=$9,company=$10,registrationLink=$11,bannerImage=$12,googleMapLink=$13 WHERE id=$14 RETURNING *`,
+        [title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, bannerImage, googleMapLink, req.params.id]
       );
     res.json(rows[0]);
   } catch (err) { res.status(500).json({ message: 'Server error' }); }

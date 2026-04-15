@@ -15,7 +15,7 @@ const JobMelaPage = () => {
                 const cleaned = res.data.map(m => ({
                     ...m,
                     description: m.description?.replace(/thei sjob mea/gi, 'this job mela')
-                })).filter(m => m.isActive);
+                })).filter(m => m.isactive !== false && m.isActive !== false);
                 setMelas(cleaned);
                 setLoading(false);
             })
@@ -37,14 +37,14 @@ const JobMelaPage = () => {
                 </p>
             </div>
 
-            {/* NEW: College Collaboration Banner */}
+            {/* College Collaboration Banner */}
             <div className="bg-emerald-600 text-white py-4 border-b border-emerald-700">
                 <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center sm:text-left">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
                         <GraduationCap size={20} className="text-white" />
                     </div>
                     <p className="font-bold text-sm sm:text-base">
-                        Proudly collaborating with <span className="text-emerald-200 font-black">Top Degree & Engineering Colleges</span> nationwide to bring exclusive campus recruitment drives directly to you.
+                        Proudly collaborating with <span className="text-emerald-200 font-black">Top Degree &amp; Engineering Colleges</span> nationwide to bring exclusive campus recruitment drives directly to you.
                     </p>
                 </div>
             </div>
@@ -65,48 +65,69 @@ const JobMelaPage = () => {
                     />
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {melas.map(mela => (
-                            <div key={mela.id} className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col group hover:border-emerald-200 transition-all duration-300">
-                                <div className="relative h-64 overflow-hidden">
-                                    <img
-                                        src={mela.image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070'}
-                                        alt={mela.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-700 border border-white/20">
-                                        Live Event
-                                    </div>
-                                </div>
-                                <div className="p-8 flex-1 flex flex-col">
-                                    <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">{mela.title}</h2>
-                                    {mela.company && (
-                                        <div className="flex items-center gap-2 text-slate-500 font-bold mb-4">
-                                            <Building2 size={16} /> {mela.company}
-                                        </div>
-                                    )}
-                                    <p className="text-slate-500 font-medium mb-8 leading-relaxed flex-1 line-clamp-3">{mela.description}</p>
-                                    <div className="space-y-3 bg-slate-50 p-6 rounded-3xl border border-slate-100 group-hover:bg-emerald-50/30 group-hover:border-emerald-100 transition-colors">
-                                        {mela.date && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Calendar className="text-emerald-500" size={18} /> {mela.date}</p>}
-                                        {mela.time && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Clock className="text-emerald-500" size={18} /> {mela.time}</p>}
-                                        {mela.venue && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><MapPin className="text-emerald-500" size={18} /> {mela.venue}</p>}
-                                    </div>
+                        {melas.map(mela => {
+                            // Support both DB lowercase and camelCase field names
+                            const thumbnail = mela.bannerimage || mela.bannerImage || mela.image ||
+                                'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070';
+                            const regLink = mela.registrationlink || mela.registrationLink;
+                            const hasMap = !!(mela.googlemaplink || mela.googleMapLink);
 
-                                    {mela.registrationLink ? (
-                                        <a
-                                            href={mela.registrationLink.startsWith('http') ? mela.registrationLink : `https://${mela.registrationLink}`}
-                                            target="_blank" rel="noreferrer"
-                                            className="mt-8 bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
-                                        >
-                                            Register Now <ExternalLink size={18} />
-                                        </a>
-                                    ) : (
-                                        <button className="mt-8 bg-slate-100 text-slate-400 font-black py-4 px-6 rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed">
-                                            Link Pending <ArrowRight size={18} />
-                                        </button>
-                                    )}
+                            return (
+                                <div key={mela.id} className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col group hover:border-emerald-200 transition-all duration-300">
+                                    <div className="relative h-64 overflow-hidden">
+                                        <img
+                                            src={thumbnail}
+                                            alt={mela.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-700 border border-white/20">
+                                            Live Event
+                                        </div>
+                                        {hasMap && (
+                                            <div className="absolute top-4 right-4 bg-blue-500/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white flex items-center gap-1.5">
+                                                <MapPin size={10} /> Map Available
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-8 flex-1 flex flex-col">
+                                        <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">{mela.title}</h2>
+                                        {mela.company && (
+                                            <div className="flex items-center gap-2 text-slate-500 font-bold mb-4">
+                                                <Building2 size={16} /> {mela.company}
+                                            </div>
+                                        )}
+                                        <p className="text-slate-500 font-medium mb-8 leading-relaxed flex-1 line-clamp-3">{mela.description}</p>
+                                        <div className="space-y-3 bg-slate-50 p-6 rounded-3xl border border-slate-100 group-hover:bg-emerald-50/30 group-hover:border-emerald-100 transition-colors">
+                                            {mela.date && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Calendar className="text-emerald-500" size={18} /> {mela.date}</p>}
+                                            {mela.time && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><Clock className="text-emerald-500" size={18} /> {mela.time}</p>}
+                                            {mela.venue && <p className="flex items-center gap-3 text-sm font-bold text-slate-700"><MapPin className="text-emerald-500" size={18} /> {mela.venue}</p>}
+                                        </div>
+
+                                        <div className="mt-6 flex gap-3">
+                                            <a
+                                                href={`/job-mela/${mela.id}`}
+                                                className="flex-1 bg-slate-900 hover:bg-emerald-600 text-white font-black py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-sm"
+                                            >
+                                                View Details <ArrowRight size={16} />
+                                            </a>
+                                            {regLink ? (
+                                                <a
+                                                    href={regLink.startsWith('http') ? regLink : `https://${regLink}`}
+                                                    target="_blank" rel="noreferrer"
+                                                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-sm"
+                                                >
+                                                    Register <ExternalLink size={16} />
+                                                </a>
+                                            ) : (
+                                                <div className="flex-1 bg-slate-100 text-slate-400 font-black py-4 px-4 rounded-2xl flex items-center justify-center text-sm cursor-not-allowed">
+                                                    Link Soon
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
