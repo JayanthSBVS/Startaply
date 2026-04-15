@@ -33,7 +33,7 @@ const AdminDashboard = () => {
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '' });
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '' });
   const [testimonialForm, setTestimonialForm] = useState({ name: '', tagline: '', description: '', photo: '' });
-  const [prepForm, setPrepForm] = useState({ heading: '', jobType: 'IT & Non-IT Jobs', content: '' });
+  const [prepForm, setPrepForm] = useState({ heading: '', jobType: 'IT Jobs', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
 
   const fetchData = async () => {
     try {
@@ -541,12 +541,16 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'prep' && (
-            <div className="animate-in fade-in slide-in-from-bottom-5 max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-slate-900/40 p-8 rounded-[2.5rem] border border-slate-800/60 h-fit sticky top-24 shadow-2xl">
-                <h3 className="text-2xl font-black mb-8 flex items-center gap-4 text-emerald-400"><BookOpen size={28} /> New Preparation Content</h3>
-                <div className="space-y-6">
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Title / Topic</label><input className={inputCls} placeholder="e.g. React Interview Basics" value={prepForm.heading} onChange={e => setPrepForm({ ...prepForm, heading: e.target.value })} /></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Target Category</label>
+            <div className="animate-in fade-in slide-in-from-bottom-5 max-w-3xl mx-auto space-y-8">
+
+              {/* Add Form */}
+              <div className="bg-slate-900/40 p-6 md:p-10 rounded-[2.5rem] border border-slate-800/60 shadow-2xl">
+                <h3 className="text-xl md:text-2xl font-black mb-8 flex items-center gap-4 text-emerald-400"><BookOpen size={28} /> New Preparation Content</h3>
+                <div className="space-y-5">
+
+                  {/* Category */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Target Category</label>
                     <div className="relative">
                       <select className={selectCls} value={prepForm.jobType} onChange={e => setPrepForm({ ...prepForm, jobType: e.target.value })}>
                         <option>IT Jobs</option><option>Non-IT Jobs</option><option>Government Jobs</option>
@@ -554,24 +558,94 @@ const AdminDashboard = () => {
                       <div className="absolute right-5 top-[14px] pointer-events-none text-slate-500">▼</div>
                     </div>
                   </div>
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Content / Body</label><textarea rows="8" className={textareaCls} placeholder="Write detailed tips, links, or instructions..." value={prepForm.content} onChange={e => setPrepForm({ ...prepForm, content: e.target.value })}></textarea></div>
-                  <button onClick={async () => { await axios.post(`${API}/prep-data`, prepForm); setPrepForm({ heading: '', jobType: 'IT Jobs', content: '' }); fetchData(); showMsg('Prep Material Published'); }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-5 rounded-full mt-4 shadow-lg shadow-emerald-500/20 transition-all active:scale-95">Publish to Prep Page</button>
+
+                  {/* Content Type */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Content Type</label>
+                    <div className="flex flex-wrap gap-2">
+                      {[{ val: 'article', label: '📝 Article / Tips' }, { val: 'qna', label: '❓ Q&A' }, { val: 'paper', label: '📄 Previous Year Paper' }].map(opt => (
+                        <button key={opt.val} onClick={() => setPrepForm({ ...prepForm, contentType: opt.val })}
+                          className={`px-4 py-2 rounded-full text-xs font-black border transition-all ${
+                            prepForm.contentType === opt.val
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/20'
+                              : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:border-slate-500'
+                          }`}>{opt.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Article Fields */}
+                  {prepForm.contentType === 'article' && (
+                    <>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Title / Topic</label><input className={inputCls} placeholder="e.g. React Interview Basics" value={prepForm.heading} onChange={e => setPrepForm({ ...prepForm, heading: e.target.value })} /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Content / Body</label><textarea rows="8" className={textareaCls} placeholder="Write tips, guides, key points..." value={prepForm.content} onChange={e => setPrepForm({ ...prepForm, content: e.target.value })}></textarea></div>
+                    </>
+                  )}
+
+                  {/* Q&A Fields */}
+                  {prepForm.contentType === 'qna' && (
+                    <>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest pl-1">Question</label><input className={inputCls} placeholder="e.g. What is polymorphism?" value={prepForm.question} onChange={e => setPrepForm({ ...prepForm, question: e.target.value, heading: e.target.value })} /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Answer</label><textarea rows="6" className={textareaCls} placeholder="Detailed answer..." value={prepForm.answer} onChange={e => setPrepForm({ ...prepForm, answer: e.target.value, content: e.target.value })}></textarea></div>
+                    </>
+                  )}
+
+                  {/* Paper Fields */}
+                  {prepForm.contentType === 'paper' && (
+                    <>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-amber-500 tracking-widest pl-1">Paper Title</label><input className={inputCls} placeholder="e.g. UPSC Prelims 2023 GS Paper" value={prepForm.heading} onChange={e => setPrepForm({ ...prepForm, heading: e.target.value })} /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-amber-500 tracking-widest pl-1">PDF / Download URL</label><input className={inputCls} placeholder="https://drive.google.com/..." value={prepForm.fileUrl} onChange={e => setPrepForm({ ...prepForm, fileUrl: e.target.value })} /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Description (optional)</label><textarea rows="3" className={textareaCls} placeholder="e.g. 100 questions, 2 hours, GS Paper I" value={prepForm.content} onChange={e => setPrepForm({ ...prepForm, content: e.target.value })}></textarea></div>
+                    </>
+                  )}
+
+                  <button
+                    onClick={async () => {
+                      await axios.post(`${API}/prep-data`, prepForm);
+                      setPrepForm({ heading: '', jobType: 'IT Jobs', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
+                      fetchData();
+                      showMsg('Prep Material Published');
+                    }}
+                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-5 rounded-full shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                  >Publish to Prep Page</button>
                 </div>
               </div>
-              <div className="space-y-6">
-                <h4 className="text-sm font-black uppercase text-slate-500 tracking-[0.2em] px-4 flex items-center justify-between">Existing Materials <span className="bg-slate-800 text-slate-400 px-3 py-1 rounded-lg text-[10px]">{prepData.length} Items</span></h4>
-                <div className="space-y-4">
-                  {prepData.map(item => (
-                    <div key={item.id} className="bg-slate-900/40 p-6 rounded-[2rem] border border-slate-800/80 group">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="bg-slate-800 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-700/50">{item.jobType}</span>
-                        <button onClick={async () => { if (window.confirm('Delete material?')) { await axios.delete(`${API}/prep-data/${item.id}`); fetchData(); showMsg('Removed'); } }} className="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={16} /></button>
+
+              {/* Existing Items List */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-black uppercase text-slate-500 tracking-[0.2em] px-2 flex items-center justify-between">
+                  Existing Materials
+                  <span className="bg-slate-800 text-slate-400 px-3 py-1 rounded-lg text-[10px]">{prepData.length} Items</span>
+                </h4>
+                {prepData.map(item => (
+                  <div key={item.id} className="bg-slate-900/40 p-5 rounded-[2rem] border border-slate-800/80">
+                    <div className="flex justify-between items-start mb-3 gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-slate-800 text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-700/50">{item.jobtype || item.jobType}</span>
+                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
+                          (item.contenttype || item.contentType) === 'qna' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          (item.contenttype || item.contentType) === 'paper' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          'bg-slate-800 text-slate-400 border-slate-700'
+                        }`}>{(item.contenttype || item.contentType) === 'qna' ? '❓ Q&A' : (item.contenttype || item.contentType) === 'paper' ? '📄 Paper' : '📝 Article'}</span>
                       </div>
-                      <h5 className="font-extrabold text-slate-100 mb-2">{item.heading}</h5>
-                      <p className="text-slate-400 text-sm line-clamp-3 font-medium">{item.content}</p>
+                      <button
+                        onClick={async () => { if (window.confirm('Delete material?')) { await axios.delete(`${API}/prep-data/${item.id}`); fetchData(); showMsg('Removed'); } }}
+                        className="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors flex-shrink-0"
+                      ><Trash2 size={16} /></button>
                     </div>
-                  ))}
-                </div>
+                    <h5 className="font-extrabold text-slate-100 mb-1 text-sm md:text-base">{item.heading}</h5>
+                    {(item.contenttype || item.contentType) === 'paper' && (item.fileurl || item.fileUrl) && (
+                      <a href={item.fileurl || item.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs text-amber-400 font-bold mt-1 hover:text-amber-300">📥 Download Link</a>
+                    )}
+                    <p className="text-slate-400 text-sm line-clamp-2 font-medium mt-1">{item.content}</p>
+                  </div>
+                ))}
+                {prepData.length === 0 && (
+                  <div className="text-center py-16 bg-slate-900/20 rounded-[2.5rem] border border-dashed border-slate-800">
+                    <BookOpen size={40} className="mx-auto text-slate-700 mb-3" />
+                    <p className="text-slate-500 font-bold text-sm">No prep materials yet. Add your first one above!</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

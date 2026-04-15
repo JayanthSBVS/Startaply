@@ -11,15 +11,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS prep_data (
-    id VARCHAR(50) PRIMARY KEY,
-    heading TEXT,
-    jobType TEXT,
-    content TEXT,
-    createdAt BIGINT
-  )
-`).catch(console.error);
+async function init() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS prep_data (
+        id VARCHAR(50) PRIMARY KEY,
+        heading TEXT,
+        jobType TEXT,
+        content TEXT,
+        createdAt BIGINT
+      )
+    `);
+    // Add new columns if they don't exist (safe migration)
+    await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS contentType TEXT DEFAULT 'article'`);
+    await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS fileUrl TEXT`);
+    await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS question TEXT`);
+    await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS answer TEXT`);
+  } catch (err) {
+    console.error('prepData init error:', err.message);
+  }
+}
+init();
 
 app.get('/api/prep-data', async (req, res) => {
   try {
@@ -30,14 +42,19 @@ app.get('/api/prep-data', async (req, res) => {
 
 app.post('/api/prep-data', async (req, res) => {
   try {
-    const { heading, jobType, content } = req.body;
+    const { heading, jobType, content, contentType, fileUrl, question, answer } = req.body;
     const id = String(Date.now());
+    const type = contentType || 'article';
     const { rows } = await pool.query(
-      'INSERT INTO prep_data (id,heading,jobType,content,createdAt) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-      [id, heading, jobType || 'IT Jobs', content, Date.now()]
+      `INSERT INTO prep_data (id, heading, jobType, content, contentType, fileUrl, question, answer, createdAt)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [id, heading || question || '', jobType || 'IT Jobs', content || answer || '', type, fileUrl || '', question || '', answer || content || '', Date.now()]
     );
     res.json(rows[0]);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+  } catch (err) {
+    console.error('prepData POST error:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 app.delete('/api/prep-data/:id', async (req, res) => {
