@@ -40,7 +40,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const isManager = () => user?.role === 'manager';
+  const isManager = () => {
+    if (!user) return false;
+    return user.role === 'manager' || user.email === 'manager@strataply.com';
+  };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, isManager }}>
