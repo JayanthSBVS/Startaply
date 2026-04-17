@@ -113,10 +113,11 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) => {
   try {
-    const [jobs, apps, companies, feedback] = await Promise.all([
+    const [jobs, melas, companies, apps, feedback] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM jobs'),
-      pool.query('SELECT COUNT(*) FROM applications'),
+      pool.query('SELECT COUNT(*) FROM job_mela'),
       pool.query('SELECT COUNT(*) FROM companies'),
+      pool.query('SELECT COUNT(*) FROM applications'),
       pool.query('SELECT COUNT(*) FROM feedback')
     ]);
 
@@ -124,21 +125,77 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
     const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
     const todayMillis = new Date().setHours(0, 0, 0, 0);
 
+    const [todayJobs, todayPrep, todayMela, todayCompanies] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM jobs WHERE createdat >= $1', [todayMillis]),
+      pool.query('SELECT COUNT(*) FROM prep_data WHERE createdat >= $1', [todayMillis]),
+      pool.query('SELECT COUNT(*) FROM job_mela WHERE createdat >= $1', [todayMillis]),
+      pool.query('SELECT COUNT(*) FROM companies WHERE createdat >= $1', [todayMillis])
+    ]);
+
     const adminStats = await pool.query(`
       SELECT 
         u.id, u.name as adminname, u.email, u.role, u.isactive,
+        
+        -- Lifetime Totals
         (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) as job_count_total,
-        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) as job_count_today
+        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) as company_count_total,
+        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) as prep_count_total,
+        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id) as mela_count_total,
+        
+        -- Today's Totals
+        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) as job_count_today,
+        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) as company_count_today,
+        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) as prep_count_today,
+        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1) as mela_count_today,
+        
+        -- Historical Daily performance (last 14 days)
+        (
+           SELECT json_agg(day_stat) FROM (
+             SELECT 
+               TO_CHAR(TO_TIMESTAMP(createdat/1000), 'YYYY-MM-DD') as date, 
+               COUNT(*) as count
+             FROM jobs 
+             WHERE createdbyadminid = u.id AND createdat >= $2
+             GROUP BY date
+             ORDER BY date DESC
+           ) day_stat
+        ) as historical_jobs,
+
+        -- Total Combined
+        (
+          (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) +
+          (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) +
+          (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) +
+          (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id)
+        ) as lifetime_total,
+        
+        (
+          (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) +
+          (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) +
+          (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) +
+          (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1)
+        ) as today_total
+
       FROM users u
-    `, [todayMillis]);
+      ORDER BY lifetime_total DESC
+    `, [todayMillis, fourteenDaysAgo]);
 
     res.json({
       totalJobs: parseInt(jobs.rows[0].count),
       totalApplications: parseInt(apps.rows[0].count),
       totalCompanies: parseInt(companies.rows[0].count),
+      todayJobs: parseInt(todayJobs.rows[0].count),
+      todayPrep: parseInt(todayPrep.rows[0].count),
+      todayMela: parseInt(todayMela.rows[0].count),
+      todayCompanies: parseInt(todayCompanies.rows[0].count),
+      totalToday: parseInt(todayJobs.rows[0].count) + parseInt(todayPrep.rows[0].count) + parseInt(todayMela.rows[0].count),
+      totalAdmins: adminStats.rows.length,
       adminProductivity: adminStats.rows
     });
-  } catch (err) { res.status(500).json({ error: 'Stats error' }); }
+  } catch (err) {
+    console.error('Stats fetch err:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // GET all users

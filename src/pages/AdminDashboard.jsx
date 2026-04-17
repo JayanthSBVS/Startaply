@@ -101,7 +101,18 @@ const AdminDashboard = () => {
           logs: logsRes.data,
           admins: adminsRes.data
         });
-        if (statsRes.data) setGlobalStats(statsRes.data);
+        
+        if (statsRes.data) {
+          // Normalize API response to frontend expectations
+          const stats = statsRes.data;
+          setGlobalStats({
+            ...stats,
+            todayJobs: stats.todayJobs || 0,
+            todayPrep: stats.todayPrep || 0,
+            todayMela: stats.todayMela || 0,
+            totalToday: stats.totalToday || 0
+          });
+        }
         if (logsRes.data) setLogs(logsRes.data);
         if (adminsRes.data) setAdmins(adminsRes.data);
       } else {
@@ -125,9 +136,13 @@ const AdminDashboard = () => {
     if (!token) {
       navigate('/admin-login');
     } else {
-      fetchData();
+      // Small delay to let AuthContext stabilize the user object
+      const timer = setTimeout(() => {
+        fetchData();
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [navigate, user]);
+  }, [navigate]); // Only sync once on mount or manual refresh, not every user change to avoid flicker.
 
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
