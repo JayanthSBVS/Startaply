@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 
+const { recordActivity } = require('./_shared');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -249,7 +251,8 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
       j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
       j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,j.createdByAdminId
     ]);
-    res.status(201).json(mapRow(rows[0]));
+      await recordActivity(pool, req.user, 'Jobs', `Created job: ${j.title}`, j.id);
+      res.status(201).json(mapRow(rows[0]));
   } catch (err) {
     console.error('POST /api/jobs:', err);
     res.status(500).json({ message: 'Server error', detail: err.message });
@@ -289,7 +292,8 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
       j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
       j.createdByAdminId, id
     ]);
-    res.json(mapRow(rows[0]));
+      await recordActivity(pool, req.user, 'Jobs', `Updated job: ${j.title}`, j.id);
+      res.json(mapRow(rows[0]));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -306,6 +310,7 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'You can only delete your own jobs' });
     }
     await pool.query('DELETE FROM jobs WHERE id=$1', [id]);
+    await recordActivity(pool, req.user, 'Jobs', `Deleted job ID: ${id}`, id);
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

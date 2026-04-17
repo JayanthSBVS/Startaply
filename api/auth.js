@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
+const { recordActivity } = require('./_shared');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -91,6 +93,20 @@ initAuthDb();
 
 // ── ROUTES ───────────────────────────────────────────────
 
+app.post('/api/auth/register', authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
+    const id = 'admin_' + Date.now();
+    await pool.query(
+      `INSERT INTO users (id, name, email, password, role, createdAt) VALUES ($1,$2,$3,$4,$5,$6)`,
+      [id, name, email, hashed, role || 'admin', Date.now()]
+    );
+    await recordActivity(pool, req.user, 'Auth', `Registered new admin: ${name}`, id);
+    res.status(201).json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Creation failed' }); }
+});
+
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -106,6 +122,10 @@ app.post('/api/auth/login', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    // Update lastLogin
+    await pool.query('UPDATE users SET lastLogin = $1 WHERE id = $2', [Date.now(), user.id]);
+    await recordActivity(pool, { ...user, role: user.role }, 'Auth', `User Logged In`, user.id);
 
     res.json({ token, user: { id: user.id, email: user.email, role: user.role, name: user.name } });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
@@ -163,17 +183,17 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
 
         -- Total Combined (Calculating server-side to ensure accuracy)
         (
-          (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) +
-          (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) +
-          (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) +
-          (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id)
+          COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id), 0) +
+          COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id), 0) +
+          COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id), 0) +
+          COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id), 0)
         ) as lifetime_total,
         
         (
-          (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) +
-          (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) +
-          (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) +
-          (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1)
+          COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1), 0) +
+          COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1), 0) +
+          COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1), 0) +
+          COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1), 0)
         ) as today_total
 
       FROM users u
@@ -240,6 +260,7 @@ app.put('/api/auth/users/:id/toggle', authMiddleware, managerMiddleware, async (
     const { id } = req.params;
     const { isActive } = req.body;
     await pool.query('UPDATE users SET isactive = $1 WHERE id = $2', [isActive, id]);
+    await recordActivity(pool, req.user, 'Auth', `Toggled Admin Status: ${id} to ${isActive ? 'Active' : 'Inactive'}`, id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
@@ -249,9 +270,13 @@ app.delete('/api/auth/users/:id', authMiddleware, managerMiddleware, async (req,
   try {
     const { id } = req.params;
     if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
+    const { rows: u } = await pool.query('SELECT name FROM users WHERE id = $1', [id]);
     await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    await recordActivity(pool, req.user, 'Auth', `Revoked Admin Access: ${u[0]?.name || id}`, id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
+
+module.exports = app;
 
 module.exports = app;

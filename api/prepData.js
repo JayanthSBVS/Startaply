@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 
+const { recordActivity } = require('./_shared');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -101,6 +103,7 @@ app.post('/api/prep-data', authMiddleware, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [id, heading || question || '', jobType || 'IT Jobs', content || answer || '', type, fileUrl || '', question || '', answer || content || '', Date.now(), req.user.id]
     );
+    await recordActivity(pool, req.user, 'Preparation', `Added prep material: ${heading || 'New Content'}`, id);
     res.json(mapRow(rows[0]));
   } catch (err) {
     console.error('prepData POST error:', err.message);
@@ -117,6 +120,7 @@ app.delete('/api/prep-data/:id', authMiddleware, async (req, res) => {
        return res.status(403).json({ error: 'Forbidden' });
     }
     await pool.query('DELETE FROM prep_data WHERE id=$1', [id]);
+    await recordActivity(pool, req.user, 'Preparation', `Deleted prep material ID: ${id}`, id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });

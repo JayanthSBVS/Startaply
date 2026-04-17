@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 
+const { recordActivity } = require('./_shared');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -100,6 +102,7 @@ app.post('/api/job-mela', authMiddleware, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
       [title, description, venue, date, time, image, tickerText, isActive !== false, showPopup !== false, company, registrationLink, bannerImage, googleMapLink, Date.now(), req.user.id]
     );
+    await recordActivity(pool, req.user, 'Job Mela', `Published/Updated job mela: ${title}`, rows[0].id);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) { res.status(500).json({ message: 'Server error', detail: err.message }); }
 });
@@ -119,6 +122,7 @@ app.put('/api/job-mela/:id', authMiddleware, async (req, res) => {
        WHERE id=$14 RETURNING *`,
       [title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, bannerImage, googleMapLink, id]
     );
+    await recordActivity(pool, req.user, 'Job Mela', `Updated mela event: ${title}`, id);
     res.json(mapRow(rows[0]));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
@@ -132,6 +136,7 @@ app.delete('/api/job-mela/:id', authMiddleware, async (req, res) => {
        return res.status(403).json({ error: 'Forbidden' });
     }
     await pool.query('DELETE FROM job_mela WHERE id=$1', [id]);
+    await recordActivity(pool, req.user, 'Job Mela', `Deleted mela event ID: ${id}`, id);
     res.json({ message: 'Deleted' });
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
