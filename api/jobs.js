@@ -1,3 +1,16 @@
+const express = require('express');
+const cors = require('cors');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
@@ -30,9 +43,12 @@ async function initDb() {
         isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
         govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
         mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard',
-        createdByAdminId TEXT, createdByAdminName TEXT
+        createdByAdminId TEXT,
+        createdByAdminName TEXT
       )
     `);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminId TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminName TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applyType TEXT DEFAULT 'external'`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE`);
@@ -41,14 +57,69 @@ async function initDb() {
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS jobCategoryType TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS mapLocationUrl TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS processType TEXT DEFAULT 'Standard'`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminId TEXT`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminName TEXT`);
-    // ... remaining init calls
-  } catch (err) { }
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS applications (
+        id VARCHAR(50) PRIMARY KEY, jobId VARCHAR(50),
+        name TEXT, email TEXT, phone TEXT, resume TEXT, appliedAt BIGINT
+      )
+    `);
+    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS jobTitle TEXT`);
+    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS companyName TEXT`);
+  } catch (err) {
+    console.error('DB init error:', err.message);
+  }
 }
+
 initDb();
 
 // ── HELPERS ──────────────────────────────────────────────
+function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
+
+function normalizeJob(body, existing = null, adminUser = null) {
+  const now = Date.now();
+  const fullDesc = body.fullDescription || existing?.fullDescription || '';
+  const shortDesc = body.description || (fullDesc ? fullDesc.substring(0, 200) : '') || existing?.description || '';
+
+  return {
+    id: existing?.id || String(now),
+    createdAt: existing?.createdAt || now,
+    updatedAt: now,
+    title: body.title || '',
+    subtitle: body.subtitle || '',
+    description: shortDesc,
+    fullDescription: fullDesc,
+    requiredSkills: body.requiredSkills || '',
+    techStack: body.techStack || '',
+    aboutCompany: body.aboutCompany || '',
+    benefits: body.benefits || '',
+    company: body.company || '',
+    companyLogo: body.companyLogo || '',
+    location: body.location || '',
+    workMode: body.workMode || '',
+    qualification: body.qualification || '',
+    experience: body.experience || '',
+    salary: body.salary || '',
+    type: body.type || '',
+    category: body.category || body.jobCategory || '',
+    monthTag: body.monthTag || '',
+    applyUrl: body.applyUrl || '',
+    applyType: body.applyType || 'external',
+    expiryDays: Number(body.expiryDays || 0),
+    isFeatured: nb(body.isFeatured),
+    isFresh: nb(body.isFresh),
+    isTrending: nb(body.isTrending),
+    isToday: nb(body.isToday),
+    isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
+    govtJobType: body.govtJobType || '',
+    stateName: body.stateName || '',
+    jobCategoryType: body.jobCategoryType || '',
+    mapLocationUrl: body.mapLocationUrl || '',
+    processType: body.processType || 'Standard',
+    createdByAdminId: existing?.createdByAdminId || adminUser?.id || 'unknown',
+    createdByAdminName: existing?.createdByAdminName || adminUser?.name || 'unknown'
+  };
+}
+
 function mapRow(r) {
   if (!r) return null;
   return {
@@ -70,7 +141,38 @@ function mapRow(r) {
 
 // ── ROUTES ───────────────────────────────────────────────
 
-// GET all jobs for admin (No Expiry Filtering)
+// POST increment view
+app.post('/api/jobs/:id/view', async (req, res) => {
+  try {
+    await pool.query('UPDATE jobs SET views = COALESCE(views, 0) + 1 WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+// GET search suggestions (titles and companies)
+app.get('/api/jobs/search/suggestions', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) return res.json([]);
+
+    const searchTerm = `%${q}%`;
+    const { rows } = await pool.query(`
+      (SELECT title as suggestion FROM jobs WHERE title ILIKE $1 AND isVisible = true)
+      UNION
+      (SELECT company as suggestion FROM jobs WHERE company ILIKE $1 AND isVisible = true)
+      LIMIT 8
+    `, [searchTerm]);
+
+    res.json(rows.map(r => r.suggestion));
+  } catch (err) {
+    console.error('Suggestions error:', err);
+    res.status(500).json([]);
+  }
+});
+
+// GET all jobs for admin (no expiry filtering + role filtering)
 app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   try {
     let query = `
@@ -79,27 +181,52 @@ app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
     `;
     let params = [];
 
-    // Filter by ownership for standard admins
+    // Filter by admin ID if role is admin (not manager)
     if (req.user.role === 'admin') {
       query += ` WHERE j.createdByAdminId = $1`;
       params.push(req.user.id);
     }
 
     query += ` ORDER BY j.createdat DESC`;
+    
     const { rows } = await pool.query(query, params);
     res.json(rows.map(mapRow));
   } catch (err) {
+    console.error('Admin list error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET all jobs (public with expiry filtering)
+app.get('/api/jobs', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
+      FROM jobs j
+    `);
+    const now = Date.now();
+    let cleaned = [], deleteIds = [];
+    for (const row of rows) {
+      const job = mapRow(row);
+      const expired = job.expiryDays && job.createdAt &&
+        (now > job.createdAt + job.expiryDays * 86400000);
+      if (expired) deleteIds.push(job.id);
+      else cleaned.push(job);
+    }
+    if (deleteIds.length > 0)
+      await pool.query('DELETE FROM jobs WHERE id = ANY($1::varchar[])', [deleteIds]);
+    cleaned.sort((a, b) => b.createdAt - a.createdAt);
+    res.json(cleaned);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', detail: err.message });
   }
 });
 
 // POST create job
 app.post('/api/jobs', authMiddleware, async (req, res) => {
   try {
-    const j = normalizeJob(req.body);
-    const ownerId = req.user.id;
-    const ownerName = req.user.name;
-
+    const j = normalizeJob(req.body, null, req.user);
     const { rows } = await pool.query(`
       INSERT INTO jobs (
         id,createdAt,updatedAt,title,subtitle,description,fullDescription,
@@ -116,7 +243,7 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
       j.location,j.workMode,j.qualification,j.experience,j.salary,j.type,j.category,
       j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
       j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
-      ownerId, ownerName
+      j.createdByAdminId, j.createdByAdminName
     ]);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
@@ -132,12 +259,13 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ message: 'Not found' });
     
-    // Check ownership for standard admins
-    if (req.user.role === 'admin' && ex[0].createdbyadminid !== req.user.id) {
-      return res.status(403).json({ error: 'Permission denied' });
+    // Check ownership if not manager
+    const existingJob = mapRow(ex[0]);
+    if (req.user.role === 'admin' && existingJob.createdByAdminId !== req.user.id) {
+      return res.status(403).json({ error: 'Permission denied: This job belongs to another admin' });
     }
 
-    const j = normalizeJob(req.body, mapRow(ex[0]));
+    const j = normalizeJob(req.body, existingJob, req.user);
     const { rows } = await pool.query(`
       UPDATE jobs SET
         updatedAt=$1,title=$2,subtitle=$3,description=$4,fullDescription=$5,
@@ -146,7 +274,7 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
         govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32,
-        createdByAdminId=COALESCE(createdByAdminId, $33), createdByAdminName=COALESCE(createdByAdminName, $34)
+        createdByAdminId=$33, createdByAdminName=$34
       WHERE id=$35 RETURNING *
     `, [
       j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
@@ -155,26 +283,19 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
       j.salary,j.type,j.category,j.monthTag,j.applyUrl,j.applyType,
       j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
       j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
-      ex[0].createdbyadminid || req.user.id, ex[0].createdbyadminname || req.user.name, id
+      j.createdByAdminId, j.createdByAdminName, id
     ]);
     res.json(mapRow(rows[0]));
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // DELETE job
-app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
+app.delete('/api/jobs/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
-    if (!ex.length) return res.status(404).json({ message: 'Not found' });
-
-    if (req.user.role === 'admin' && ex[0].createdbyadminid !== req.user.id) {
-      return res.status(403).json({ error: 'Permission denied' });
-    }
-
-    await pool.query('DELETE FROM jobs WHERE id=$1', [id]);
+    await pool.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
