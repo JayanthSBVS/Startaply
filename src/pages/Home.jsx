@@ -13,10 +13,11 @@ import TrendingCompanies from '../components/home/TrendingCompanies';
 import Testimonials from '../components/home/Testimonials';
 import Footer from '../components/common/Footer';
 import JobMelaPopup from '../components/home/JobMelaPopup';
+import FeedbackForm from '../components/home/FeedbackForm';
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/40 transition-colors duration-300">
       <JobMelaPopup />
       <Navbar />
       <Hero />
@@ -32,6 +33,9 @@ const Home = () => {
 
       <TrendingCompanies />
       <Testimonials />
+      <div className="max-w-7xl mx-auto px-4 w-full">
+        <FeedbackForm />
+      </div>
       <Footer />
     </div>
   );

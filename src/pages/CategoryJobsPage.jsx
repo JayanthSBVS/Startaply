@@ -25,15 +25,37 @@ const CategoryJobsPage = () => {
   const decoded = decodeURIComponent(categoryName);
   const [selectedJob, setSelectedJob] = useState(null);
 
+  // Sub-category state
+  const [govtType, setGovtType] = useState('All'); 
+  const [activeState, setActiveState] = useState('');
+  const [itType, setItType] = useState('All'); 
+
   const theme = categoryConfig[decoded] || defaultTheme;
   const IconComp = theme.icon;
 
   const filtered = useMemo(() => {
-    return jobs.filter(j => (j.jobCategory || j.category) === decoded);
-  }, [jobs, decoded]);
+    let base = jobs.filter(j => (j.jobCategory || j.category) === decoded);
+    
+    if (decoded === 'Government Jobs') {
+      if (govtType !== 'All') {
+        base = base.filter(j => j.govtJobType === govtType);
+        if (govtType === 'State' && activeState) {
+          base = base.filter(j => j.stateName === activeState);
+        }
+      }
+    } else if (decoded === 'IT & Non-IT Jobs') {
+      if (itType !== 'All') {
+        base = base.filter(j => j.jobCategoryType === itType);
+      }
+    }
+    
+    return base;
+  }, [jobs, decoded, govtType, activeState, itType]);
+
+  const indianStates = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'];
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
       <Navbar />
 
       {/* DYNAMIC HERO */}
@@ -56,16 +78,47 @@ const CategoryJobsPage = () => {
       {/* CONTENT */}
       <div className="max-w-7xl mx-auto px-4 py-12 -mt-8 relative z-20">
 
-        <div className="bg-white/80 backdrop-blur-md rounded-full shadow-lg shadow-slate-200/50 border border-slate-200 px-6 py-4 mb-10 flex justify-between items-center">
-          <Link to="/" className="text-sm font-bold text-slate-500 hover:text-slate-900 flex items-center gap-2 transition-colors px-2">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl md:rounded-full shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-800 px-6 py-4 mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
+          <Link to="/" className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors px-2">
             <ArrowLeft size={16} /> Back to Home
           </Link>
-          <div className="flex items-center gap-2">
+
+          {/* SUB-CATEGORY FILTERS */}
+          <div className="flex flex-wrap justify-center items-center gap-2">
+            {decoded === 'Government Jobs' && (
+              <>
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700">
+                  <button onClick={() => { setGovtType('All'); setActiveState(''); }} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${govtType === 'All' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'}`}>All</button>
+                  <button onClick={() => setGovtType('Central')} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${govtType === 'Central' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'}`}>Central</button>
+                  <button onClick={() => setGovtType('State')} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${govtType === 'State' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'}`}>State</button>
+                </div>
+                {govtType === 'State' && (
+                  <select 
+                    value={activeState} 
+                    onChange={(e) => setActiveState(e.target.value)}
+                    className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  >
+                    <option value="">All States</option>
+                    {indianStates.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
+              </>
+            )}
+            {decoded === 'IT & Non-IT Jobs' && (
+              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700">
+                <button onClick={() => setItType('All')} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${itType === 'All' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'}`}>All Categories</button>
+                <button onClick={() => setItType('IT Job')} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${itType === 'IT Job' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'}`}>IT Jobs</button>
+                <button onClick={() => setItType('Non-IT Job')} className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${itType === 'Non-IT Job' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'}`}>Non-IT</button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
             <span className="relative flex h-3 w-3">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${theme.glow}`}></span>
               <span className={`relative inline-flex rounded-full h-3 w-3 ${theme.glow}`}></span>
             </span>
-            <p className="text-sm font-bold text-slate-700">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
               {filtered.length} Live Openings
             </p>
           </div>
@@ -73,14 +126,14 @@ const CategoryJobsPage = () => {
 
         {filtered.length === 0 ? (
           <EmptyState
-            title={`No roles open in ${decoded}`}
+            title={`No roles open currently`}
             message="Check back soon! We are constantly partnering with companies to bring you the best opportunities."
-            onReset={() => window.location.href = '/'}
-            resetLabel="Explore other categories"
+            onReset={() => { setGovtType('All'); setActiveState(''); setItType('All'); }}
+            resetLabel="Clear Filters"
           />
         ) : (
           <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
               {filtered.map(job => (
                 <motion.div key={job.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
                   <JobCard job={job} onViewDetails={setSelectedJob} />

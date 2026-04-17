@@ -8,13 +8,24 @@
   --card: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
-  --border: #e5e7eb;
+  --border: #e2e8f0;
   --primary: #16a34a;
   --primary-light: #dcfce7;
 }
 
-/* ===== BASE ===== */
+.dark {
+  --bg: #020617;
+  --card: #0f172a;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --primary: #4ade80;
+  --primary-light: #064e3b;
+}
+
 body {
+  background-color: var(--bg);
+  color: var(--text);
   scroll-behavior: smooth;
 }
 
@@ -24,9 +35,25 @@ body {
 
 /* ===== GLOBAL RHYTHM ===== */
 section {
-  padding-top: 32px;
-  padding-bottom: 32px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Custom Scrollbar for Premium Look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 /* ===== BUTTON ===== */
@@ -188,6 +215,31 @@ html {
 }
 
 /* ===== TICKER SCROLL ===== */
+/* ===== GLASSMORPHISM ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-light {
+  background: rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 @keyframes tickerRun {
   0% {
     transform: translateX(0);

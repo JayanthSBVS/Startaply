@@ -24,7 +24,7 @@ const CategoryGrid = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-16 bg-slate-50 border-b border-slate-200">
+    <section className="py-16 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
       <motion.div
         initial="hidden"
         whileInView="show"
@@ -33,10 +33,10 @@ const CategoryGrid = () => {
         className="max-w-7xl mx-auto px-4"
       >
         <div className="text-center mb-10">
-          <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
+          <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
             Explore Top Categories
           </motion.h2>
-          <motion.p variants={itemVariants} className="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
+          <motion.p variants={itemVariants} className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto">
             Find the right opportunities based on your specific career path.
           </motion.p>
         </div>
@@ -45,16 +45,16 @@ const CategoryGrid = () => {
           {categories.map((cat) => (
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -6 }}
+              whileHover={{ y: -10, scale: 1.02 }}
               key={cat.name}
               onClick={() => navigate(`/category/${encodeURIComponent(cat.path)}`)}
-              className="cursor-pointer bg-white p-6 border border-slate-200 rounded-[2rem] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-emerald-300 transition-all duration-300 group"
+              className="cursor-pointer bg-white dark:bg-slate-900 p-7 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:border-emerald-300 dark:hover:border-emerald-500/30 transition-all duration-300 group"
             >
-              <div className="w-14 h-14 bg-slate-50 text-slate-400 border border-slate-100 rounded-[1.25rem] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all duration-300">
+              <div className="w-14 h-14 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-600 border border-slate-100 dark:border-slate-800 rounded-[1.25rem] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/40 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-100 dark:group-hover:border-emerald-800 transition-all duration-300">
                 {cat.icon}
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-1 group-hover:text-emerald-600 transition-colors">{cat.name}</h3>
-              <p className="text-sm font-medium text-slate-500">{cat.desc}</p>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{cat.name}</h3>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{cat.desc}</p>
             </motion.div>
           ))}
         </div>

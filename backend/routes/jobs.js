@@ -1,6 +1,18 @@
 const express = require('express');
 const pool = require('../db');
+const nodemailer = require('nodemailer');
+
 const router = express.Router();
+
+// Dummy Nodemailer Transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
+  port: process.env.EMAIL_PORT || 587,
+  auth: {
+    user: process.env.EMAIL_USER || 'dummy@ethereal.email',
+    pass: process.env.EMAIL_PASS || 'dummypass',
+  },
+});
 
 // ── DB INIT ──────────────────────────────────────────────
 async function initDb() {
@@ -47,9 +59,16 @@ async function initDb() {
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS processType TEXT DEFAULT 'Standard'`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS mapLocationUrl TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS govtJobType TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS stateName TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS jobCategoryType TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminId TEXT DEFAULT 'system'`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminName TEXT DEFAULT 'System'`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS updatedAt BIGINT`);
 
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS jobTitle TEXT`);
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS companyName TEXT`);
+    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS createdByAdminId TEXT DEFAULT 'system'`);
 
     await pool.query(`
       INSERT INTO admins (email, password) VALUES ('admin@strataply.com', 'admin123')
@@ -61,6 +80,9 @@ async function initDb() {
 }
 
 initDb();
+
+const { authMiddleware, checkOwnership } = require('../middleware/authMiddleware');
+const { logActivity } = require('../utils/logger');
 
 // ── HELPERS ──────────────────────────────────────────────
 function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
@@ -103,6 +125,11 @@ function normalizeJob(body, existing = null) {
     isTrending: nb(body.isTrending),
     isToday: nb(body.isToday),
     isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
+    govtJobType: body.govtJobType || '',
+    stateName: body.stateName || '',
+    jobCategoryType: body.jobCategoryType || '',
+    createdByAdminId: body.createdByAdminId || existing?.createdByAdminId || 'system',
+    createdByAdminName: body.createdByAdminName || existing?.createdByAdminName || 'System',
   };
 }
 
@@ -129,13 +156,15 @@ function mapRow(row) {
     type: row.type,
     category: row.category,
     jobCategory: row.category,
-    mode: row.workmode,
     monthTag: row.monthtag,
     applyUrl: row.applyurl,
     applyType: row.applytype || 'external',
     expiryDays: Number(row.expirydays || 0),
     processType: row.processtype || 'Standard',
     mapLocationUrl: row.maplocationurl || '',
+    govtJobType: row.govtjobtype || '',
+    stateName: row.statename || '',
+    jobCategoryType: row.jobcategorytype || '',
     isFeatured: row.isfeatured,
     isFresh: row.isfresh,
     isTrending: row.istrending,
@@ -143,6 +172,8 @@ function mapRow(row) {
     isVisible: row.isvisible,
     views: Number(row.views || 0),
     applicationCount: Number(row.applicationcount || 0),
+    createdByAdminId: row.createdbyadminid,
+    createdByAdminName: row.createdbyadminname
   };
 }
 
@@ -164,12 +195,11 @@ router.get('/search/suggestions', async (req, res) => {
 
     res.json(rows.map(r => r.suggestion));
   } catch (err) {
-    console.error('Suggestions error:', err);
     res.status(500).json([]);
   }
 });
 
-// GET all jobs
+// GET all jobs (Public facing - sees everything)
 router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -182,55 +212,92 @@ router.get('/', async (req, res) => {
     for (const row of rows) {
       const job = mapRow(row);
       const isExpired = job.expiryDays && job.createdAt && (now > job.createdAt + job.expiryDays * 86400000);
-
-      // HIDE expired jobs from the frontend list, but DO NOT delete them from the database
-      if (!isExpired) {
-        cleaned.push(job);
-      }
+      if (!isExpired) cleaned.push(job);
     }
 
     cleaned.sort((a, b) => b.createdAt - a.createdAt);
     res.json(cleaned);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error', detail: err.message });
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET admin jobs (Scoped to ownership)
+router.get('/admin/list', authMiddleware, async (req, res) => {
+  try {
+    let query = `
+      SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
+      FROM jobs j
+    `;
+    let params = [];
+
+    console.log(`[JOBS] Scoping Debug: Role=${req.user.role}, ID=${req.user.id}`);
+    
+    if (req.user.role !== 'manager') {
+      query += ` WHERE j.createdByAdminId = $1`;
+      params.push(req.user.id);
+    }
+
+    const { rows } = await pool.query(query, params);
+    console.log(`[JOBS] Scoping Result: Returned ${rows.length} jobs for ${req.user.name}`);
+    
+    res.json(rows.map(mapRow).sort((a,b) => b.createdAt - a.createdAt));
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 // POST create job
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const j = normalizeJob(req.body);
+    j.createdByAdminId = req.user.id;
+    j.createdByAdminName = req.user.name;
+
     const { rows } = await pool.query(`
       INSERT INTO jobs (
         id,createdAt,updatedAt,title,subtitle,description,fullDescription,
         requiredSkills,techStack,aboutCompany,benefits,company,companyLogo,
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,processType,mapLocationUrl,
-        isFeatured,isFresh,isTrending,isToday,isVisible
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)
+        isFeatured,isFresh,isTrending,isToday,isVisible,
+        govtJobType,stateName,jobCategoryType,
+        createdByAdminId, createdByAdminName
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company, j.companyLogo,
       j.location, j.workMode, j.qualification, j.experience, j.salary, j.type, j.category,
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.processType, j.mapLocationUrl,
-      j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible
+      j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
+      j.govtJobType, j.stateName, j.jobCategoryType,
+      j.createdByAdminId, j.createdByAdminName
     ]);
+
+    await logActivity(req.user.id, req.user.name, req.user.role, 'Jobs', `Created Job: ${j.title}`, j.id);
+    req.io.emit('DATA_UPDATED', { module: 'Jobs' });
+
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
-    console.error('POST /api/jobs:', err);
-    res.status(500).json({ message: 'Server error', detail: err.message });
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
 // PUT update job
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ message: 'Not found' });
-    const j = normalizeJob(req.body, mapRow(ex[0]));
+
+    const existing = mapRow(ex[0]);
+    if (!checkOwnership(existing.createdByAdminId, req.user)) {
+      return res.status(403).json({ error: 'Ownership required to edit this job' });
+    }
+
+    const j = normalizeJob(req.body, existing);
     const { rows } = await pool.query(`
       UPDATE jobs SET
         updatedAt=$1,title=$2,subtitle=$3,description=$4,fullDescription=$5,
@@ -238,50 +305,84 @@ router.put('/:id', async (req, res) => {
         companyLogo=$11,location=$12,workMode=$13,qualification=$14,experience=$15,
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,processType=$23,mapLocationUrl=$24,isFeatured=$25,isFresh=$26,
-        isTrending=$27,isToday=$28,isVisible=$29
-      WHERE id=$30 RETURNING *
+        isTrending=$27,isToday=$28,isVisible=$29,
+        govtJobType=$30,stateName=$31,jobCategoryType=$32
+      WHERE id=$33 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
       j.companyLogo, j.location, j.workMode, j.qualification, j.experience,
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.processType, j.mapLocationUrl, j.isFeatured, j.isFresh,
-      j.isTrending, j.isToday, j.isVisible, id
+      j.isTrending, j.isToday, j.isVisible,
+      j.govtJobType, j.stateName, j.jobCategoryType, id
     ]);
+
+    await logActivity(req.user.id, req.user.name, req.user.role, 'Jobs', `Updated Job: ${j.title}`, id);
+    req.io.emit('DATA_UPDATED', { module: 'Jobs' });
+
     res.json(mapRow(rows[0]));
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // DELETE job
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
+    const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [req.params.id]);
+    if (!ex.length) return res.status(404).json({ message: 'Not found' });
+
+    if (!checkOwnership(ex[0].createdbyadminid, req.user)) {
+      return res.status(403).json({ error: 'Ownership required to delete this job' });
+    }
+
     await pool.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
+    
+    await logActivity(req.user.id, req.user.name, req.user.role, 'Jobs', `Deleted Job: ${ex[0].title}`, req.params.id);
+    req.io.emit('DATA_UPDATED', { module: 'Jobs' });
+
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// GET all applications
-router.get('/applications/all', async (req, res) => {
+// GET all applications (Scoped to ownership)
+router.get('/applications/all', authMiddleware, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM applications ORDER BY appliedAt DESC');
+    let query = `
+      SELECT 
+        a.*, 
+        j.title as joined_job_title, 
+        j.company as joined_company_name 
+      FROM applications a
+      LEFT JOIN jobs j ON a.jobId = j.id
+    `;
+    let params = [];
+
+    if (req.user.role !== 'manager') {
+      query += ` WHERE j.createdByAdminId = $1`;
+      params.push(req.user.id);
+    }
+
+    query += ` ORDER BY a.appliedAt DESC`;
+    
+    const { rows } = await pool.query(query, params);
+    
     res.json(rows.map(r => ({
       ...r,
       appliedAt: Number(r.appliedat),
       jobId: r.jobid,
-      jobTitle: r.jobtitle,
-      companyName: r.companyname
+      jobTitle: r.joined_job_title || r.jobtitle || 'General Application',
+      companyName: r.joined_company_name || r.companyname || 'Strataply Platform'
     })));
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// POST apply to job
+// POST apply to job (Public)
 router.post('/:id/apply', async (req, res) => {
   try {
     const { id: jobId } = req.params;
@@ -289,30 +390,63 @@ router.post('/:id/apply', async (req, res) => {
 
     if (!name || !email) return res.status(400).json({ message: 'Missing fields' });
 
+    // Find who owns the job to attribute the application
+    const { rows: jobRows } = await pool.query('SELECT createdByAdminId FROM jobs WHERE id=$1', [jobId]);
+    const adminId = jobRows.length > 0 ? jobRows[0].createdbyadminid : 'system';
+
     const id = String(Date.now());
     const appliedAt = Date.now();
 
     const { rows } = await pool.query(
-      `INSERT INTO applications (id, jobId, jobTitle, companyName, name, email, phone, resume, appliedAt) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [id, jobId, jobTitle || 'General Application', companyName || 'Strataply', name, email, phone || '', resume || '', appliedAt]
+      `INSERT INTO applications (id, jobId, jobTitle, companyName, name, email, phone, resume, appliedAt, createdByAdminId) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [id, jobId, jobTitle || 'General Application', companyName || 'Strataply', name, email, phone || '', resume || '', appliedAt, adminId]
     );
-    res.status(201).json(rows[0]);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', detail: err.message });
-  }
-});
 
-// DELETE application
-router.delete('/applications/:id', async (req, res) => {
-  try {
-    await pool.query('DELETE FROM applications WHERE id = $1', [req.params.id]);
-    res.json({ message: 'Deleted successfully' });
+    // Notify Manager/Admin
+    req.io.emit('DATA_UPDATED', { module: 'Applications' });
+
+    // Send Email (Async)
+    transporter.sendMail({
+      from: '"Strataply Admissions 👻" <no-reply@strataply.com>',
+      to: email,
+      subject: `Application Received: ${jobTitle || 'General Application'}`,
+      html: `<h3>Hello ${name},</h3><p>Your application was received for ${jobTitle}.</p>`
+    }).catch(e => console.error('Email error:', e.message));
+
+    res.status(201).json(rows[0]);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+// DELETE application
+router.delete('/applications/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows: ex } = await pool.query(`
+        SELECT a.*, j.createdByAdminId as jobOwnerId 
+        FROM applications a 
+        LEFT JOIN jobs j ON a.jobId = j.id 
+        WHERE a.id = $1
+    `, [id]);
+    
+    if (!ex.length) return res.status(404).json({ error: 'Not found' });
+
+    if (!checkOwnership(ex[0].jobownerid || ex[0].createdbyadminid, req.user)) {
+      return res.status(403).json({ error: 'Ownership required' });
+    }
+
+    await pool.query('DELETE FROM applications WHERE id = $1', [id]);
+    
+    await logActivity(req.user.id, req.user.name, req.user.role, 'Applications', `Deleted Application for ${ex[0].jobtitle}`, id);
+    req.io.emit('DATA_UPDATED', { module: 'Applications' });
+
+    res.json({ message: 'Deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 // POST view job
 router.post('/:id/view', async (req, res) => {
   try {

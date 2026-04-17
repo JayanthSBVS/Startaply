@@ -26,18 +26,27 @@ async function initDb() {
         salary TEXT, type TEXT, category TEXT, monthTag TEXT,
         applyUrl TEXT, applyType TEXT DEFAULT 'external',
         expiryDays INTEGER, isFeatured BOOLEAN, isTrending BOOLEAN,
-        isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0
+        isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
+        govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
+        mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard'
       )
     `);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applyType TEXT DEFAULT 'external'`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS govtJobType TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS stateName TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS jobCategoryType TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS mapLocationUrl TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS processType TEXT DEFAULT 'Standard'`);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS applications (
         id VARCHAR(50) PRIMARY KEY, jobId VARCHAR(50),
         name TEXT, email TEXT, phone TEXT, resume TEXT, appliedAt BIGINT
       )
     `);
+    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS jobTitle TEXT`);
+    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS companyName TEXT`);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS admins (
         email VARCHAR(255) PRIMARY KEY, password VARCHAR(255)
@@ -93,48 +102,42 @@ function normalizeJob(body, existing = null) {
     isTrending: nb(body.isTrending),
     isToday: nb(body.isToday),
     isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
+    govtJobType: body.govtJobType || '',
+    stateName: body.stateName || '',
+    jobCategoryType: body.jobCategoryType || '',
+    mapLocationUrl: body.mapLocationUrl || '',
+    processType: body.processType || 'Standard',
   };
 }
 
-function mapRow(row) {
+function mapRow(r) {
+  if (!r) return null;
   return {
-    id: row.id,
-    createdAt: Number(row.createdat),
-    updatedAt: Number(row.updatedat),
-    title: row.title,
-    subtitle: row.subtitle,
-    description: row.description,
-    fullDescription: row.fulldescription,
-    requiredSkills: row.requiredskills,
-    techStack: row.techstack,
-    aboutCompany: row.aboutcompany,
-    benefits: row.benefits,
-    company: row.company,
-    companyLogo: row.companylogo,
-    location: row.location,
-    workMode: row.workmode,
-    qualification: row.qualification,
-    experience: row.experience,
-    salary: row.salary,
-    type: row.type,
-    category: row.category,
-    jobCategory: row.category,
-    mode: row.workmode,
-    monthTag: row.monthtag,
-    applyUrl: row.applyurl,
-    applyType: row.applytype || 'external',
-    expiryDays: Number(row.expirydays || 0),
-    isFeatured: row.isfeatured,
-    isFresh: row.isfresh,
-    isTrending: row.istrending,
-    isToday: row.istoday,
-    isVisible: row.isvisible,
-    views: Number(row.views || 0),
-    applicationCount: Number(row.applicationcount || 0),
+    ...r,
+    createdAt: Number(r.createdat),
+    updatedAt: Number(r.updatedat),
+    isFeatured: nb(r.isfeatured),
+    isFresh: nb(r.isfresh),
+    isTrending: nb(r.istrending),
+    isToday: nb(r.istoday),
+    isVisible: nb(r.isvisible),
+    expiryDays: Number(r.expirydays || 0),
+    views: Number(r.views || 0),
+    applicationCount: Number(r.applicationcount || 0)
   };
 }
 
 // ── ROUTES ───────────────────────────────────────────────
+
+// POST increment view
+app.post('/api/jobs/:id/view', async (req, res) => {
+  try {
+    await pool.query('UPDATE jobs SET views = COALESCE(views, 0) + 1 WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
 
 // GET search suggestions (titles and companies)
 app.get('/api/jobs/search/suggestions', async (req, res) => {
@@ -192,14 +195,16 @@ app.post('/api/jobs', async (req, res) => {
         id,createdAt,updatedAt,title,subtitle,description,fullDescription,
         requiredSkills,techStack,aboutCompany,benefits,company,companyLogo,
         location,workMode,qualification,experience,salary,type,category,
-        monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
+        monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible,
+        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34)
       RETURNING *
     `, [
       j.id,j.createdAt,j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
       j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,j.companyLogo,
       j.location,j.workMode,j.qualification,j.experience,j.salary,j.type,j.category,
-      j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible
+      j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
+      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType
     ]);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
@@ -221,14 +226,16 @@ app.put('/api/jobs/:id', async (req, res) => {
         requiredSkills=$6,techStack=$7,aboutCompany=$8,benefits=$9,company=$10,
         companyLogo=$11,location=$12,workMode=$13,qualification=$14,experience=$15,
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
-        expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27
-      WHERE id=$28 RETURNING *
+        expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
+        govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32
+      WHERE id=$33 RETURNING *
     `, [
       j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
       j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,
       j.companyLogo,j.location,j.workMode,j.qualification,j.experience,
       j.salary,j.type,j.category,j.monthTag,j.applyUrl,j.applyType,
-      j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,id
+      j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
+      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,id
     ]);
     res.json(mapRow(rows[0]));
   } catch (err) {
@@ -251,21 +258,60 @@ app.delete('/api/jobs/:id', async (req, res) => {
 app.get('/api/jobs/applications/all', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM applications ORDER BY appliedAt DESC');
-    res.json(rows.map(r => ({ ...r, appliedAt: Number(r.appliedat), jobId: r.jobid })));
+    res.json(rows.map(r => ({ 
+      ...r, 
+      appliedAt: Number(r.appliedat), 
+      jobId: r.jobid,
+      jobTitle: r.jobtitle,
+      companyName: r.companyname
+    })));
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+const nodemailer = require('nodemailer');
+
 // POST apply to job
 app.post('/api/jobs/:id/apply', async (req, res) => {
   try {
-    const { name, email, phone, resume } = req.body;
+    const { name, email, phone, resume, jobTitle, companyName } = req.body;
     if (!name || !email) return res.status(400).json({ message: 'Missing fields' });
     const id = String(Date.now());
+    
+    // Using a mocked ethereal transport OR console.log for dummy emails right now as requested.
+    // Replace with real transport later
+    async function sendMail() {
+      try {
+        let transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false, // true for 465, false for other ports
+          auth: {
+            user: process.env.EMAIL_USER || 'dummy@ethereal.email', 
+            pass: process.env.EMAIL_PASS || 'dummy-pass'
+          }
+        });
+        
+        let info = await transporter.sendMail({
+          from: '"Startaply Demo" <demo@startaply.com>', 
+          to: email, 
+          subject: `Application Received: ${jobTitle || 'Job'} at ${companyName || 'our partner company'}`, 
+          text: `Hi ${name},\n\nWe have received your application for the ${jobTitle || 'Job'} role at ${companyName || 'our partner company'}.\n\nThank you for applying through Startaply!\n\nBest,\nStartaply Team`,
+          html: `<p>Hi ${name},</p><p>We have received your application for the <b>${jobTitle || 'Job'}</b> role at <b>${companyName || 'our partner company'}</b>.</p><p>Thank you for applying through Startaply!</p><p>Best,<br>Startaply Team</p>`
+        });
+        
+        console.log("Email Dummy Sent: %s", info.messageId);
+      } catch (e) {
+        console.error("Nodemailer error (dummy expected):", e.message);
+      }
+    }
+
+    sendMail();
+
     const { rows } = await pool.query(
-      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [id, req.params.id, name, email, phone || '', resume, Date.now()]
+      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt, jobTitle, companyName) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [id, req.params.id, name, email, phone || '', resume, Date.now(), jobTitle || '', companyName || '']
     );
     res.status(201).json(rows[0]);
   } catch (err) {

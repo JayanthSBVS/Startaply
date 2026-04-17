@@ -19,8 +19,8 @@ const itemVariants = {
 
 const HowItWorks = () => {
     return (
-        <section className="py-20 bg-white border-b border-slate-200 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-100/40 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <section className="py-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 overflow-hidden relative transition-colors duration-300">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-100/40 dark:bg-emerald-900/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
 
             <motion.div
                 initial="hidden"
@@ -30,20 +30,20 @@ const HowItWorks = () => {
                 className="relative z-10 max-w-6xl mx-auto px-4 text-center"
             >
                 <motion.div variants={itemVariants} className="mb-14">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-xs mb-2 block">Zero Friction</span>
-                    <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">How It Works</h2>
-                    <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium">Three simple steps to land your dream job without ever creating an account.</p>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-black tracking-widest uppercase text-xs mb-2 block">Zero Friction</span>
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">How It Works</h2>
+                    <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">Three simple steps to land your dream job without ever creating an account.</p>
                 </motion.div>
 
                 <div className="relative">
                     <div className="grid md:grid-cols-3 gap-8 relative z-10">
                         {steps.map((step) => (
-                            <motion.div variants={itemVariants} key={step.num} className="flex flex-col items-center group bg-white/80 backdrop-blur-sm p-8 rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-2">
-                                <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[1.25rem] flex items-center justify-center text-2xl font-black mb-6 shadow-sm border border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+                            <motion.div variants={itemVariants} key={step.num} className="flex flex-col items-center group bg-white/80 dark:bg-slate-950/40 backdrop-blur-sm p-8 rounded-[2rem] shadow-xl shadow-slate-200/40 dark:shadow-slate-950/20 border border-slate-100 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all duration-300 hover:-translate-y-2">
+                                <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-[1.25rem] flex items-center justify-center text-2xl font-black mb-6 shadow-sm border border-emerald-100 dark:border-emerald-800 group-hover:bg-emerald-600 dark:group-hover:bg-emerald-500 group-hover:text-white dark:group-hover:text-slate-950 group-hover:rotate-6 transition-all duration-300">
                                     {step.num}
                                 </div>
-                                <h3 className="text-xl font-extrabold text-slate-900 mb-3">{step.title}</h3>
-                                <p className="text-slate-500 font-medium leading-relaxed">{step.desc}</p>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{step.title}</h3>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{step.desc}</p>
                             </motion.div>
                         ))}
                     </div>

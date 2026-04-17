@@ -30,26 +30,26 @@ const CompaniesPage = () => {
   }, [companies, search, industry, jobs]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
       <Navbar />
 
       {/* HEADER */}
-      <div className="bg-white border-b border-slate-200 pt-24 pb-12">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-24 pb-12 transition-colors">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">Top Workplaces</h1>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">Explore leading companies actively hiring across diverse industries.</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">Top Workplaces</h1>
+          <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">Explore leading companies actively hiring across diverse industries.</p>
 
           <div className="relative mt-10 max-w-2xl mx-auto group">
-            <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+            <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-emerald-500 transition-colors" />
             <input
               type="text"
               placeholder="Search companies by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-14 pr-12 py-4 border border-slate-200 rounded-full text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm font-medium"
+              className="w-full pl-14 pr-12 py-4 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm font-medium"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-200 hover:bg-slate-300 p-1 rounded-full transition-colors">
+              <button onClick={() => setSearch('')} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 p-1 rounded-full transition-colors">
                 <X size={14} />
               </button>
             )}
@@ -58,7 +58,7 @@ const CompaniesPage = () => {
       </div>
 
       {/* FILTER TABS */}
-      <div className="bg-white border-b border-slate-200 sticky top-[73px] z-30 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-[73px] z-30 shadow-sm transition-colors">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-3 overflow-x-auto py-4 custom-scrollbar">
             {INDUSTRIES.map((ind) => (
@@ -67,7 +67,7 @@ const CompaniesPage = () => {
                 onClick={() => setIndustry(ind)}
                 className={`flex-shrink-0 text-sm font-bold px-6 py-2.5 rounded-full transition-all ${industry === ind
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                  : 'bg-slate-50 text-slate-600 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'
+                  : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-400'
                   }`}
               >
                 {ind}
@@ -80,18 +80,18 @@ const CompaniesPage = () => {
       {/* GRID */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-8 px-2">
-          <p className="text-slate-500 font-medium text-lg">
-            Found <span className="font-extrabold text-slate-900">{filtered.length}</span> companies
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">
+            Found <span className="font-extrabold text-slate-900 dark:text-white">{filtered.length}</span> companies
           </p>
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center py-24 bg-white rounded-[2rem] border border-slate-200 shadow-sm">
-            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
-              <Building2 size={24} className="text-slate-400" />
+          <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+              <Building2 size={24} className="text-slate-400 dark:text-slate-600" />
             </div>
-            <p className="text-xl font-extrabold text-slate-900 mb-2">No companies found</p>
-            <p className="text-slate-500 font-medium">Try adjusting your industry filter or search query.</p>
+            <p className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">No companies found</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Try adjusting your industry filter or search query.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -101,32 +101,32 @@ const CompaniesPage = () => {
                 <Link
                   key={company.name}
                   to={`/jobs?company=${encodeURIComponent(company.name)}`}
-                  className="group bg-white border border-slate-200 rounded-[2rem] p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-emerald-300 transition-all duration-300 flex flex-col h-full"
+                  className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all duration-300 flex flex-col h-full"
                 >
                   <div className="flex items-start justify-between mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
                       <img
                         src={company.logo || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?q=80&w=2073'}
                         alt={company.name}
                         className="w-full h-full object-contain p-2"
                       />
                     </div>
-                    <span className="text-[10px] uppercase tracking-wider font-black px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-500">
+                    <span className="text-[10px] uppercase tracking-wider font-black px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
                       {company.industry}
                     </span>
                   </div>
 
-                  <h3 className="font-black text-slate-900 text-xl mb-1 group-hover:text-emerald-600 transition-colors">
+                  <h3 className="font-black text-slate-900 dark:text-white text-xl mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     {company.name}
                   </h3>
 
-                  <div className="mt-auto pt-6 flex items-center justify-between border-t border-slate-100">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg">
-                      <Briefcase size={14} className="text-emerald-500" />
-                      <span><span className="text-slate-900 font-black">{company.liveOpenings}</span> Openings</span>
+                  <div className="mt-auto pt-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-lg">
+                      <Briefcase size={14} className="text-emerald-600 dark:text-emerald-400" />
+                      <span><span className="text-slate-900 dark:text-white font-black">{company.liveOpenings}</span> Openings</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-emerald-50 transition-colors">
-                      <ChevronRight size={16} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                    <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/40 transition-colors">
+                      <ChevronRight size={16} className="text-slate-400 dark:text-slate-600 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
                     </div>
                   </div>
                 </Link>
