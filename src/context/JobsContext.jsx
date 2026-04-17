@@ -11,9 +11,13 @@ const API = '/api';
 export const JobsProvider = ({ children }) => {
   const [jobs, setJobs] = useState(() => JSON.parse(localStorage.getItem('cache_jobs') || '[]'));
   const [companies, setCompanies] = useState(() => JSON.parse(localStorage.getItem('cache_companies') || '[]'));
-  const [heroImages, setHeroImages] = useState([]);
-  const [melas, setMelas] = useState(() => JSON.parse(localStorage.getItem('cache_melas') || '[]'));
-  const [prepData, setPrepData] = useState(() => JSON.parse(localStorage.getItem('cache_prep') || '[]'));
+  const [heroImages, setHeroImages] = useState(() => {
+    // Initial load from cache for instant appearance
+    try {
+      const cached = JSON.parse(localStorage.getItem('cache_hero_data') || '[]');
+      return cached.map(c => c.image);
+    } catch (e) { return []; }
+  });
 
   useEffect(() => {
     const fetchPublicData = async () => {
@@ -40,23 +44,29 @@ export const JobsProvider = ({ children }) => {
           localStorage.setItem('cache_companies', JSON.stringify(finalComps));
           localStorage.setItem('cache_melas', JSON.stringify(finalMelas));
           localStorage.setItem('cache_prep', JSON.stringify(finalPrep));
-          localStorage.removeItem('cache_hero'); // Explicitly clear any old heavy cache
-        } catch (e) {
-          console.warn("Storage quota reached", e);
-        }
-      } catch (err) {
-        console.error("Public API Fetch Error:", err);
-      }
+        } catch (e) { console.warn("Cache quota", e); }
+      } catch (err) { console.error("Public API Error:", err); }
     };
 
     const fetchHeroBanners = async () => {
       try {
         const res = await axios.get(`${API}/hero-banners`).catch(() => ({ data: [] }));
-        const banners = Array.isArray(res.data) ? res.data.map(b => b.image) : [];
-        setHeroImages(banners);
-      } catch (err) {
-        console.error("Hero Banner Fetch Error:", err);
-      }
+        const banners = Array.isArray(res.data) ? res.data : [];
+        
+        // SYNC & CLEANUP CACHE
+        // We only cache the first 3 for performance
+        const firstThree = banners.slice(0, 3);
+        const imagesOnly = banners.map(b => b.image);
+        setHeroImages(imagesOnly);
+
+        try {
+          // Store first 3 to localStorage for next visit speed
+          localStorage.setItem('cache_hero_data', JSON.stringify(firstThree));
+        } catch (e) {
+          // If 3 is too much for localStorage, just store the first 1
+          try { localStorage.setItem('cache_hero_data', JSON.stringify(firstThree.slice(0, 1))); } catch(e2) {}
+        }
+      } catch (err) { console.error("Hero Fetch Error:", err); }
     };
 
     fetchPublicData();

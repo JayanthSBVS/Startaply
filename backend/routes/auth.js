@@ -47,25 +47,22 @@ async function initAuthDb() {
 
     // 3. Removed legacy admins migration block as per user request
 
-    // 4. Force-Reconcile Operational Manager (Ensure ID and Role consistency)
+    // 4. Force-Reconcile Operational Manager (Ensure ID, Role, AND Password consistency)
     const managerEmail = 'manager@strataply.com';
     const managerPass = await bcrypt.hash('manager123', 10);
     const principalManagerId = 'manager_principal';
     
     // Check for existing manager by email
-    const existingManager = await pool.query('SELECT id, role FROM users WHERE email = $1', [managerEmail]);
+    const existingManager = await pool.query('SELECT id, role, password FROM users WHERE email = $1', [managerEmail]);
     
     if (existingManager.rows.length > 0) {
       const current = existingManager.rows[0];
-      // If the ID or role is inconsistent, force reconcile
-      if (current.id !== principalManagerId || current.role !== 'manager') {
-        console.log(`Reconciling Manager Identity: ${current.id} -> ${principalManagerId}`);
-        // 1. Update the user record (ID, role, name)
-        await pool.query(
-          `UPDATE users SET id = $1, role = 'manager', name = 'Operations Manager' WHERE email = $2`,
-          [principalManagerId, managerEmail]
-        );
-      }
+      console.log(`Force-Reconciling Manager Identity & Password for: ${managerEmail}`);
+      // Force update ID, role, name, AND password to ensure manager123 works
+      await pool.query(
+        `UPDATE users SET id = $1, role = 'manager', name = 'Operations Manager', password = $2 WHERE email = $3`,
+        [principalManagerId, managerPass, managerEmail]
+      );
     } else {
       // Create from scratch if doesn't exist
       await pool.query(`
@@ -74,7 +71,26 @@ async function initAuthDb() {
       `, [principalManagerId, 'Operations Manager', managerEmail, managerPass, 'manager', Date.now()]);
     }
 
-    // 5. DATA ATTRIBUTION MIGRATION (Link records to reconciled identity)
+    // 5. Force-Reset Jayanth's Credentials
+    const jayanthEmail = 'Jayanth@gmail.com';
+    const jayanthPass = await bcrypt.hash('jayanth123', 10);
+    const jayanthId = 'admin_jayanth';
+
+    const existingJayanth = await pool.query('SELECT id FROM users WHERE email = $1', [jayanthEmail]);
+    if (existingJayanth.rows.length > 0) {
+        console.log(`Force-Updating Jayanth's Credentials for: ${jayanthEmail}`);
+        await pool.query(
+            `UPDATE users SET id = $1, role = 'admin', name = 'Jayanth', password = $2 WHERE email = $3`,
+            [jayanthId, jayanthPass, jayanthEmail]
+        );
+    } else {
+        await pool.query(
+            `INSERT INTO users (id, name, email, password, role, createdAt) VALUES ($1, $2, $3, $4, $5, $6)`,
+            [jayanthId, 'Jayanth', jayanthEmail, jayanthPass, 'admin', Date.now()]
+        );
+    }
+
+    // 6. DATA ATTRIBUTION MIGRATION (Link records to reconciled identity)
     try {
       await pool.query(`UPDATE jobs SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy'`, [principalManagerId]);
       await pool.query(`UPDATE companies SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy'`, [principalManagerId]);

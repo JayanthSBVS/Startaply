@@ -109,6 +109,8 @@ const Hero = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 1.5, ease: 'easeInOut' }}
               alt=""
+              loading="eager"
+              fetchPriority={currentImg === 0 ? "high" : "auto"}
             />
           )}
         </AnimatePresence>
