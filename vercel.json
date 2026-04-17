@@ -75,6 +75,14 @@
       "dest": "/api/auth.js"
     },
     {
+      "src": "/api/hero-banners/(.*)",
+      "dest": "/api/hero-banners.js"
+    },
+    {
+      "src": "/api/hero-banners",
+      "dest": "/api/hero-banners.js"
+    },
+    {
       "src": "/api/qna/([^/]+)",
       "dest": "/api/qna.js"
     },

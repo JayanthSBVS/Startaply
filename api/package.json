@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "nodemailer": "^8.0.5",
-    "pg": "^8.13.3"
+    "nodemailer": "^6.9.13",
+    "pg": "^8.11.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
   }
 }
