@@ -19,6 +19,13 @@ export const JobsProvider = ({ children }) => {
     } catch (e) { return []; }
   });
 
+  const [melas, setMelas] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cache_melas') || '[]'); } catch (e) { return []; }
+  });
+  const [prepData, setPrepData] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cache_prep') || '[]'); } catch (e) { return []; }
+  });
+
   useEffect(() => {
     const fetchPublicData = async () => {
       try {
