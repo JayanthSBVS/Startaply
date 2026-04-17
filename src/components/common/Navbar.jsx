@@ -68,6 +68,10 @@ const Navbar = () => {
           <div onClick={() => setOpen(false)} className="fixed inset-0 top-[73px] bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm z-[90]" />
           <div className="fixed top-[73px] right-0 bottom-0 w-[280px] bg-white dark:bg-slate-900 z-[100] border-l border-slate-100 dark:border-slate-800 shadow-2xl overflow-y-auto animate-in slide-in-from-right-8 duration-300">
             <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Menu</span>
+                <ThemeToggle />
+              </div>
               <div className="space-y-1">
                 {menuItems.map((item) => (
                   <Link key={item.name} to={item.path} onClick={() => setOpen(false)} className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all font-bold group ${isActive(item.path) ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' : 'text-slate-700 dark:text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-800/50'}`}>

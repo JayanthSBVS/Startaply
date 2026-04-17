@@ -180,6 +180,26 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
       ORDER BY lifetime_total DESC
     `, [todayMillis, fourteenDaysAgo]);
 
+    // Normalize adminStats rows to handle PostgreSQL lowercase column names
+    const normalizedAdminStats = adminStats.rows.map(r => ({
+      id: r.id,
+      adminName: r.adminname || r.name,
+      email: r.email,
+      role: r.role,
+      isActive: r.isactive === true || r.isactive === 'true',
+      jobCountTotal: parseInt(r.job_count_total || 0),
+      companyCountTotal: parseInt(r.company_count_total || 0),
+      prepCountTotal: parseInt(r.prep_count_total || 0),
+      melaCountTotal: parseInt(r.mela_count_total || 0),
+      jobCountToday: parseInt(r.job_count_today || 0),
+      companyCountToday: parseInt(r.company_count_today || 0),
+      prepCountToday: parseInt(r.prep_count_today || 0),
+      melaCountToday: parseInt(r.mela_count_today || 0),
+      historicalJobs: r.historical_jobs || [],
+      lifetimeTotal: parseInt(r.lifetime_total || 0),
+      todayTotal: parseInt(r.today_total || 0)
+    }));
+
     res.json({
       totalJobs: parseInt(jobs.rows[0].count),
       totalApplications: parseInt(apps.rows[0].count),
@@ -189,8 +209,8 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
       todayMela: parseInt(todayMela.rows[0].count),
       todayCompanies: parseInt(todayCompanies.rows[0].count),
       totalToday: parseInt(todayJobs.rows[0].count) + parseInt(todayPrep.rows[0].count) + parseInt(todayMela.rows[0].count),
-      totalAdmins: adminStats.rows.length,
-      adminProductivity: adminStats.rows
+      totalAdmins: normalizedAdminStats.length,
+      adminProductivity: normalizedAdminStats
     });
   } catch (err) {
     console.error('Stats fetch err:', err);

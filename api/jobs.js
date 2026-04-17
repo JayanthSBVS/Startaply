@@ -28,33 +28,29 @@ async function initDb() {
         expiryDays INTEGER, isFeatured BOOLEAN, isTrending BOOLEAN,
         isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
         govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
-        mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard'
+        mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard',
+        createdByAdminId TEXT
       )
     `);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applyType TEXT DEFAULT 'external'`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS govtJobType TEXT`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS stateName TEXT`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS jobCategoryType TEXT`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS mapLocationUrl TEXT`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS processType TEXT DEFAULT 'Standard'`);
+    
+    // Migrations
+    const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId'];
+    for (const col of cols) {
+      await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col} TEXT`);
+    }
+    await pool.query(`ALTER TABLE jobs ALTER COLUMN applyType SET DEFAULT 'external'`);
+    await pool.query(`ALTER TABLE jobs ALTER COLUMN views SET DEFAULT 0`);
+    await pool.query(`ALTER TABLE jobs ALTER COLUMN isVisible SET DEFAULT true`);
+    
+    // Data Migration: Assign existing jobs to Jayanth if they have no owner
+    await pool.query(`UPDATE jobs SET createdByAdminId = 'admin_jayanth' WHERE createdByAdminId IS NULL OR createdByAdminId = ''`);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS applications (
         id VARCHAR(50) PRIMARY KEY, jobId VARCHAR(50),
-        name TEXT, email TEXT, phone TEXT, resume TEXT, appliedAt BIGINT
+        name TEXT, email TEXT, phone TEXT, resume TEXT, appliedAt BIGINT,
+        jobTitle TEXT, companyName TEXT
       )
-    `);
-    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS jobTitle TEXT`);
-    await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS companyName TEXT`);
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS admins (
-        email VARCHAR(255) PRIMARY KEY, password VARCHAR(255)
-      )
-    `);
-    await pool.query(`
-      INSERT INTO admins (email, password) VALUES ('admin@strataply.com', 'admin123')
-      ON CONFLICT (email) DO NOTHING
     `);
   } catch (err) {
     console.error('DB init error:', err.message);
@@ -66,9 +62,8 @@ initDb();
 // ── HELPERS ──────────────────────────────────────────────
 function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 
-function normalizeJob(body, existing = null) {
+function normalizeJob(body, existing = null, adminId = null) {
   const now = Date.now();
-  // Auto-generate short description from fullDescription if not provided
   const fullDesc = body.fullDescription || existing?.fullDescription || '';
   const shortDesc = body.description || (fullDesc ? fullDesc.substring(0, 200) : '') || existing?.description || '';
 
@@ -102,30 +97,53 @@ function normalizeJob(body, existing = null) {
     isTrending: nb(body.isTrending),
     isToday: nb(body.isToday),
     isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
-    govtJobType: body.govtJobType || '',
-    stateName: body.stateName || '',
-    jobCategoryType: body.jobCategoryType || '',
-    mapLocationUrl: body.mapLocationUrl || '',
-    processType: body.processType || 'Standard',
+    govtJobType: body.govtJobType || body.govtjobtype || '',
+    stateName: body.stateName || body.statename || '',
+    jobCategoryType: body.jobCategoryType || body.jobcategorytype || '',
+    mapLocationUrl: body.mapLocationUrl || body.maplocationurl || '',
+    processType: body.processType || body.processtype || 'Standard',
+    createdByAdminId: adminId || body.createdByAdminId || existing?.createdByAdminId || 'admin_jayanth'
   };
 }
 
 function mapRow(r) {
   if (!r) return null;
+  // Handle PostgreSQL lowercase column mapping
   return {
     ...r,
-    createdAt: Number(r.createdat),
-    updatedAt: Number(r.updatedat),
-    isFeatured: nb(r.isfeatured),
-    isFresh: nb(r.isfresh),
-    isTrending: nb(r.istrending),
-    isToday: nb(r.istoday),
-    isVisible: nb(r.isvisible),
-    expiryDays: Number(r.expirydays || 0),
+    id: r.id,
+    createdAt: Number(r.createdat || r.createdAt),
+    updatedAt: Number(r.updatedat || r.updatedAt),
+    isFeatured: nb(r.isfeatured || r.isFeatured),
+    isFresh: nb(r.isfresh || r.isFresh),
+    isTrending: nb(r.istrending || r.isTrending),
+    isToday: nb(r.istoday || r.isToday),
+    isVisible: nb(r.isvisible || r.isVisible),
+    expiryDays: Number(r.expirydays || r.expiryDays || 0),
     views: Number(r.views || 0),
-    applicationCount: Number(r.applicationcount || 0)
+    applicationCount: Number(r.applicationcount || 0),
+    govtJobType: r.govtjobtype || r.govtJobType || '',
+    stateName: r.statename || r.stateName || '',
+    jobCategoryType: r.jobcategorytype || r.jobCategoryType || '',
+    mapLocationUrl: r.maplocationurl || r.mapLocationUrl || '',
+    processType: r.processtype || r.processType || 'Standard',
+    createdByAdminId: r.createdbyadminid || r.createdByAdminId || ''
   };
 }
+
+// ── AUTH MIDDLEWARE ───────────────────────────────────────────
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
+
+const authMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Token missing' });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
+};
 
 // ── ROUTES ───────────────────────────────────────────────
 
@@ -160,14 +178,24 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
   }
 });
 
-// GET all jobs for admin (no expiry filtering)
-app.get('/api/jobs/admin/list', async (req, res) => {
+// GET all jobs for admin (no expiry filtering, handles ownership)
+app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   try {
-    const { rows } = await pool.query(`
+    const isManager = req.user.role === 'manager';
+    let query = `
       SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
       FROM jobs j
-      ORDER BY j.createdat DESC
-    `);
+    `;
+    let params = [];
+    
+    if (!isManager) {
+      query += ` WHERE j.createdByAdminId = $1`;
+      params.push(req.user.id);
+    }
+    
+    query += ` ORDER BY j.createdat DESC`;
+    
+    const { rows } = await pool.query(query, params);
     res.json(rows.map(mapRow));
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -180,6 +208,7 @@ app.get('/api/jobs', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
       FROM jobs j
+      WHERE j.isVisible = true
     `);
     const now = Date.now();
     let cleaned = [], deleteIds = [];
@@ -201,24 +230,24 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 // POST create job
-app.post('/api/jobs', async (req, res) => {
+app.post('/api/jobs', authMiddleware, async (req, res) => {
   try {
-    const j = normalizeJob(req.body);
+    const j = normalizeJob(req.body, null, req.user.id);
     const { rows } = await pool.query(`
       INSERT INTO jobs (
         id,createdAt,updatedAt,title,subtitle,description,fullDescription,
         requiredSkills,techStack,aboutCompany,benefits,company,companyLogo,
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible,
-        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34)
+        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType,createdByAdminId
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35)
       RETURNING *
     `, [
       j.id,j.createdAt,j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
       j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,j.companyLogo,
       j.location,j.workMode,j.qualification,j.experience,j.salary,j.type,j.category,
       j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
-      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType
+      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,j.createdByAdminId
     ]);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
@@ -228,12 +257,19 @@ app.post('/api/jobs', async (req, res) => {
 });
 
 // PUT update job
-app.put('/api/jobs/:id', async (req, res) => {
+app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
+    const isManager = req.user.role === 'manager';
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ message: 'Not found' });
-    const j = normalizeJob(req.body, mapRow(ex[0]));
+    
+    const existingJob = mapRow(ex[0]);
+    if (!isManager && existingJob.createdByAdminId !== req.user.id) {
+      return res.status(403).json({ error: 'You can only edit your own jobs' });
+    }
+
+    const j = normalizeJob(req.body, existingJob);
     const { rows } = await pool.query(`
       UPDATE jobs SET
         updatedAt=$1,title=$2,subtitle=$3,description=$4,fullDescription=$5,
@@ -241,15 +277,17 @@ app.put('/api/jobs/:id', async (req, res) => {
         companyLogo=$11,location=$12,workMode=$13,qualification=$14,experience=$15,
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
-        govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32
-      WHERE id=$33 RETURNING *
+        govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32,
+        createdByAdminId=$33
+      WHERE id=$34 RETURNING *
     `, [
       j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
       j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,
       j.companyLogo,j.location,j.workMode,j.qualification,j.experience,
       j.salary,j.type,j.category,j.monthTag,j.applyUrl,j.applyType,
       j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
-      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,id
+      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
+      j.createdByAdminId, id
     ]);
     res.json(mapRow(rows[0]));
   } catch (err) {
@@ -259,9 +297,15 @@ app.put('/api/jobs/:id', async (req, res) => {
 });
 
 // DELETE job
-app.delete('/api/jobs/:id', async (req, res) => {
+app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
   try {
-    await pool.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
+    const { id } = req.params;
+    const isManager = req.user.role === 'manager';
+    const { rows: ex } = await pool.query('SELECT createdByAdminId FROM jobs WHERE id=$1', [id]);
+    if (ex.length && !isManager && ex[0].createdbyadminid !== req.user.id) {
+      return res.status(403).json({ error: 'You can only delete your own jobs' });
+    }
+    await pool.query('DELETE FROM jobs WHERE id=$1', [id]);
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
