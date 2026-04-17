@@ -160,7 +160,21 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
   }
 });
 
-// GET all jobs
+// GET all jobs for admin (no expiry filtering)
+app.get('/api/jobs/admin/list', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
+      FROM jobs j
+      ORDER BY j.createdat DESC
+    `);
+    res.json(rows.map(mapRow));
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET all jobs (public with expiry filtering)
 app.get('/api/jobs', async (req, res) => {
   try {
     const { rows } = await pool.query(`

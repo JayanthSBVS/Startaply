@@ -21,6 +21,15 @@ pool.query(`
   )
 `).catch(console.error);
 
+app.get('/api/companies/admin/list', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM companies ORDER BY name ASC');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.get('/api/companies', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM companies');

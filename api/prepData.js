@@ -33,6 +33,13 @@ async function init() {
 }
 init();
 
+app.get('/api/prep-data/admin/list', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+});
+
 app.get('/api/prep-data', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC');
