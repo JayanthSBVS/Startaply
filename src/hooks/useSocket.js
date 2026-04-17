@@ -11,7 +11,12 @@ export const useSocket = (onUpdate) => {
     socket.connect();
 
     socket.on('connect', () => console.log('WebSocket Connected to Port 5000'));
-    socket.on('connect_error', (err) => console.error('WebSocket Error details:', err.message, err.context));
+    socket.on('connect_error', (err) => {
+      // Avoid spamming logs in production (Vercel) as WebSockets are not supported there.
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.error('WebSocket Error details:', err.message);
+      }
+    });
 
     socket.on('DATA_UPDATED', (data) => {
       console.log('Real-time update received:', data);

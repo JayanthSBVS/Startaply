@@ -48,6 +48,19 @@ async function initAuthDb() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        id SERIAL PRIMARY KEY,
+        userId VARCHAR(50),
+        userName TEXT,
+        role TEXT,
+        module TEXT,
+        action TEXT,
+        targetId TEXT,
+        timestamp BIGINT
+      )
+    `);
+
     // Ensure manager account
     const managerEmail = 'manager@strataply.com';
     const managerPass = await bcrypt.hash('manager123', 10);
@@ -126,6 +139,42 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
       adminProductivity: adminStats.rows
     });
   } catch (err) { res.status(500).json({ error: 'Stats error' }); }
+});
+
+// GET all users
+app.get('/api/auth/users', authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, name, email, role, isactive, lastlogin, createdat FROM users ORDER BY createdat DESC');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// GET Activity Logs
+app.get('/api/auth/logs', authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC LIMIT 100');
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// TOGGLE user status
+app.put('/api/auth/users/:id/toggle', authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+    await pool.query('UPDATE users SET isactive = $1 WHERE id = $2', [isActive, id]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
+});
+
+// DELETE user
+app.delete('/api/auth/users/:id', authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
 module.exports = app;
