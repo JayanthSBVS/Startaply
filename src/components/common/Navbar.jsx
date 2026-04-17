@@ -57,12 +57,9 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className="lg:hidden flex items-center gap-2">
-            <ThemeToggle />
-            <button onClick={() => setOpen(!open)} className="p-2 text-slate-800 dark:text-slate-200 hover:text-emerald-600 transition-colors">
-              {open ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          <button onClick={() => setOpen(!open)} className="lg:hidden p-2 text-slate-800 dark:text-slate-200 hover:text-emerald-600 transition-colors">
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
 

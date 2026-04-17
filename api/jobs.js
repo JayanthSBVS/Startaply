@@ -11,20 +11,6 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
-
-// ── MIDDLEWARE ───────────────────────────────────────────
-const authMiddleware = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
-};
-
 // ── DB INIT ──────────────────────────────────────────────
 async function initDb() {
   try {
@@ -42,13 +28,9 @@ async function initDb() {
         expiryDays INTEGER, isFeatured BOOLEAN, isTrending BOOLEAN,
         isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
         govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
-        mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard',
-        createdByAdminId TEXT,
-        createdByAdminName TEXT
+        mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard'
       )
     `);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminId TEXT`);
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminName TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS applyType TEXT DEFAULT 'external'`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isFresh BOOLEAN DEFAULT FALSE`);
@@ -65,6 +47,15 @@ async function initDb() {
     `);
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS jobTitle TEXT`);
     await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS companyName TEXT`);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS admins (
+        email VARCHAR(255) PRIMARY KEY, password VARCHAR(255)
+      )
+    `);
+    await pool.query(`
+      INSERT INTO admins (email, password) VALUES ('admin@strataply.com', 'admin123')
+      ON CONFLICT (email) DO NOTHING
+    `);
   } catch (err) {
     console.error('DB init error:', err.message);
   }
@@ -75,8 +66,9 @@ initDb();
 // ── HELPERS ──────────────────────────────────────────────
 function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 
-function normalizeJob(body, existing = null, adminUser = null) {
+function normalizeJob(body, existing = null) {
   const now = Date.now();
+  // Auto-generate short description from fullDescription if not provided
   const fullDesc = body.fullDescription || existing?.fullDescription || '';
   const shortDesc = body.description || (fullDesc ? fullDesc.substring(0, 200) : '') || existing?.description || '';
 
@@ -115,8 +107,6 @@ function normalizeJob(body, existing = null, adminUser = null) {
     jobCategoryType: body.jobCategoryType || '',
     mapLocationUrl: body.mapLocationUrl || '',
     processType: body.processType || 'Standard',
-    createdByAdminId: existing?.createdByAdminId || adminUser?.id || 'unknown',
-    createdByAdminName: existing?.createdByAdminName || adminUser?.name || 'unknown'
   };
 }
 
@@ -133,9 +123,7 @@ function mapRow(r) {
     isVisible: nb(r.isvisible),
     expiryDays: Number(r.expirydays || 0),
     views: Number(r.views || 0),
-    applicationCount: Number(r.applicationcount || 0),
-    createdByAdminId: r.createdbyadminid,
-    createdByAdminName: r.createdbyadminname
+    applicationCount: Number(r.applicationcount || 0)
   };
 }
 
@@ -172,27 +160,16 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
   }
 });
 
-// GET all jobs for admin (no expiry filtering + role filtering)
-app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
+// GET all jobs for admin (no expiry filtering)
+app.get('/api/jobs/admin/list', async (req, res) => {
   try {
-    let query = `
+    const { rows } = await pool.query(`
       SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
       FROM jobs j
-    `;
-    let params = [];
-
-    // Filter by admin ID if role is admin (not manager)
-    if (req.user.role === 'admin') {
-      query += ` WHERE j.createdByAdminId = $1`;
-      params.push(req.user.id);
-    }
-
-    query += ` ORDER BY j.createdat DESC`;
-    
-    const { rows } = await pool.query(query, params);
+      ORDER BY j.createdat DESC
+    `);
     res.json(rows.map(mapRow));
   } catch (err) {
-    console.error('Admin list error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -224,26 +201,24 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 // POST create job
-app.post('/api/jobs', authMiddleware, async (req, res) => {
+app.post('/api/jobs', async (req, res) => {
   try {
-    const j = normalizeJob(req.body, null, req.user);
+    const j = normalizeJob(req.body);
     const { rows } = await pool.query(`
       INSERT INTO jobs (
         id,createdAt,updatedAt,title,subtitle,description,fullDescription,
         requiredSkills,techStack,aboutCompany,benefits,company,companyLogo,
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible,
-        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType,
-        createdByAdminId, createdByAdminName
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
+        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34)
       RETURNING *
     `, [
       j.id,j.createdAt,j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
       j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,j.companyLogo,
       j.location,j.workMode,j.qualification,j.experience,j.salary,j.type,j.category,
       j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
-      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
-      j.createdByAdminId, j.createdByAdminName
+      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType
     ]);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
@@ -253,19 +228,12 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
 });
 
 // PUT update job
-app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
+app.put('/api/jobs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ message: 'Not found' });
-    
-    // Check ownership if not manager
-    const existingJob = mapRow(ex[0]);
-    if (req.user.role === 'admin' && existingJob.createdByAdminId !== req.user.id) {
-      return res.status(403).json({ error: 'Permission denied: This job belongs to another admin' });
-    }
-
-    const j = normalizeJob(req.body, existingJob, req.user);
+    const j = normalizeJob(req.body, mapRow(ex[0]));
     const { rows } = await pool.query(`
       UPDATE jobs SET
         updatedAt=$1,title=$2,subtitle=$3,description=$4,fullDescription=$5,
@@ -273,17 +241,15 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
         companyLogo=$11,location=$12,workMode=$13,qualification=$14,experience=$15,
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
-        govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32,
-        createdByAdminId=$33, createdByAdminName=$34
-      WHERE id=$35 RETURNING *
+        govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32
+      WHERE id=$33 RETURNING *
     `, [
       j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
       j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,
       j.companyLogo,j.location,j.workMode,j.qualification,j.experience,
       j.salary,j.type,j.category,j.monthTag,j.applyUrl,j.applyType,
       j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
-      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
-      j.createdByAdminId, j.createdByAdminName, id
+      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,id
     ]);
     res.json(mapRow(rows[0]));
   } catch (err) {
