@@ -43,11 +43,11 @@ const JobMelaPopup = () => {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
       <div
-        className="absolute inset-0 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-500"
+        className="absolute inset-0 bg-slate-950/80 dark:bg-black/90 backdrop-blur-xl animate-in fade-in duration-500"
         onClick={() => setIsOpen(false)}
       />
 
-      <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_0_50px_rgba(16,185,129,0.2)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800 z-10 transition-colors">
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800/80 z-10 transition-colors">
 
         {/* Banner Section */}
         <div className="relative h-56 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">

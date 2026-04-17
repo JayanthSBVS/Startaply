@@ -136,17 +136,17 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
       SELECT 
         u.id, u.name as adminname, u.email, u.role, u.isactive,
         
-        -- Lifetime Totals
-        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) as job_count_total,
-        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) as company_count_total,
-        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) as prep_count_total,
-        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id) as mela_count_total,
+        -- Lifetime Totals (Normalized column names)
+        COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id), 0) as job_count_total,
+        COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id), 0) as company_count_total,
+        COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id), 0) as prep_count_total,
+        COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id), 0) as mela_count_total,
         
         -- Today's Totals
-        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) as job_count_today,
-        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) as company_count_today,
-        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) as prep_count_today,
-        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1) as mela_count_today,
+        COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1), 0) as job_count_today,
+        COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1), 0) as company_count_today,
+        COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1), 0) as prep_count_today,
+        COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1), 0) as mela_count_today,
         
         -- Historical Daily performance (last 14 days)
         (
@@ -161,7 +161,7 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
            ) day_stat
         ) as historical_jobs,
 
-        -- Total Combined
+        -- Total Combined (Calculating server-side to ensure accuracy)
         (
           (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) +
           (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) +

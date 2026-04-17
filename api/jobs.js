@@ -312,18 +312,61 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// GET all applications
-app.get('/api/jobs/applications/all', async (req, res) => {
+// GET all applications (filtered by ownership)
+app.get('/api/jobs/applications/all', authMiddleware, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM applications ORDER BY appliedAt DESC');
+    const isManager = req.user.role === 'manager';
+    let query = `
+      SELECT a.* 
+      FROM applications a
+      JOIN jobs j ON a.jobId = j.id
+    `;
+    let params = [];
+
+    if (!isManager) {
+      query += ` WHERE j.createdByAdminId = $1`;
+      params.push(req.user.id);
+    }
+
+    query += ` ORDER BY a.appliedAt DESC`;
+
+    const { rows } = await pool.query(query, params);
     res.json(rows.map(r => ({ 
       ...r, 
-      appliedAt: Number(r.appliedat), 
-      jobId: r.jobid,
-      jobTitle: r.jobtitle,
-      companyName: r.companyname
+      appliedAt: Number(r.appliedat || r.appliedAt), 
+      jobId: r.jobid || r.jobId,
+      jobTitle: r.jobtitle || r.jobTitle,
+      companyName: r.companyname || r.companyName
     })));
   } catch (err) {
+    console.error('Applications error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// DELETE application
+app.delete('/api/jobs/applications/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isManager = req.user.role === 'manager';
+    
+    // Check ownership before delete if not manager
+    if (!isManager) {
+      const { rows } = await pool.query(`
+        SELECT a.id FROM applications a
+        JOIN jobs j ON a.jobId = j.id
+        WHERE a.id = $1 AND j.createdByAdminId = $2
+      `, [id, req.user.id]);
+      
+      if (rows.length === 0) {
+        return res.status(403).json({ error: 'Unauthorized to delete this applicant' });
+      }
+    }
+
+    await pool.query('DELETE FROM applications WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Applicant deleted' });
+  } catch (err) {
+    console.error('DELETE application error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

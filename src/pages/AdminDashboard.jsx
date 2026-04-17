@@ -426,10 +426,10 @@ const AdminDashboard = () => {
                         <div key={admin.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800/40">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${admin.isactive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'}`}>{admin.name?.charAt(0)}</div>
-                            <div>
-                               <p className="text-xs font-black truncate max-w-[100px]">{admin.name}</p>
-                               <p className="text-[10px] font-bold text-slate-500">{(globalStats?.adminProductivity?.find(p => p.id === admin.id)?.today_total || 0)} posts today</p>
-                            </div>
+                             <div>
+                                <p className="text-xs font-black truncate max-w-[100px]">{admin.name}</p>
+                                <p className="text-[10px] font-bold text-slate-500">{(globalStats?.adminProductivity?.find(p => p.id === admin.id)?.todayTotal || 0)} posts today</p>
+                             </div>
                           </div>
                           <div className={`w-2 h-2 rounded-full ${admin.isactive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} />
                         </div>
@@ -615,28 +615,33 @@ const AdminDashboard = () => {
                           <td className="px-8 py-6 text-center text-sm text-slate-500 dark:text-slate-400 font-bold">
                             {new Date(parseInt(app.createdAt || app.appliedAt || Date.now())).toLocaleDateString()}
                           </td>
-                          <td className="px-8 py-6 text-right">
-                            <div className="flex justify-end gap-3">
-                              {app.resume && (
-                                <a href={app.resume} download={`Resume_${app.name}`} className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-xl text-emerald-500 transition-colors border border-emerald-500/20" title="Download Resume">
-                                  <Download size={18} />
-                                </a>
-                              )}
-                              <button
-                                onClick={() => {
-                                  confirmAction('Permanently delete this applicant record?', async () => {
-                                    await axios.delete(`${API}/jobs/applications/${app.id}`, getConfig());
-                                    fetchData();
-                                    showMsg('Application Deleted');
-                                  });
-                                }}
-                                className="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors border border-rose-500/20"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                              <td className="px-8 py-6 text-right">
+                                <div className="flex justify-end gap-3">
+                                  {app.resume && (
+                                    <a href={app.resume} target="_blank" rel="noreferrer" className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-xl text-emerald-500 transition-all border border-emerald-500/20" title="View Resume">
+                                      <Download size={18} />
+                                    </a>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      confirmAction(`Permanently delete applicant ${app.name}?`, async () => {
+                                        try {
+                                          await axios.delete(`${API}/jobs/applications/${app.id}`, getConfig());
+                                          fetchData();
+                                          showMsg('Application Deleted');
+                                        } catch (err) {
+                                          toast.error('Failed to delete applicant');
+                                        }
+                                      });
+                                    }}
+                                    className="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-all border border-rose-500/20"
+                                    title="Delete Applicant"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
                       ))}
                       {applications.length === 0 && (
                         <tr>
