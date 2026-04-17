@@ -31,7 +31,7 @@
       "dest": "/api/jobs.js"
     },
     {
-      "src": "/api/jobs/([^/]+)",
+      "src": "/api/jobs/(.*)",
       "dest": "/api/jobs.js"
     },
     {
@@ -39,7 +39,7 @@
       "dest": "/api/jobs.js"
     },
     {
-      "src": "/api/companies/([^/]+)",
+      "src": "/api/companies/(.*)",
       "dest": "/api/companies.js"
     },
     {
@@ -51,7 +51,7 @@
       "dest": "/api/job-mela.js"
     },
     {
-      "src": "/api/job-mela/([^/]+)",
+      "src": "/api/job-mela/(.*)",
       "dest": "/api/job-mela.js"
     },
     {
@@ -99,7 +99,7 @@
       "dest": "/api/testimonials.js"
     },
     {
-      "src": "/api/prep-data/([^/]+)",
+      "src": "/api/prep-data/(.*)",
       "dest": "/api/prepData.js"
     },
     {

@@ -71,8 +71,12 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('strataply_token');
+      const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
+      // Determine role directly from storage to prevent context flicker
+      const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@strataply.com';
+
       const [jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes, statsRes, logsRes, adminsRes] = await Promise.all([
         axios.get(`${API}/jobs/admin/list`, config).catch(() => ({ data: [] })),
         axios.get(`${API}/jobs/applications/all`, config).catch(() => ({ data: [] })),
@@ -82,9 +86,9 @@ const AdminDashboard = () => {
         axios.get(`${API}/testimonials`).catch(() => ({ data: [] })),
         axios.get(`${API}/prep-data/admin/list`, config).catch(() => ({ data: [] })),
         axios.get(`${API}/hero-banners`).catch(() => ({ data: [] })),
-        isManager() ? axios.get(`${API}/auth/stats`, config).catch(err => { console.error("Stats Fetch Failed:", err.message); return { data: null }; }) : Promise.resolve({ data: null }),
-        isManager() ? axios.get(`${API}/auth/logs`, config).catch(err => { console.error("Logs Fetch Failed:", err.message); return { data: [] }; }) : Promise.resolve({ data: [] }),
-        isManager() ? axios.get(`${API}/auth/users`, config).catch(err => { console.error("Admins Fetch Failed:", err.message); return { data: [] }; }) : Promise.resolve({ data: [] })
+        currentIsManager ? axios.get(`${API}/auth/stats`, config).catch(err => { console.error("Stats Fetch Failed:", err.message); return { data: null }; }) : Promise.resolve({ data: null }),
+        currentIsManager ? axios.get(`${API}/auth/logs`, config).catch(err => { console.error("Logs Fetch Failed:", err.message); return { data: [] }; }) : Promise.resolve({ data: [] }),
+        currentIsManager ? axios.get(`${API}/auth/users`, config).catch(err => { console.error("Admins Fetch Failed:", err.message); return { data: [] }; }) : Promise.resolve({ data: [] })
       ]);
 
       setJobs(jobsRes.data || []);
@@ -95,7 +99,7 @@ const AdminDashboard = () => {
       setPrepData(prepRes.data || []);
       setHeroBanners(heroBannersRes?.data || []);
       
-      if (isManager()) {
+      if (currentIsManager) {
         console.log("MANAGER SYNC DEBUG:", {
           stats: statsRes.data,
           logs: logsRes.data,
@@ -133,16 +137,15 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('strataply_token');
+    const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
+    
     if (!token) {
       navigate('/admin-login');
     } else {
-      // Small delay to let AuthContext stabilize the user object
-      const timer = setTimeout(() => {
-        fetchData();
-      }, 500);
-      return () => clearTimeout(timer);
+      // Immediate fetch if we have stored user data, otherwise wait for context
+      fetchData();
     }
-  }, [navigate]); // Only sync once on mount or manual refresh, not every user change to avoid flicker.
+  }, [navigate]); // Remove user dependency to prevent double-flicker
 
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
