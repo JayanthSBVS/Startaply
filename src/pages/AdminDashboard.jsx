@@ -136,16 +136,23 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('strataply_token');
-    const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
+    const token = localStorage.getItem('strataply_admin_token');
     
     if (!token) {
       navigate('/admin-login');
     } else {
-      // Immediate fetch if we have stored user data, otherwise wait for context
       fetchData();
     }
-  }, [navigate]); // Remove user dependency to prevent double-flicker
+
+    // Fallback polling (every 30s) to handle serverless limitations (Vercel)
+    const pollInterval = setInterval(() => {
+      if (activeTab === 'global_stats' || activeTab === 'overview') {
+        fetchData();
+      }
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
+  }, [navigate, activeTab]);
 
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
@@ -1228,8 +1235,7 @@ const AdminDashboard = () => {
                         <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Admin Entity</th>
                         <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Today's Session</th>
                         <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Daily Output</th>
-                        <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Lifetime Power</th>
-                        <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Join Date</th>
+                        <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right pr-15">Join Date</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
@@ -1265,20 +1271,7 @@ const AdminDashboard = () => {
                                </div>
                              </div>
                           </td>
-                          <td className="px-10 py-8">
-                             <div className="flex items-center gap-4">
-                               <div className="flex-1 max-w-[120px]">
-                                 <div className="flex justify-between text-[10px] font-black uppercase text-slate-500 mb-1">
-                                   <span>{p.lifetimeTotal || 0} Total</span>
-                                   <span>{Math.round((parseInt(p.lifetimeTotal) / Math.max(1, ...globalStats.adminProductivity.map(x=>parseInt(x.lifetimeTotal)))) * 100)}%</span>
-                                 </div>
-                                 <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden">
-                                   <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${(p.lifetimeTotal / Math.max(1, ...globalStats.adminProductivity.map(x=>x.lifetimeTotal))) * 100}%` }} />
-                                 </div>
-                               </div>
-                             </div>
-                          </td>
-                          <td className="px-10 py-8 text-right">
+                          <td className="px-10 py-8 text-right pr-15">
                             <p className="text-xs font-bold text-slate-500">{p.createdAt ? new Date(parseInt(p.createdAt)).toLocaleDateString() : 'Original'}</p>
                           </td>
                         </tr>
