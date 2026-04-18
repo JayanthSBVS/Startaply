@@ -71,7 +71,7 @@ async function initAuthDb() {
     await pool.query(
       `INSERT INTO users (id, name, email, password, role, createdAt)
        VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (email) DO UPDATE SET password = $4, role = 'manager', id = $1`,
+       ON CONFLICT (email) DO UPDATE SET password = $4, role = 'manager', id = $1, name = 'Operations Manager'`,
       [principalManagerId, 'Operations Manager', managerEmail, managerPass, 'manager', Date.now()]
     );
 
@@ -83,7 +83,7 @@ async function initAuthDb() {
     await pool.query(
       `INSERT INTO users (id, name, email, password, role, createdAt)
        VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (email) DO UPDATE SET password = $4, role = 'admin', id = $1`,
+       ON CONFLICT (email) DO UPDATE SET password = $4, role = 'admin', id = $1, name = 'Jayanth'`,
       [jayanthId, 'Jayanth', jayanthEmail, jayanthPass, 'admin', Date.now()]
     );
 
@@ -154,23 +154,30 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
 
     const adminStats = await pool.query(`
       SELECT 
-        u.id, u.name as adminname, u.email, u.role, u.isactive,
+        u.id, 
+        u.name as "adminName", 
+        u.email, 
+        u.role, 
+        u.isactive as "isActive", 
+        u.lastlogin as "lastLogin", 
+        u.lastlogout as "lastLogout", 
+        u.createdat as "createdAt",
         
-        -- Lifetime Totals (Normalized column names)
-        COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id), 0) as job_count_total,
-        COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id), 0) as company_count_total,
-        COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id), 0) as prep_count_total,
-        COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id), 0) as mela_count_total,
+        -- Lifetime Totals
+        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) as "jobCountTotal",
+        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) as "companyCountTotal",
+        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) as "prepCountTotal",
+        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id) as "melaCountTotal",
         
         -- Today's Totals
-        COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1), 0) as job_count_today,
-        COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1), 0) as company_count_today,
-        COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1), 0) as prep_count_today,
-        COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1), 0) as mela_count_today,
+        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) as "jobCountToday",
+        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) as "companyCountToday",
+        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) as "prepCountToday",
+        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1) as "melaCountToday",
         
         -- Historical Daily performance (last 14 days)
         (
-           SELECT json_agg(day_stat) FROM (
+           SELECT COALESCE(json_agg(day_stat), '[]'::json) FROM (
              SELECT 
                TO_CHAR(TO_TIMESTAMP(createdat/1000), 'YYYY-MM-DD') as date, 
                COUNT(*) as count
@@ -179,46 +186,26 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
              GROUP BY date
              ORDER BY date DESC
            ) day_stat
-        ) as historical_jobs,
+        ) as "historicalJobs",
 
-        -- Total Combined (Calculating server-side to ensure accuracy)
+        -- Totals
         (
           COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id), 0) +
           COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id), 0) +
           COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id), 0) +
           COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id), 0)
-        ) as lifetime_total,
+        ) as "lifetimeTotal",
         
         (
           COALESCE((SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1), 0) +
           COALESCE((SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1), 0) +
           COALESCE((SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1), 0) +
           COALESCE((SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1), 0)
-        ) as today_total
+        ) as "todayTotal"
 
       FROM users u
-      ORDER BY lifetime_total DESC
+      ORDER BY "lifetimeTotal" DESC
     `, [todayMillis, fourteenDaysAgo]);
-
-    // Normalize adminStats rows to handle PostgreSQL lowercase column names
-    const normalizedAdminStats = adminStats.rows.map(r => ({
-      id: r.id,
-      adminName: r.adminname || r.name,
-      email: r.email,
-      role: r.role,
-      isActive: r.isactive === true || r.isactive === 'true',
-      jobCountTotal: parseInt(r.job_count_total || 0),
-      companyCountTotal: parseInt(r.company_count_total || 0),
-      prepCountTotal: parseInt(r.prep_count_total || 0),
-      melaCountTotal: parseInt(r.mela_count_total || 0),
-      jobCountToday: parseInt(r.job_count_today || 0),
-      companyCountToday: parseInt(r.company_count_today || 0),
-      prepCountToday: parseInt(r.prep_count_today || 0),
-      melaCountToday: parseInt(r.mela_count_today || 0),
-      historicalJobs: r.historical_jobs || [],
-      lifetimeTotal: parseInt(r.lifetime_total || 0),
-      todayTotal: parseInt(r.today_total || 0)
-    }));
 
     res.json({
       totalJobs: parseInt(jobs.rows[0].count),
@@ -229,8 +216,29 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
       todayMela: parseInt(todayMela.rows[0].count),
       todayCompanies: parseInt(todayCompanies.rows[0].count),
       totalToday: parseInt(todayJobs.rows[0].count) + parseInt(todayPrep.rows[0].count) + parseInt(todayMela.rows[0].count),
-      totalAdmins: normalizedAdminStats.length,
-      adminProductivity: normalizedAdminStats
+      totalAdmins: adminStats.rows.length,
+
+      adminProductivity: adminStats.rows.map(row => ({
+        id: row.id,
+        adminName: row.adminName || row.adminname || row.name,
+        email: row.email,
+        role: row.role,
+        isActive: row.isActive || row.isactive,
+        lastLogin: row.lastLogin || row.lastlogin,
+        lastLogout: row.lastLogout || row.lastlogout,
+        createdAt: row.createdAt || row.createdat,
+        jobCountTotal: parseInt(row.jobCountTotal || row.job_count_total || 0),
+        companyCountTotal: parseInt(row.companyCountTotal || row.company_count_total || 0),
+        prepCountTotal: parseInt(row.prepCountTotal || row.prep_count_total || 0),
+        melaCountTotal: parseInt(row.melaCountTotal || row.mela_count_total || 0),
+        jobCountToday: parseInt(row.jobCountToday || row.job_count_today || 0),
+        companyCountToday: parseInt(row.companyCountToday || row.company_count_today || 0),
+        prepCountToday: parseInt(row.prepCountToday || row.prep_count_today || 0),
+        melaCountToday: parseInt(row.melaCountToday || row.mela_count_today || 0),
+        historicalJobs: row.historicalJobs || row.historical_jobs || [],
+        lifetimeTotal: parseInt(row.lifetimeTotal || row.lifetime_total || 0),
+        todayTotal: parseInt(row.todayTotal || row.today_total || 0)
+      }))
     });
   } catch (err) {
     console.error('Stats fetch err:', err);
