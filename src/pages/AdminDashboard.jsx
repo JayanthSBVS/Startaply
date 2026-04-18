@@ -136,7 +136,7 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('strataply_admin_token');
+    const token = localStorage.getItem('strataply_token');
     
     if (!token) {
       navigate('/admin-login');
