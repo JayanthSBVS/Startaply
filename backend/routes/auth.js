@@ -256,13 +256,13 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
     const adminStats = await pool.query(`
       SELECT 
         u.id, 
-        u.name as adminName, 
+        u.name as "adminName", 
         u.email, 
         u.role, 
-        u.isactive as isActive, 
-        u.lastlogin as lastLogin, 
-        u.lastlogout as lastLogout, 
-        u.createdat as createdAt,
+        u.isactive as "isActive", 
+        u.lastlogin as "lastLogin", 
+        u.lastlogout as "lastLogout", 
+        u.createdat as "createdAt",
         
         -- Lifetime Totals
         (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) as "jobCountTotal",
