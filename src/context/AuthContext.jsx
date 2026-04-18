@@ -27,7 +27,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('strataply_token');
       if (token) {
-        await fetch('/api/auth/logout', {
+        // Use a more robust relative path that works on Vercel deployments
+        const apiUrl = window.location.origin + '/api/auth/logout';
+        await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });

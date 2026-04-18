@@ -319,17 +319,25 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
       totalToday: parseInt(todayJobs.rows[0].count) + parseInt(todayPrep.rows[0].count) + parseInt(todayMela.rows[0].count),
       totalAdmins: adminStats.rows.length,
       adminProductivity: adminStats.rows.map(row => ({
-        ...row,
-        jobCountTotal: parseInt(row.jobCountTotal || 0),
-        companyCountTotal: parseInt(row.companyCountTotal || 0),
-        prepCountTotal: parseInt(row.prepCountTotal || 0),
-        melaCountTotal: parseInt(row.melaCountTotal || 0),
-        jobCountToday: parseInt(row.jobCountToday || 0),
-        companyCountToday: parseInt(row.companyCountToday || 0),
-        prepCountToday: parseInt(row.prepCountToday || 0),
-        melaCountToday: parseInt(row.melaCountToday || 0),
-        lifetimeTotal: parseInt(row.lifetimeTotal || 0),
-        todayTotal: parseInt(row.todayTotal || 0)
+        id: row.id,
+        adminName: row.adminName || row.adminname,
+        email: row.email,
+        role: row.role,
+        isActive: row.isActive || row.isactive,
+        lastLogin: row.lastLogin || row.lastlogin,
+        lastLogout: row.lastLogout || row.lastlogout,
+        createdAt: row.createdAt || row.createdat,
+        jobCountTotal: parseInt(row.jobCountTotal || row.job_count_total || 0),
+        companyCountTotal: parseInt(row.companyCountTotal || row.company_count_total || 0),
+        prepCountTotal: parseInt(row.prepCountTotal || row.prep_count_total || 0),
+        melaCountTotal: parseInt(row.melaCountTotal || row.mela_count_total || 0),
+        jobCountToday: parseInt(row.jobCountToday || row.job_count_today || 0),
+        companyCountToday: parseInt(row.companyCountToday || row.company_count_today || 0),
+        prepCountToday: parseInt(row.prepCountToday || row.prep_count_today || 0),
+        melaCountToday: parseInt(row.melaCountToday || row.mela_count_today || 0),
+        historicalJobs: row.historicalJobs || row.historical_jobs || [],
+        lifetimeTotal: parseInt(row.lifetimeTotal || row.lifetime_total || 0),
+        todayTotal: parseInt(row.todayTotal || row.today_total || 0)
       }))
     });
   } catch (err) {
