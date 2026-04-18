@@ -96,26 +96,25 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden" style={{ minHeight: 'min(85vh, 700px)' }}>
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-50 dark:bg-slate-900">
+    <section className="relative bg-slate-950 border-b border-slate-800 transition-colors duration-300 overflow-hidden" style={{ minHeight: 'min(85vh, 700px)' }}>
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 shadow-2xl">
         <AnimatePresence mode="popLayout">
           {images.length > 0 && (
             <motion.img
               key={currentImg}
               src={images[currentImg]}
               initial={{ opacity: 0, scale: 1.05 }}
-              animate={{ opacity: 0.95, scale: 1 }}
+              animate={{ opacity: 0.6, scale: 1 }}
               className="w-full h-full object-cover absolute inset-0 transition-opacity duration-1000"
               exit={{ opacity: 0 }}
               transition={{ duration: 1.5, ease: 'easeInOut' }}
               alt=""
               loading="eager"
-              fetchPriority={currentImg === 0 ? "high" : "auto"}
             />
           )}
         </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-white/40 dark:from-slate-900/40 dark:via-slate-900/25 dark:to-slate-900/60 backdrop-blur-[2px] transition-all duration-500" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent dark:from-slate-900/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/20 to-slate-950/90 backdrop-blur-[2px] transition-all duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 to-transparent" />
       </div>
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
@@ -123,7 +122,7 @@ const Hero = () => {
           <button
             key={i}
             onClick={() => setCurrentImg(i)}
-            className={`rounded-full transition-all duration-300 ${i === currentImg ? 'w-6 h-1.5 bg-emerald-500 shadow-[0_0_10px_theme(colors.emerald.500)]' : 'w-1.5 h-1.5 bg-slate-300 dark:bg-white/30'}`}
+            className={`rounded-full transition-all duration-300 ${i === currentImg ? 'w-6 h-1.5 bg-emerald-500 shadow-[0_0_10px_theme(colors.emerald.500)]' : 'w-1.5 h-1.5 bg-white/20'}`}
           />
         ))}
       </div>
@@ -131,29 +130,29 @@ const Hero = () => {
       <div className="relative z-10 flex items-center justify-center min-h-[min(85vh,700px)] px-4 py-16 md:py-20">
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="w-full max-w-4xl mx-auto text-center">
           <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-2 mb-6">
-            <span className="flex items-center gap-1.5 glass-light dark:bg-emerald-500/10 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-4 py-2 rounded-full text-xs font-black border border-emerald-400/20 dark:border-emerald-500/20 transition-all shadow-sm hover:shadow-emerald-500/20 hover:-translate-y-0.5 cursor-default">
+            <span className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full text-xs font-black border border-emerald-500/20 transition-all shadow-sm hover:shadow-emerald-500/20 hover:-translate-y-0.5 cursor-default">
               <GraduationCap size={14} /> Freshers
             </span>
-            <span className="flex items-center gap-1.5 glass-light dark:bg-blue-500/10 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-full text-xs font-black border border-blue-400/20 dark:border-blue-500/20 transition-all shadow-sm hover:shadow-blue-500/20 hover:-translate-y-0.5 cursor-default">
+            <span className="flex items-center gap-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-xs font-black border border-blue-500/20 transition-all shadow-sm hover:shadow-blue-500/20 hover:-translate-y-0.5 cursor-default">
               <Briefcase size={14} /> Private Jobs
             </span>
-            <span className="flex items-center gap-1.5 glass-light dark:bg-slate-500/10 hover:bg-slate-50 dark:hover:bg-slate-500/20 text-slate-800 dark:text-slate-300 px-4 py-2 rounded-full text-xs font-black border border-slate-400/20 dark:border-slate-500/20 transition-all shadow-sm hover:shadow-slate-500/20 hover:-translate-y-0.5 cursor-default">
+            <span className="flex items-center gap-1.5 bg-slate-500/10 hover:bg-slate-500/20 text-slate-400 px-4 py-2 rounded-full text-xs font-black border border-slate-500/20 transition-all shadow-sm hover:shadow-slate-500/20 hover:-translate-y-0.5 cursor-default">
               <Building2 size={14} /> Govt Jobs
             </span>
-            <span className="flex items-center gap-1.5 glass-light dark:bg-teal-500/10 hover:bg-teal-50 dark:hover:bg-teal-500/20 text-teal-800 dark:text-teal-300 px-4 py-2 rounded-full text-xs font-black border border-teal-400/20 dark:border-teal-500/20 transition-all shadow-sm hover:shadow-teal-500/20 hover:-translate-y-0.5 cursor-default">
+            <span className="flex items-center gap-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 px-4 py-2 rounded-full text-xs font-black border border-teal-500/20 transition-all shadow-sm hover:shadow-teal-500/20 hover:-translate-y-0.5 cursor-default">
               <Zap size={14} /> Gig & Services
             </span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.1] mb-4 drop-shadow-sm dark:drop-shadow-xl">
+          <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-4 drop-shadow-2xl">
             Your Career Starts Here.{' '}
             <br className="hidden sm:block" />
-            <span className="text-emerald-600 dark:text-emerald-400 drop-shadow-sm dark:drop-shadow-md">
+            <span className="text-emerald-400 drop-shadow-md">
               Zero Fees. Zero Friction.
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-sm sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto mb-8 font-medium leading-relaxed px-2">
+          <motion.p variants={itemVariants} className="text-sm sm:text-lg text-slate-300 max-w-xl mx-auto mb-8 font-medium leading-relaxed px-2">
             The ultimate launchpad for Freshers and Gig Workers. 100% free platform. No login required. Browse verified opportunities and apply instantly.
           </motion.p>
 
