@@ -1209,13 +1209,13 @@ const AdminDashboard = () => {
                     <div className="text-center">
                       <p className="text-[10px] font-black uppercase text-slate-500">Team Today</p>
                       <p className="text-lg font-black text-emerald-500">
-                        {(globalStats?.adminProductivity?.reduce((acc, p) => acc + (parseInt(p.job_count_today) || 0) + (parseInt(p.prep_count_today) || 0), 0)) || 0}
+                        {(globalStats?.adminProductivity?.reduce((acc, p) => acc + (parseInt(p.jobCountToday) || 0) + (parseInt(p.prepCountToday) || 0), 0)) || 0}
                       </p>
                     </div>
                     <div className="text-center border-l dark:border-slate-800 pl-10">
                       <p className="text-[10px] font-black uppercase text-slate-500">Team Lifetime</p>
                       <p className="text-lg font-black text-blue-500">
-                        {globalStats?.adminProductivity?.reduce((acc, p) => acc + (parseInt(p.lifetime_total) || 0), 0) || 0}
+                        {globalStats?.adminProductivity?.reduce((acc, p) => acc + (parseInt(p.lifetimeTotal) || 0), 0) || 0}
                       </p>
                     </div>
                   </div>
@@ -1238,10 +1238,10 @@ const AdminDashboard = () => {
                           <td className="px-10 py-8">
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center font-black text-emerald-500 border border-emerald-500/20 shadow-inner group-hover:scale-110 transition-transform">
-                                {p.adminname?.charAt(0)}
+                                {p.adminName?.charAt(0)}
                               </div>
                               <div>
-                                <p className="font-bold text-slate-900 dark:text-slate-100">{p.adminname}</p>
+                                <p className="font-bold text-slate-900 dark:text-slate-100">{p.adminName}</p>
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{p.email}</p>
                               </div>
                             </div>
@@ -1249,19 +1249,19 @@ const AdminDashboard = () => {
                           <td className="px-10 py-8">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <span className="text-emerald-400">IN:</span> {p.lastlogin ? new Date(parseInt(p.lastlogin)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}
+                                <span className="text-emerald-400">IN:</span> {p.lastLogin ? new Date(parseInt(p.lastLogin)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}
                               </div>
                               <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                                <span className="text-rose-400">OUT:</span> {p.lastlogout ? new Date(parseInt(p.lastlogout)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}
+                                <span className="text-rose-400">OUT:</span> {p.lastLogout ? new Date(parseInt(p.lastLogout)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}
                               </div>
                             </div>
                           </td>
                           <td className="px-10 py-8">
                              <div className="flex items-center gap-3">
-                               <div className="text-2xl font-black text-emerald-500">{p.today_total || 0}</div>
+                               <div className="text-2xl font-black text-emerald-500">{p.todayTotal || 0}</div>
                                <div className="text-[10px] font-black text-slate-500 uppercase leading-none border-l border-slate-700/50 pl-2">
-                                 {p.job_count_today || 0} Jobs<br />
-                                 {p.prep_count_today || 0} Prep
+                                 {p.jobCountToday || 0} Jobs<br />
+                                 {p.prepCountToday || 0} Prep
                                </div>
                              </div>
                           </td>
@@ -1269,17 +1269,17 @@ const AdminDashboard = () => {
                              <div className="flex items-center gap-4">
                                <div className="flex-1 max-w-[120px]">
                                  <div className="flex justify-between text-[10px] font-black uppercase text-slate-500 mb-1">
-                                   <span>{p.lifetime_total || 0} Total</span>
-                                   <span>{Math.round((parseInt(p.lifetime_total) / Math.max(1, ...globalStats.adminProductivity.map(x=>parseInt(x.lifetime_total)))) * 100)}%</span>
+                                   <span>{p.lifetimeTotal || 0} Total</span>
+                                   <span>{Math.round((parseInt(p.lifetimeTotal) / Math.max(1, ...globalStats.adminProductivity.map(x=>parseInt(x.lifetimeTotal)))) * 100)}%</span>
                                  </div>
                                  <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden">
-                                   <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${(p.lifetime_total / Math.max(1, ...globalStats.adminProductivity.map(x=>x.lifetime_total))) * 100}%` }} />
+                                   <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${(p.lifetimeTotal / Math.max(1, ...globalStats.adminProductivity.map(x=>x.lifetimeTotal))) * 100}%` }} />
                                  </div>
                                </div>
                              </div>
                           </td>
                           <td className="px-10 py-8 text-right">
-                            <p className="text-xs font-bold text-slate-500">{p.createdat ? new Date(parseInt(p.createdat)).toLocaleDateString() : 'Original'}</p>
+                            <p className="text-xs font-bold text-slate-500">{p.createdAt ? new Date(parseInt(p.createdAt)).toLocaleDateString() : 'Original'}</p>
                           </td>
                         </tr>
                       ))}
@@ -1298,10 +1298,10 @@ const AdminDashboard = () => {
                       {globalStats?.adminProductivity?.map(admin => (
                         <div key={admin.id} className="bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem]">
                           <div className="flex justify-between items-center mb-4">
-                            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">{admin.adminname}'s Daily Output (Jobs)</span>
+                            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">{admin.adminName}'s Daily Output (Jobs)</span>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                             {admin.historical_jobs ? admin.historical_jobs.map((h, i) => (
+                             {admin.historicalJobs?.length > 0 ? admin.historicalJobs.map((h, i) => (
                                <div key={i} className="flex flex-col items-center bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-xl min-w-[60px]">
                                  <span className="text-[9px] font-black text-slate-500">{h.date.split('-').slice(1).join('/')}</span>
                                  <span className="text-sm font-black text-blue-500">{h.count}</span>

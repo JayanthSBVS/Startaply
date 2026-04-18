@@ -233,9 +233,7 @@ router.get('/logs', authMiddleware, managerMiddleware, async (req, res) => {
 // GET Global Stats for Dashboard
 router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
   try {
-    const stats = {};
-    const [users, jobs, melas, companies, apps, feedback] = await Promise.all([
-      pool.query('SELECT COUNT(*) FROM users'),
+    const [jobs, melas, companies, apps, feedback] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM jobs'),
       pool.query('SELECT COUNT(*) FROM job_mela'),
       pool.query('SELECT COUNT(*) FROM companies'),
@@ -243,10 +241,8 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
       pool.query('SELECT COUNT(*) FROM feedback')
     ]);
 
-    // Daily trends (last 14 days)
-    const now = Date.now();
-    const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
     const todayMillis = new Date().setHours(0, 0, 0, 0);
+    const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
     
     // Aggregate Today Stats for Pulse
     const [todayJobs, todayPrep, todayMela, todayCompanies] = await Promise.all([
@@ -259,23 +255,30 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
     // Detailed Admin Performance (Today vs Lifetime across ALL modules)
     const adminStats = await pool.query(`
       SELECT 
-        u.id, u.name as adminname, u.email, u.role, u.isactive, u.lastlogin, u.lastlogout, u.createdat,
+        u.id, 
+        u.name as adminName, 
+        u.email, 
+        u.role, 
+        u.isactive as isActive, 
+        u.lastlogin as lastLogin, 
+        u.lastlogout as lastLogout, 
+        u.createdat as createdAt,
         
         -- Lifetime Totals
-        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) as job_count_total,
-        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) as company_count_total,
-        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) as prep_count_total,
-        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id) as mela_count_total,
+        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id) as "jobCountTotal",
+        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) as "companyCountTotal",
+        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) as "prepCountTotal",
+        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id) as "melaCountTotal",
         
         -- Today's Totals
-        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) as job_count_today,
-        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) as company_count_today,
-        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) as prep_count_today,
-        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1) as mela_count_today,
+        (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) as "jobCountToday",
+        (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) as "companyCountToday",
+        (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) as "prepCountToday",
+        (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1) as "melaCountToday",
         
         -- Historical Daily performance (last 14 days)
         (
-           SELECT json_agg(day_stat) FROM (
+           SELECT COALESCE(json_agg(day_stat), '[]'::json) FROM (
              SELECT 
                TO_CHAR(TO_TIMESTAMP(createdat/1000), 'YYYY-MM-DD') as date, 
                COUNT(*) as count
@@ -284,7 +287,7 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
              GROUP BY date
              ORDER BY date DESC
            ) day_stat
-        ) as historical_jobs,
+        ) as "historicalJobs",
 
         -- Totals
         (
@@ -292,17 +295,17 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
           (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id) +
           (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id) +
           (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id)
-        ) as lifetime_total,
+        ) as "lifetimeTotal",
         
         (
           (SELECT COUNT(*) FROM jobs WHERE createdbyadminid = u.id AND createdat >= $1) +
           (SELECT COUNT(*) FROM companies WHERE createdbyadminid = u.id AND createdat >= $1) +
           (SELECT COUNT(*) FROM prep_data WHERE createdbyadminid = u.id AND createdat >= $1) +
           (SELECT COUNT(*) FROM job_mela WHERE createdbyadminid = u.id AND createdat >= $1)
-        ) as today_total
+        ) as "todayTotal"
 
       FROM users u
-      ORDER BY lifetime_total DESC
+      ORDER BY "lifetimeTotal" DESC
     `, [todayMillis, fourteenDaysAgo]);
 
     res.json({
@@ -315,7 +318,19 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
       todayCompanies: parseInt(todayCompanies.rows[0].count),
       totalToday: parseInt(todayJobs.rows[0].count) + parseInt(todayPrep.rows[0].count) + parseInt(todayMela.rows[0].count),
       totalAdmins: adminStats.rows.length,
-      adminProductivity: adminStats.rows
+      adminProductivity: adminStats.rows.map(row => ({
+        ...row,
+        jobCountTotal: parseInt(row.jobCountTotal || 0),
+        companyCountTotal: parseInt(row.companyCountTotal || 0),
+        prepCountTotal: parseInt(row.prepCountTotal || 0),
+        melaCountTotal: parseInt(row.melaCountTotal || 0),
+        jobCountToday: parseInt(row.jobCountToday || 0),
+        companyCountToday: parseInt(row.companyCountToday || 0),
+        prepCountToday: parseInt(row.prepCountToday || 0),
+        melaCountToday: parseInt(row.melaCountToday || 0),
+        lifetimeTotal: parseInt(row.lifetimeTotal || 0),
+        todayTotal: parseInt(row.todayTotal || 0)
+      }))
     });
   } catch (err) {
     console.error('[AUTH STATS] Error:', err);
