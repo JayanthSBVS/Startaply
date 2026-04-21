@@ -62,6 +62,7 @@ async function initDb() {
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS govtJobType TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS stateName TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS jobCategoryType TEXT`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS govtDept TEXT`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminId TEXT DEFAULT 'system'`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS createdByAdminName TEXT DEFAULT 'System'`);
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS updatedAt BIGINT`);
@@ -126,6 +127,7 @@ function normalizeJob(body, existing = null) {
     isToday: nb(body.isToday),
     isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
     govtJobType: body.govtJobType || '',
+    govtDept: body.govtDept || '',
     stateName: body.stateName || '',
     jobCategoryType: body.jobCategoryType || '',
     createdByAdminId: body.createdByAdminId || existing?.createdByAdminId || 'system',
@@ -163,6 +165,7 @@ function mapRow(row) {
     processType: row.processtype || 'Standard',
     mapLocationUrl: row.maplocationurl || '',
     govtJobType: row.govtjobtype || '',
+    govtDept: row.govtdept || '',
     stateName: row.statename || '',
     jobCategoryType: row.jobcategorytype || '',
     isFeatured: row.isfeatured,
@@ -261,9 +264,9 @@ router.post('/', authMiddleware, async (req, res) => {
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,processType,mapLocationUrl,
         isFeatured,isFresh,isTrending,isToday,isVisible,
-        govtJobType,stateName,jobCategoryType,
+        govtJobType,govtDept,stateName,jobCategoryType,
         createdByAdminId, createdByAdminName
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
@@ -271,7 +274,7 @@ router.post('/', authMiddleware, async (req, res) => {
       j.location, j.workMode, j.qualification, j.experience, j.salary, j.type, j.category,
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.processType, j.mapLocationUrl,
       j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.stateName, j.jobCategoryType,
+      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType,
       j.createdByAdminId, j.createdByAdminName
     ]);
 
@@ -306,8 +309,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,processType=$23,mapLocationUrl=$24,isFeatured=$25,isFresh=$26,
         isTrending=$27,isToday=$28,isVisible=$29,
-        govtJobType=$30,stateName=$31,jobCategoryType=$32
-      WHERE id=$33 RETURNING *
+        govtJobType=$30,govtDept=$31,stateName=$32,jobCategoryType=$33
+      WHERE id=$34 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
@@ -315,7 +318,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.processType, j.mapLocationUrl, j.isFeatured, j.isFresh,
       j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.stateName, j.jobCategoryType, id
+      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, id
     ]);
 
     await logActivity(req.user.id, req.user.name, req.user.role, 'Jobs', `Updated Job: ${j.title}`, id);

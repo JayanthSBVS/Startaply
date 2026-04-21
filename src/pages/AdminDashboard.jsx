@@ -64,7 +64,7 @@ const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
 
-  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '' });
+  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '' });
   const [editingJobId, setEditingJobId] = useState(null);
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '', companyType: '' });
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' });
@@ -170,7 +170,7 @@ const AdminDashboard = () => {
         await axios.post(`${API}/jobs`, payload, getConfig());
         showMsg('Job Published');
       }
-      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '' }); setEditingJobId(null); setActiveTab('manage'); fetchData();
+      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '' }); setEditingJobId(null); setActiveTab('manage'); fetchData();
     } catch (err) { toast.error('Error saving job data'); }
   };
 
@@ -280,6 +280,25 @@ const AdminDashboard = () => {
                           <option value="">Select Type</option>
                           <option value="Central">Central Govt Job</option>
                           <option value="State">State Govt Job</option>
+                        </select>
+                        <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
+                      </div>
+                    )}
+
+                    {jobForm.jobCategory === 'Government Jobs' && (
+                      <div className="space-y-2 relative">
+                        <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Govt Department *</label>
+                        <select className={selectCls} value={jobForm.govtDept || ''} onChange={e => setJobForm({ ...jobForm, govtDept: e.target.value })}>
+                          <option value="">Select Department</option>
+                          <option value="Teaching">Teaching / Education</option>
+                          <option value="Police">Police / Security</option>
+                          <option value="Military">Military / Defence</option>
+                          <option value="Railway">Railway</option>
+                          <option value="Banking">Banking & Finance</option>
+                          <option value="Healthcare">Healthcare / Medical</option>
+                          <option value="Judiciary">Judiciary / Law</option>
+                          <option value="UPSC / PSC">UPSC / PSC</option>
+                          <option value="Others">Others</option>
                         </select>
                         <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
                       </div>
@@ -572,7 +591,7 @@ const AdminDashboard = () => {
                       </div>
 
                       <div className="flex gap-2 border-l border-slate-200 dark:border-slate-800/80 pl-6">
-                        <button onClick={() => { setJobForm({ ...job, jobCategory: job.category }); setEditingJobId(job.id); setActiveTab('add'); }} className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-colors"><Edit2 size={18} /></button>
+                        <button onClick={() => { setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '' }); setEditingJobId(job.id); setActiveTab('add'); }} className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-colors"><Edit2 size={18} /></button>
                         <button onClick={() => handleJobDelete(job.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors"><Trash2 size={18} /></button>
                       </div>
                       </div>

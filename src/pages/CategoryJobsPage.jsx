@@ -49,6 +49,8 @@ const GOVT_DEPARTMENTS = [
   { label: 'Banking', keywords: ['bank', 'sbi', 'rbi', 'ibps', 'lic', 'finance'] },
   { label: 'Healthcare', keywords: ['medical', 'nurse', 'doctor', 'health', 'hospital', 'pharma'] },
   { label: 'Judiciary', keywords: ['court', 'judge', 'law', 'legal', 'judicial'] },
+  { label: 'UPSC / PSC', keywords: ['upsc', 'psc', 'commission', 'civil service'] },
+  { label: 'Others', keywords: [] },
 ];
 
 const indianStates = [
@@ -85,15 +87,20 @@ const CategoryJobsPage = () => {
         base = base.filter(j => j.govtJobType === 'State');
         if (activeState) base = base.filter(j => j.stateName === activeState);
       }
-      // Department keyword filter (frontend-only)
+      // Department explicit & keyword filter
       if (activeDept !== 'All') {
         const dept = GOVT_DEPARTMENTS.find(d => d.label === activeDept);
-        if (dept?.keywords?.length) {
-          base = base.filter(j => {
+        base = base.filter(j => {
+          // Priority 1: Explicit Department Tag (New jobs)
+          if (j.govtDept === activeDept) return true;
+          
+          // Priority 2: Keyword Fallback (Old jobs)
+          if (dept?.keywords?.length) {
             const text = `${j.title} ${j.description} ${j.fullDescription}`.toLowerCase();
             return dept.keywords.some(kw => text.includes(kw));
-          });
-        }
+          }
+          return false;
+        });
       }
     } else if (decoded === 'IT & Non-IT Jobs') {
       if (itType !== 'All') base = base.filter(j => j.jobCategoryType === itType);
