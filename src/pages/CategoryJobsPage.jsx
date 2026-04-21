@@ -91,10 +91,21 @@ const CategoryJobsPage = () => {
       if (activeDept !== 'All') {
         const dept = GOVT_DEPARTMENTS.find(d => d.label === activeDept);
         base = base.filter(j => {
-          // Priority 1: Explicit Department Tag (New jobs)
+          // Priority 1: Explicit Department Tag (Highest accuracy)
           if (j.govtDept === activeDept) return true;
-          
-          // Priority 2: Keyword Fallback (Old jobs)
+
+          // Priority 2: Smart Catch-all for "Others"
+          if (activeDept === 'Others') {
+             // Show job if it doesn't match any specific departments' keywords
+             const matchesAnother = GOVT_DEPARTMENTS.some(d => {
+               if (d.label === 'All' || d.label === 'Others') return false;
+               const text = `${j.title} ${j.description} ${j.fullDescription}`.toLowerCase();
+               return d.keywords.some(kw => text.includes(kw));
+             });
+             return !matchesAnother;
+          }
+
+          // Priority 3: Keyword Fallback (Legacy support)
           if (dept?.keywords?.length) {
             const text = `${j.title} ${j.description} ${j.fullDescription}`.toLowerCase();
             return dept.keywords.some(kw => text.includes(kw));
@@ -188,11 +199,10 @@ const CategoryJobsPage = () => {
               <div className="flex flex-wrap gap-1.5">
                 {GOVT_DEPARTMENTS.map(d => (
                   <button key={d.label} onClick={() => setActiveDept(d.label)}
-                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${
-                      activeDept === d.label
+                    className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${activeDept === d.label
                         ? 'bg-amber-600 text-white border-transparent'
                         : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400'
-                    }`}>
+                      }`}>
                     {d.label}
                   </button>
                 ))}
@@ -204,16 +214,15 @@ const CategoryJobsPage = () => {
           {decoded === 'IT & Non-IT Jobs' && (
             <div className="flex gap-2">
               {[
-                { val: 'All',       label: 'All',      count: itCount + nonItCount },
-                { val: 'IT Job',    label: 'IT Jobs',  count: itCount },
-                { val: 'Non-IT Job', label: 'Non-IT',  count: nonItCount },
+                { val: 'All', label: 'All', count: itCount + nonItCount },
+                { val: 'IT Job', label: 'IT Jobs', count: itCount },
+                { val: 'Non-IT Job', label: 'Non-IT', count: nonItCount },
               ].map(opt => (
                 <button key={opt.val} onClick={() => setItType(opt.val)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border transition-all ${
-                    itType === opt.val
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border transition-all ${itType === opt.val
                       ? 'bg-blue-600 text-white border-transparent shadow-md'
                       : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-400'
-                  }`}>
+                    }`}>
                   {opt.label}
                   <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${itType === opt.val ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'}`}>{opt.count}</span>
                 </button>
