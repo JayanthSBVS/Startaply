@@ -129,7 +129,9 @@ function mapRow(r) {
     jobCategoryType: r.jobcategorytype || r.jobCategoryType || '',
     mapLocationUrl: r.maplocationurl || r.mapLocationUrl || '',
     processType: r.processtype || r.processType || 'Standard',
-    createdByAdminId: r.createdbyadminid || r.createdByAdminId || ''
+    createdByAdminId: r.createdbyadminid || r.createdByAdminId || '',
+    // Critical alias: DB stores 'category' but frontend filters on 'jobCategory'
+    jobCategory: r.category || r.jobcategory || r.jobCategory || ''
   };
 }
 

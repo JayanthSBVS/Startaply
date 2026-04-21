@@ -6,7 +6,7 @@ import {
   Megaphone, Calendar, MapPin, Download, Star, Zap,
   MessageSquareQuote, BookOpen, Search, Eye, Image as ImageIcon,
   BarChart3, ShieldCheck, Activity, TrendingUp, PieChart, Users2,
-  Bell, History, Settings, CheckCircle2, AlertCircle, FileText
+  Bell, History, Settings, CheckCircle2, AlertCircle, FileText, RefreshCw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -24,9 +24,12 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, logout, isManager } = useAuth();
   
-  const getConfig = () => ({
-    headers: { Authorization: `Bearer ${localStorage.getItem('strataply_token')}` }
-  });
+  const getConfig = () => {
+    const token = localStorage.getItem('strataply_token');
+    // Guard: never send Authorization header with null/undefined token (avoids 401 spam)
+    if (!token || token === 'null' || token === 'undefined') return null;
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
   const showMsg = (msg) => { toast.success(msg); };
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -63,96 +66,89 @@ const AdminDashboard = () => {
 
   const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '' });
   const [editingJobId, setEditingJobId] = useState(null);
-  const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '' });
+  const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '', companyType: '' });
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' });
   const [testimonialForm, setTestimonialForm] = useState({ name: '', tagline: '', description: '', photo: '' });
   const [prepForm, setPrepForm] = useState({ heading: '', jobType: 'IT Jobs', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
 
   const fetchData = async () => {
-    try {
-      const token = localStorage.getItem('strataply_token');
-      const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      
-      // Determine role directly from storage to prevent context flicker
-      const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@strataply.com';
-
-      const [jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes, statsRes, logsRes, adminsRes] = await Promise.all([
-        axios.get(`${API}/jobs/admin/list`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/jobs/applications/all`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/companies/admin/list`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/job-mela/admin/list`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/feedback`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/testimonials`).catch(() => ({ data: [] })),
-        axios.get(`${API}/prep-data/admin/list`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/hero-banners`).catch(() => ({ data: [] })),
-        currentIsManager ? axios.get(`${API}/auth/stats`, config).catch(err => { console.error("Stats Fetch Failed:", err.message); return { data: null }; }) : Promise.resolve({ data: null }),
-        currentIsManager ? axios.get(`${API}/auth/logs`, config).catch(err => { console.error("Logs Fetch Failed:", err.message); return { data: [] }; }) : Promise.resolve({ data: [] }),
-        currentIsManager ? axios.get(`${API}/auth/users`, config).catch(err => { console.error("Admins Fetch Failed:", err.message); return { data: [] }; }) : Promise.resolve({ data: [] })
-      ]);
-
+    const token = localStorage.getItem('strataply_token');
+    if (!token || token === 'null' || token === 'undefined') {
+      navigate('/admin-login');
+      return;
+    }
+    
+    // Determine role directly from storage to prevent context flicker
+    const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
+    const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@strataply.com';
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    
+    // 1. Fetch Core Data (Non-blocking)
+    Promise.all([
+      axios.get(`${API}/jobs/admin/list`, config).catch(() => ({ data: [] })),
+      axios.get(`${API}/jobs/applications/all`, config).catch(() => ({ data: [] })),
+      axios.get(`${API}/companies/admin/list`, config).catch(() => ({ data: [] })),
+      axios.get(`${API}/job-mela/admin/list`, config).catch(() => ({ data: [] })),
+      axios.get(`${API}/feedback`, config).catch(() => ({ data: [] })),
+      axios.get(`${API}/testimonials`).catch(() => ({ data: [] })),
+      axios.get(`${API}/prep-data/admin/list`, config).catch(() => ({ data: [] })),
+      axios.get(`${API}/hero-banners`).catch(() => ({ data: [] }))
+    ]).then(([jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes]) => {
       setJobs(jobsRes.data || []);
       setApplications(appsRes.data || []);
       setCompanies(compRes.data || []);
       setMelas(melaRes.data || []);
       setFeedbacks(fbRes.data || []);
+      setTestimonials(testRes.data || []);
       setPrepData(prepRes.data || []);
       setHeroBanners(heroBannersRes?.data || []);
-      
-      if (currentIsManager) {
-        console.log("MANAGER SYNC DEBUG:", {
-          stats: statsRes.data,
-          logs: logsRes.data,
-          admins: adminsRes.data
-        });
-        
-        if (statsRes.data) {
-          // Normalize API response to frontend expectations
-          const stats = statsRes.data;
-          setGlobalStats({
-            ...stats,
-            todayJobs: stats.todayJobs || 0,
-            todayPrep: stats.todayPrep || 0,
-            todayMela: stats.todayMela || 0,
-            totalToday: stats.totalToday || 0
-          });
-        }
-        if (logsRes.data) setLogs(logsRes.data);
-        if (adminsRes.data) setAdmins(adminsRes.data);
-      } else {
-        console.log("STANDARD ADMIN SYNC: Manager-only data skipped.");
-      }
-
-    } catch (err) {
-      console.error("Critical Synchronization Error:", err.response?.status, err.message);
+    }).catch(err => {
       if (err.response?.status === 401 || err.response?.status === 403) {
-        toast.error("Session Expired or Unauthorized. Please log in again.");
-        logout();
-        navigate('/admin-login');
-      } else {
-        toast.error(`Service Unavailable: ${err.message}`);
+        toast.error("Session Expired or Unauthorized.");
+        logout(); navigate('/admin-login');
       }
+    });
+
+    // 2. Fetch Manager Data (Parallel, Decoupled for Speed)
+    if (currentIsManager) {
+      Promise.all([
+        axios.get(`${API}/auth/stats`, config).catch(e => { console.error("Stats Fetch Failed:", e.message); return { data: null }; }),
+        axios.get(`${API}/auth/logs`, config).catch(e => { console.error("Logs Fetch Failed:", e.message); return { data: [] }; }),
+        axios.get(`${API}/auth/users`, config).catch(e => { console.error("Admins Fetch Failed:", e.message); return { data: [] }; })
+      ]).then(([statsRes, logsRes, adminsRes]) => {
+        if (statsRes.data) {
+          setGlobalStats(prev => ({
+            ...prev,
+            ...statsRes.data,
+            // Ensure derived totals are calculated if not provided by API
+            totalToday: statsRes.data.totalToday || (parseInt(statsRes.data.todayJobs || 0) + parseInt(statsRes.data.todayPrep || 0) + parseInt(statsRes.data.todayMela || 0))
+          }));
+        }
+        if (logsRes.data) {
+          // Only update if logs have actually changed to prevent render jitter
+          setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : logsRes.data);
+        }
+        if (adminsRes.data) setAdmins(adminsRes.data);
+      });
     }
   };
 
   useEffect(() => {
     const token = localStorage.getItem('strataply_token');
-    
-    if (!token) {
+    if (!token || token === 'null' || token === 'undefined') {
       navigate('/admin-login');
-    } else {
-      fetchData();
+      return;
     }
+    fetchData();
 
-    // Fallback polling (every 30s) to handle serverless limitations (Vercel)
+    // Fallback polling every 45s — handles Vercel serverless WebSocket limitations
+    // Uses a stable interval; fetchData() has its own token guard
     const pollInterval = setInterval(() => {
-      if (activeTab === 'global_stats' || activeTab === 'overview') {
-        fetchData();
-      }
-    }, 30000);
+      fetchData();
+    }, 45000);
 
     return () => clearInterval(pollInterval);
-  }, [navigate, activeTab]);
+  }, [navigate]); // ← removed activeTab dep: tab switching should NOT re-fetch all data
 
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
@@ -191,6 +187,7 @@ const AdminDashboard = () => {
       { id: 'admins', label: 'Admin Management', icon: ShieldCheck },
       { id: 'logs', label: 'Activity Logs', icon: History },
       { id: 'global_stats', label: 'Global Intelligence', icon: BarChart3 },
+      { id: 'herobanners', label: 'Hero Banners', icon: ImageIcon },
     ] : []),
     { id: 'add', label: 'Post Job', icon: PlusCircle },
     { id: 'manage', label: 'Jobs List', icon: Briefcase },
@@ -199,7 +196,6 @@ const AdminDashboard = () => {
     { id: 'jobmela', label: 'Job Mela', icon: Megaphone },
     { id: 'prep', label: 'Preparation', icon: BookOpen },
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
-    { id: 'herobanners', label: 'Hero Banners', icon: ImageIcon },
     { id: 'feedback', label: 'Feedbacks', icon: MessageSquare },
   ];
 
@@ -394,59 +390,7 @@ const AdminDashboard = () => {
 
           {activeTab === 'dashboard' && (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5">
-              {/* Intelligent Overview for Managers */}
-              {isManager() && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Primary Activity Heatmap */}
-                  <div className="lg:col-span-2 bg-slate-900 text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group border border-slate-800">
-                    <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform"><TrendingUp size={120} /></div>
-                    <div className="flex justify-between items-center mb-10 relative z-10">
-                      <div>
-                        <h3 className="text-xl font-black uppercase tracking-widest text-emerald-500">Operational Pulse</h3>
-                        <p className="text-xs text-slate-400 font-bold mt-1">Cross-platform contribution summary</p>
-                      </div>
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-2xl flex items-center gap-3">
-                        <Activity size={16} className="text-emerald-500" />
-                        <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">Live Syncing</span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
-                      {[
-                        { label: 'Today Jobs', val: globalStats?.todayJobs || 0, color: 'text-white' },
-                        { label: 'Today Prep', val: globalStats?.todayPrep || 0, color: 'text-blue-400' },
-                        { label: 'Today Mela', val: globalStats?.todayMela || 0, color: 'text-amber-400' },
-                        { label: 'Total Syncs', val: globalStats?.totalToday || 0, color: 'text-emerald-400' }
-                      ].map((s, idx) => (
-                        <div key={idx} className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800">
-                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{s.label}</p>
-                          <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quick Admin Health */}
-                  <div className="bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl">
-                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2"><Users size={16} /> Team Status</h3>
-                    <div className="space-y-4">
-                      {admins.slice(0, 4).map(admin => (
-                        <div key={admin.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800/40">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${admin.isactive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'}`}>{admin.name?.charAt(0)}</div>
-                             <div>
-                                <p className="text-xs font-black truncate max-w-[100px]">{admin.name}</p>
-                                <p className="text-[10px] font-bold text-slate-500">{(globalStats?.adminProductivity?.find(p => p.id === admin.id)?.todayTotal || 0)} posts today</p>
-                             </div>
-                          </div>
-                          <div className={`w-2 h-2 rounded-full ${admin.isactive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Standard Admin Stats or Secondary Manager Stats */}
+              {/* Primary Performance Multipliers */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { label: 'Active Jobs', val: jobs.length, icon: Briefcase, col: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -468,7 +412,99 @@ const AdminDashboard = () => {
                 ))}
               </div>
 
-              {/* OperationalPulse removed generic shortcuts/insights as per request */}
+              {/* Unified Operational Pulse & Intelligence Feed */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl relative overflow-hidden">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                    <div>
+                      <h3 className="text-2xl font-black flex items-center gap-3">
+                        <Activity className="text-emerald-500 animate-pulse" /> Operational Pulse
+                      </h3>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Live Intelligence & Contribution highlights</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950/40 p-2 rounded-3xl border border-slate-200 dark:border-slate-800/60">
+                       <div className="px-4 py-2 text-center">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Today</p>
+                          <p className="text-xl font-black text-emerald-500">{globalStats?.totalToday || 0}</p>
+                       </div>
+                       <div className="w-px h-8 bg-slate-200 dark:bg-slate-800" />
+                       <div className="px-4 py-2 text-center">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Active Admins</p>
+                          <p className="text-xl font-black text-blue-500">{admins.filter(a => a.isactive).length}</p>
+                       </div>
+                       <button onClick={fetchData} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-emerald-500"><RefreshCw size={14} /></button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {logs.slice(0, 6).map((log, i) => {
+                       const moduleColors = {
+                        'Jobs': 'text-sky-500 bg-sky-500/10 border-sky-500/20',
+                        'Auth': 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+                        'Companies': 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+                        'Feedback': 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20'
+                      };
+                      const color = moduleColors[log.module] || 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+                      
+                      return (
+                        <div key={i} className="group flex items-center gap-6 p-5 rounded-[2.5rem] bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border ${color} shadow-sm group-hover:scale-110 transition-transform`}>
+                            {log.module?.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter border ${color}`}>{log.module}</span>
+                              <span className="text-[10px] font-bold text-slate-400">
+                                {new Date(parseInt(log.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{log.action}</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-tight mt-0.5">
+                              By {log.username || 'System Admin'} <span className="opacity-50 lowercase">• {log.role || 'identity'}</span>
+                            </p>
+                          </div>
+                          <div className="text-right flex flex-col items-end gap-1">
+                             <div className="text-[9px] font-mono text-slate-400">#{log.id}</div>
+                             {log.action?.includes('Logged In') && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {logs.length === 0 && <p className="text-center py-10 text-slate-500 text-xs font-black uppercase tracking-widest">Generating secure pulse feed...</p>}
+                  </div>
+                </div>
+
+                <div className="lg:col-span-1 space-y-6">
+                    {/* Admin Status Monitor */}
+                    <div className="bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl relative overflow-hidden">
+                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
+                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-8 flex items-center gap-2"><Zap size={16} className="text-amber-400" /> Operational Health</h3>
+                      <div className="space-y-6">
+                        {admins.slice(0, 5).map(admin => {
+                          const p = globalStats?.adminProductivity?.find(x => x.id === admin.id);
+                          const progress = Math.min(((p?.todayTotal || 0) / 10) * 100, 100);
+                          return (
+                            <div key={admin.id} className="space-y-2.5">
+                               <div className="flex justify-between items-end">
+                                 <div className="flex items-center gap-2">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${admin.isactive ? 'bg-emerald-500' : 'bg-slate-600'}`} />
+                                    <p className="text-xs font-black text-slate-700 dark:text-slate-200">{admin.name}</p>
+                                 </div>
+                                 <p className="text-[10px] font-bold text-slate-500">{p?.todayTotal || 0} posts today</p>
+                               </div>
+                               <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
+                                  <div className={`h-full rounded-full transition-all duration-1000 ${admin.isactive ? 'bg-emerald-500' : 'bg-slate-700'} ${progress > 0 ? 'shadow-[0_0_8px_rgba(16,185,129,0.3)]' : ''}`} style={{ width: `${progress}%` }} />
+                               </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                </div>
+              </div>
+              
+               {/* OperationalPulse removed generic shortcuts/insights as per request */}
             </div>
           )}
 
@@ -673,6 +709,7 @@ const AdminDashboard = () => {
                   <div className="space-y-4">
                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Name</label><input className={inputCls} placeholder="Company Name" value={companyForm.name} onChange={e => setCompanyForm({ ...companyForm, name: e.target.value })} /></div>
                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Industry</label><input className={inputCls} placeholder="e.g. Technology" value={companyForm.industry} onChange={e => setCompanyForm({ ...companyForm, industry: e.target.value })} /></div>
+                    <div className="space-y-2 relative"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Company Type</label><select className={selectCls} value={companyForm.companyType} onChange={e => setCompanyForm({ ...companyForm, companyType: e.target.value })}><option value="">Select Type</option><option>MNC</option><option>Startup</option><option>Product Based</option><option>Service Based</option><option>Govt PSU</option><option>Remote First</option><option>Unicorn</option></select><div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div></div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Company Logo</label>
                       <input 
@@ -697,14 +734,15 @@ const AdminDashboard = () => {
               <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {companies.map(comp => (
                   <div key={comp.id} className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 p-6 rounded-[2rem] flex items-center justify-between group overflow-hidden relative">
-                    <div className="flex items-center gap-4 relative z-10">
-                      <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden">{comp.logo ? <img src={comp.logo} alt={comp.name} className="w-full h-full object-contain" /> : <Building2 className="text-slate-600" />}</div>
-                      <div>
-                        <div className="font-extrabold text-slate-900 dark:text-slate-200">{comp.name}</div>
+                    <div className="flex items-center gap-4 relative z-10 flex-1 min-w-0">
+                      <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden shrink-0">{comp.logo ? <img src={comp.logo} alt={comp.name} className="w-full h-full object-contain" /> : <Building2 className="text-slate-600" />}</div>
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-slate-900 dark:text-slate-200 truncate">{comp.name}</div>
                         <div className="text-[10px] font-black text-slate-500 tracking-widest uppercase">{comp.industry}</div>
+                        {comp.companyType && <span className="inline-block mt-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">{comp.companyType}</span>}
                       </div>
                     </div>
-                    <button onClick={() => confirmAction('Delete company?', async () => { await axios.delete(`${API}/companies/${comp.id}`, getConfig()); fetchData(); showMsg('Removed'); })} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl text-rose-500 transition-colors opacity-0 group-hover:opacity-100 relative z-10"><Trash2 size={18} /></button>
+                    <button onClick={() => confirmAction('Delete company?', async () => { await axios.delete(`${API}/companies/${comp.id}`, getConfig()); fetchData(); showMsg('Removed'); })} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl text-rose-500 transition-colors opacity-0 group-hover:opacity-100 relative z-10 shrink-0"><Trash2 size={18} /></button>
                   </div>
                 ))}
               </div>
@@ -1187,18 +1225,76 @@ const AdminDashboard = () => {
 
           {isManager() && activeTab === 'global_stats' && (
             <div className="animate-in fade-in slide-in-from-bottom-5 space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* ── Top 4 Intelligence Cards ── */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { label: 'Total Jobs', value: globalStats?.totalJobs || 0, icon: Briefcase, color: 'text-emerald-400' },
-                  { label: 'Applicants', value: globalStats?.totalApplications || 0, icon: Users2, color: 'text-blue-400' },
-                  { label: 'Partners', value: globalStats?.totalCompanies || 0, icon: Building2, color: 'text-purple-400' },
-                  { label: 'Admins', value: globalStats?.totalAdmins || 0, icon: ShieldCheck, color: 'text-amber-400' },
+                  {
+                    label: 'Total Jobs',
+                    value: globalStats?.totalJobs || 0,
+                    sub1: `${globalStats?.todayJobs || 0} added today`,
+                    sub2: `${jobs.filter(j => j.isFeatured).length} featured`,
+                    icon: Briefcase,
+                    iconColor: 'text-emerald-400',
+                    bg: 'bg-emerald-500/8',
+                    ring: 'border-emerald-500/20',
+                    dot: 'bg-emerald-500',
+                    subColor: 'text-emerald-500'
+                  },
+                  {
+                    label: 'Total Applicants',
+                    value: globalStats?.totalApplications || 0,
+                    sub1: `${applications.filter(a => { const d = new Date(parseInt(a.appliedat || a.appliedAt || a.createdat || Date.now())); return d.toDateString() === new Date().toDateString(); }).length} applied today`,
+                    sub2: 'All time submissions',
+                    icon: Users2,
+                    iconColor: 'text-blue-400',
+                    bg: 'bg-blue-500/8',
+                    ring: 'border-blue-500/20',
+                    dot: 'bg-blue-500',
+                    subColor: 'text-blue-500'
+                  },
+                  {
+                    label: 'Partner Companies',
+                    value: globalStats?.totalCompanies || 0,
+                    sub1: `${companies.filter(c => c.companyType).length} typed`,
+                    sub2: 'Verified network',
+                    icon: Building2,
+                    iconColor: 'text-purple-400',
+                    bg: 'bg-purple-500/8',
+                    ring: 'border-purple-500/20',
+                    dot: 'bg-purple-500',
+                    subColor: 'text-purple-500'
+                  },
+                  {
+                    label: 'Active Admins',
+                    value: globalStats?.totalAdmins || 0,
+                    sub1: `${admins.filter(a => a.isactive).length} online`,
+                    sub2: `${(globalStats?.totalAdmins || 0) - admins.filter(a => a.isactive).length} inactive`,
+                    icon: ShieldCheck,
+                    iconColor: 'text-amber-400',
+                    bg: 'bg-amber-500/8',
+                    ring: 'border-amber-500/20',
+                    dot: 'bg-amber-500',
+                    subColor: 'text-amber-500'
+                  },
                 ].map((s, i) => (
-                  <div key={i} className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-                    <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform ${s.color}`}><s.icon size={80} /></div>
-                    <div className="flex flex-col gap-1 relative z-10">
-                      <p className="text-[11px] font-black uppercase text-slate-500 tracking-[0.2em]">{s.label}</p>
-                      <div className="text-4xl font-black text-slate-900 dark:text-white tabular-nums">{s.value}</div>
+                  <div key={i} className={`bg-white dark:bg-slate-900/40 border ${s.ring} p-7 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform`}>
+                    <div className={`absolute top-0 right-0 p-5 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity ${s.iconColor}`}><s.icon size={90} /></div>
+                    <div className="flex items-start justify-between relative z-10 mb-4">
+                      <div className={`w-11 h-11 rounded-2xl ${s.bg} border ${s.ring} flex items-center justify-center`}>
+                        <s.icon size={20} className={s.iconColor} />
+                      </div>
+                      <span className="relative flex h-2.5 w-2.5 mt-1">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-50 ${s.dot}`} />
+                        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${s.dot}`} />
+                      </span>
+                    </div>
+                    <div className="relative z-10">
+                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-1">{s.label}</p>
+                      <div className="text-4xl font-black text-slate-900 dark:text-white tabular-nums mb-3">{s.value}</div>
+                      <div className="space-y-1">
+                        <p className={`text-[11px] font-black ${s.subColor} flex items-center gap-1`}><CheckCircle2 size={11} /> {s.sub1}</p>
+                        <p className="text-[10px] font-bold text-slate-400">{s.sub2}</p>
+                      </div>
                     </div>
                   </div>
                 ))}

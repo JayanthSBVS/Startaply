@@ -1,162 +1,300 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Filter } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import {
+  Search, Briefcase, Building2, Monitor, GraduationCap,
+  Star, Zap, Filter, X, ChevronDown
+} from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import { useJobs } from '../context/JobsContext';
-import { motion } from 'framer-motion';
 
-const JOB_CATEGORIES = ['All Categories', 'IT & Non-IT Jobs', 'Government Jobs', 'Private Jobs', 'Gig & Services'];
-const JOB_MODES = ['All Modes', 'Hybrid', 'On-site', 'Remote'];
+// ─── Section definitions ───────────────────────────────────────────────────
+const SECTIONS = [
+  { id: 'all',        label: 'All Jobs',        icon: Briefcase,     color: 'emerald',  desc: 'Every live opening' },
+  { id: 'government', label: 'Government Jobs',  icon: Building2,     color: 'amber',    desc: 'Central & State Govt' },
+  { id: 'it',         label: 'IT Jobs',          icon: Monitor,       color: 'blue',     desc: 'Developers, QA, Data' },
+  { id: 'nonit',      label: 'Non-IT Jobs',      icon: Briefcase,     color: 'purple',   desc: 'BPO, Sales, HR, Ops' },
+  { id: 'freshers',   label: 'Freshers',         icon: GraduationCap, color: 'teal',     desc: '0-1 years experience' },
+  { id: 'featured',   label: 'Featured',         icon: Star,          color: 'rose',     desc: 'Hand-picked top roles' },
+  { id: 'today',      label: "Today's Jobs",     icon: Zap,           color: 'orange',   desc: 'Posted within 24h' },
+];
+
+const colorMap = {
+  emerald: { pill: 'bg-emerald-600 text-white shadow-emerald-600/20',  idle: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500', iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+  amber:   { pill: 'bg-amber-600 text-white shadow-amber-600/20',      idle: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',         dot: 'bg-amber-500',   iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+  blue:    { pill: 'bg-blue-600 text-white shadow-blue-600/20',        idle: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',             dot: 'bg-blue-500',    iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  purple:  { pill: 'bg-purple-600 text-white shadow-purple-600/20',    idle: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',     dot: 'bg-purple-500',  iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  teal:    { pill: 'bg-teal-600 text-white shadow-teal-600/20',        idle: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',             dot: 'bg-teal-500',    iconBg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400' },
+  rose:    { pill: 'bg-rose-600 text-white shadow-rose-600/20',        idle: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',             dot: 'bg-rose-500',    iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+  orange:  { pill: 'bg-orange-600 text-white shadow-orange-600/20',    idle: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',     dot: 'bg-orange-500',  iconBg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+};
+
+// ─── Derive initial section from URL params ────────────────────────────────
+function getInitialSection(searchParams) {
+  if (searchParams.get('fresh') === 'true') return 'freshers';
+  if (searchParams.get('featured') === 'true') return 'featured';
+  if (searchParams.get('section')) return searchParams.get('section');
+  const cat = searchParams.get('category') || '';
+  if (cat === 'Government Jobs') return 'government';
+  if (cat === 'IT & Non-IT Jobs') return 'it';
+  return 'all';
+}
 
 const JobsPage = () => {
   const { jobs } = useJobs();
   const [searchParams] = useSearchParams();
 
-  // Read URL Params
-  const incomingSearch = searchParams.get('company') || '';
-  const incomingCategory = searchParams.get('category') || 'All Categories';
-  const incomingFresh = searchParams.get('fresh') === 'true';
-  const incomingFeatured = searchParams.get('featured') === 'true';
-
-  const [search, setSearch] = useState(incomingSearch);
-  const [category, setCategory] = useState(incomingCategory);
-  const [mode, setMode] = useState('All Modes');
-  const [isFreshFilter, setIsFreshFilter] = useState(incomingFresh);
-  const [isFeaturedFilter, setIsFeaturedFilter] = useState(incomingFeatured);
-
+  const [search, setSearch] = useState(searchParams.get('company') || '');
+  const [activeSection, setActiveSection] = useState(() => getInitialSection(searchParams));
+  const [govtFilter, setGovtFilter] = useState('All'); // All | Central | State
+  const [workMode, setWorkMode] = useState('All');
   const [selectedJob, setSelectedJob] = useState(null);
 
-  // Sync state if URL changes
+  // Sync when URL params change (e.g. navigation from Hero)
   useEffect(() => {
-    setCategory(searchParams.get('category') || 'All Categories');
-    setIsFreshFilter(searchParams.get('fresh') === 'true');
-    setIsFeaturedFilter(searchParams.get('featured') === 'true');
+    setActiveSection(getInitialSection(searchParams));
+    setSearch(searchParams.get('company') || '');
   }, [searchParams]);
 
+  // ─── Filtering ───────────────────────────────────────────────
   const filtered = useMemo(() => {
     return jobs.filter((job) => {
-      const q = search.toLowerCase();
-      const catMatch = category === 'All Categories' || job.jobCategory === category;
-      const modeMatch = mode === 'All Modes' || job.mode === mode;
+      const catField = (job.jobCategory || job.category || '').trim();
+      const q = search.toLowerCase().trim();
 
-      const freshMatch = !isFreshFilter || (job.isToday || job.isFresh);
-      const featuredMatch = !isFeaturedFilter || job.isFeatured;
+      // Section filter
+      let sectionMatch = true;
+      switch (activeSection) {
+        case 'government':
+          sectionMatch = catField === 'Government Jobs';
+          if (govtFilter === 'Central') sectionMatch = sectionMatch && job.govtJobType === 'Central';
+          if (govtFilter === 'State')   sectionMatch = sectionMatch && job.govtJobType === 'State';
+          break;
+        case 'it':
+          sectionMatch = catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'IT Job';
+          break;
+        case 'nonit':
+          sectionMatch = catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'Non-IT Job';
+          break;
+        case 'freshers':
+          sectionMatch = !!job.isToday || !!job.isFresh;
+          break;
+        case 'featured':
+          sectionMatch = !!job.isFeatured;
+          break;
+        case 'today':
+          sectionMatch = !!job.isToday;
+          break;
+        default:
+          sectionMatch = true;
+      }
 
-      return (!q || job.title.toLowerCase().includes(q) || job.company.toLowerCase().includes(q))
-        && catMatch
-        && modeMatch
-        && freshMatch
-        && featuredMatch;
+      const modeMatch = workMode === 'All' || (job.workMode || job.mode) === workMode;
+
+      const searchMatch = !q ||
+        (job.title || '').toLowerCase().includes(q) ||
+        (job.company || '').toLowerCase().includes(q) ||
+        (job.location || '').toLowerCase().includes(q);
+
+      return sectionMatch && modeMatch && searchMatch;
     });
-  }, [jobs, search, category, mode, isFreshFilter, isFeaturedFilter]);
+  }, [jobs, search, activeSection, govtFilter, workMode]);
 
-  const clearFilters = () => {
-    setSearch('');
-    setCategory('All Categories');
-    setMode('All Modes');
-    setIsFreshFilter(false);
-    setIsFeaturedFilter(false);
-  };
+  // Count per section for badges
+  const sectionCounts = useMemo(() => {
+    const counts = {};
+    SECTIONS.forEach(s => {
+      counts[s.id] = jobs.filter(job => {
+        const catField = (job.jobCategory || job.category || '').trim();
+        switch (s.id) {
+          case 'government': return catField === 'Government Jobs';
+          case 'it':         return catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'IT Job';
+          case 'nonit':      return catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'Non-IT Job';
+          case 'freshers':   return !!job.isToday || !!job.isFresh;
+          case 'featured':   return !!job.isFeatured;
+          case 'today':      return !!job.isToday;
+          default:           return true;
+        }
+      }).length;
+    });
+    return counts;
+  }, [jobs]);
+
+  const activeConfig = SECTIONS.find(s => s.id === activeSection) || SECTIONS[0];
+  const colors = colorMap[activeConfig.color];
+  const IconComp = activeConfig.icon;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-white transition-colors duration-300">
       <Navbar />
 
-      <div className="bg-white dark:bg-slate-900 pt-28 pb-20 px-4 text-center border-b border-slate-200 dark:border-slate-800 transition-colors">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-6 text-slate-900 dark:text-white">
-            Discover Your Next <span className="text-emerald-600 dark:text-emerald-400">Opportunity</span>
+      {/* ── HERO SEARCH ────────────────────────────────────────── */}
+      <div className="bg-slate-950 pt-28 pb-16 px-4 border-b border-slate-800 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-slate-950 pointer-events-none" />
+        <div className="max-w-4xl mx-auto relative z-10 text-center">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 text-white">
+            Discover Your Next <span className="text-emerald-400">Opportunity</span>
           </h1>
+          <p className="text-slate-400 mb-8 text-lg font-medium">Browse {jobs.length}+ verified openings across India</p>
 
-          <div className="max-w-2xl mx-auto flex bg-white/10 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-700 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all shadow-2xl">
+          <div className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all shadow-2xl">
             <div className="flex-1 flex items-center pl-5">
-              <Search size={22} className="text-emerald-600 dark:text-emerald-400" />
+              <Search size={20} className="text-emerald-400 shrink-0" />
               <input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search job title, keyword, or company..."
-                className="w-full bg-transparent px-4 py-4 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none font-bold text-lg"
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search job title, company or keyword..."
+                autoComplete="off"
+                spellCheck="false"
+                className="w-full bg-transparent px-4 py-3.5 text-white placeholder-slate-400 outline-none font-medium text-base"
               />
+              {search && (
+                <button onClick={() => setSearch('')} className="p-1.5 mr-2 text-slate-400 hover:text-white transition-colors">
+                  <X size={16} />
+                </button>
+              )}
             </div>
-            <button className="bg-emerald-600 dark:bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-[1.5rem] font-black transition-colors shadow-sm text-lg">
+            <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-7 py-3.5 rounded-[1.5rem] font-bold transition-colors shadow-sm text-sm">
               Search
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12 relative z-20">
+      {/* ── SECTION TABS ────────────────────────────────────────── */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-[65px] z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex gap-1.5 overflow-x-auto py-3.5 no-scrollbar">
+            {SECTIONS.map(sec => {
+              const Ic = sec.icon;
+              const secColors = colorMap[sec.color];
+              const isActive = activeSection === sec.id;
+              return (
+                <button
+                  key={sec.id}
+                  onClick={() => { setActiveSection(sec.id); setGovtFilter('All'); }}
+                  className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-200 ${
+                    isActive
+                      ? `${secColors.pill} shadow-md border-transparent`
+                      : `bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600`
+                  }`}
+                >
+                  <Ic size={15} />
+                  {sec.label}
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
+                    {sectionCounts[sec.id] || 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-4 mb-10 shadow-xl shadow-slate-200/40 dark:shadow-slate-950/40 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-4 items-center transition-colors">
+      <div className="max-w-7xl mx-auto px-4 py-10">
 
-          <div className="flex items-center gap-3 px-4 shrink-0 text-slate-400 dark:text-slate-500 border-r border-slate-100 dark:border-slate-800 hidden md:flex">
-            <Filter size={20} /> <span className="font-bold text-sm uppercase tracking-widest">Filters</span>
+        {/* ── GOVT SUB-FILTER ─────────────────────────────────────── */}
+        <AnimatePresence>
+          {activeSection === 'government' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 overflow-hidden"
+            >
+              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+                <span className="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 mr-2">Filter:</span>
+                {['All', 'Central', 'State'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setGovtFilter(f)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-black border transition-all ${
+                      govtFilter === f
+                        ? 'bg-amber-600 text-white border-transparent shadow-md'
+                        : 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30'
+                    }`}
+                  >
+                    {f === 'All' ? 'All Govt Jobs' : `${f} Government`}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── MODE FILTER ─────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-1">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+              <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
+                <IconComp size={16} />
+              </span>
+              {activeConfig.label}
+              <span className={`text-sm font-black px-3 py-1 rounded-full ${colors.idle} border`}>
+                {filtered.length} Results
+              </span>
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 pl-11 font-medium">{activeConfig.desc}</p>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto no-scrollbar w-full custom-scrollbar pb-2 md:pb-0">
-            {JOB_CATEGORIES.map(c => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={`shrink-0 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${category === c ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-500/50'}`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto md:border-l border-slate-100 dark:border-slate-800 md:pl-4 pb-2 md:pb-0 shrink-0">
-            {JOB_MODES.map(m => (
+          <div className="flex gap-2 shrink-0">
+            {['All', 'On-site', 'Remote', 'Hybrid'].map(m => (
               <button
                 key={m}
-                onClick={() => setMode(m)}
-                className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${mode === m ? 'bg-slate-900 dark:bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
+                onClick={() => setWorkMode(m)}
+                className={`px-3.5 py-2 rounded-full text-xs font-bold border transition-all ${
+                  workMode === m
+                    ? 'bg-slate-900 dark:bg-emerald-600 text-white border-transparent'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                }`}
               >
                 {m}
               </button>
             ))}
           </div>
-
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 px-2 gap-4">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Showing <span className="text-emerald-600 dark:text-emerald-400">{filtered.length}</span> Results
-          </h2>
-
-          {/* Active Filter Tags */}
-          <div className="flex gap-2">
-            {isFreshFilter && <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold border border-blue-100 dark:border-blue-900/50">Today's Jobs</span>}
-            {isFeaturedFilter && <span className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-100 dark:border-amber-900/50">Featured Roles</span>}
-            {(isFreshFilter || isFeaturedFilter) && (
-              <button onClick={clearFilters} className="text-xs font-bold text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline">Clear</button>
-            )}
-          </div>
-        </div>
-
+        {/* ── RESULTS ─────────────────────────────────────────────── */}
         {filtered.length === 0 ? (
-          <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 dark:border-slate-800 shadow-inner">
-              <Search size={32} className="text-slate-300 dark:text-slate-700" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm"
+          >
+            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 dark:border-slate-800">
+              <Search size={30} className="text-slate-300 dark:text-slate-700" />
             </div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">No jobs match your criteria</h3>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Try adjusting your filters or search terms.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">
+              {search ? `No results for "${search}" in ${activeConfig.label}` : `No ${activeConfig.label} available right now`}
+            </p>
             <button
-              onClick={clearFilters}
-              className="mt-8 text-white font-bold transition-all duration-200 bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:-translate-y-1 px-8 py-3.5 rounded-full shadow-lg shadow-slate-900/20 dark:shadow-emerald-950/40"
+              onClick={() => { setSearch(''); setActiveSection('all'); setGovtFilter('All'); setWorkMode('All'); }}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-full shadow-lg transition-all"
             >
               Clear all filters
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map(job => (
-              <JobCard key={job.id} job={job} onViewDetails={setSelectedJob} />
-            ))}
-          </div>
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {filtered.map(job => (
+                <motion.div
+                  key={job.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <JobCard job={job} onViewDetails={setSelectedJob} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
 

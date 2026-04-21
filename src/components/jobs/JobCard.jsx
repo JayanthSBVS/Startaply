@@ -113,7 +113,7 @@ const JobCard = ({ job, onViewDetails }) => {
         <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 text-[11px] font-bold flex-wrap">
           {daysRemaining !== null && daysRemaining <= 7 ? (
             <span className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 px-2 py-1 rounded-md animate-pulse border border-red-100 dark:border-red-900/40">
-              <AlertCircle size={12} /> Last Date: {(() => {
+              <AlertCircle size={12} /> Last Date to Apply: {(() => {
                 const d = new Date(new Date(createdAt).getTime() + (job.expiryDays * 24 * 60 * 60 * 1000));
                 return `${String(d.getDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
               })()}

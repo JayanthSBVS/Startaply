@@ -145,15 +145,14 @@ const Hero = () => {
           </motion.div>
 
           <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-4 drop-shadow-2xl">
-            Your Career Starts Here.{' '}
+            Find Your{' '}
+            <span className="text-emerald-400 drop-shadow-md">Dream Job.</span>
             <br className="hidden sm:block" />
-            <span className="text-emerald-400 drop-shadow-md">
-              Zero Fees. Zero Friction.
-            </span>
+            Discover. Apply. Grow.
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-sm sm:text-lg text-slate-300 max-w-xl mx-auto mb-8 font-medium leading-relaxed px-2">
-            The ultimate launchpad for Freshers and Gig Workers. 100% free platform. No login required. Browse verified opportunities and apply instantly.
+            India's fastest-growing job platform. Government, IT, Non-IT &amp; Freshers jobs — all in one place. 100% free. No login required.
           </motion.p>
 
           <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8 relative" ref={dropdownRef}>
@@ -167,6 +166,10 @@ const Hero = () => {
                 onKeyDown={handleKeyDown}
                 onFocus={() => query.length >= 2 && setShowSuggestions(true)}
                 placeholder="Job title, skills, or company..."
+                autoComplete="off"
+                spellCheck="false"
+                autoCorrect="off"
+                autoCapitalize="off"
                 className="flex-1 min-w-0 px-3 py-3.5 sm:py-4 text-sm sm:text-base outline-none text-slate-900 dark:text-white placeholder-slate-400 font-medium bg-transparent"
               />
               <button

@@ -162,7 +162,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
               {job.salary && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><IndianRupee size={14} className="text-emerald-500 dark:text-emerald-400" /> {job.salary}</span>}
               {job.expiryDays && (
                 <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors">
-                  <CalendarDays size={14} className="text-emerald-500 dark:text-emerald-400" /> Last Date: {(() => {
+                  <CalendarDays size={14} className="text-emerald-500 dark:text-emerald-400" /> Last Date to Apply: {(() => {
                     const d = new Date(new Date(job.createdAt || Date.now()).getTime() + (job.expiryDays * 24 * 60 * 60 * 1000));
                     return `${String(d.getDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
                   })()}

@@ -272,3 +272,55 @@ html {
     transform: translate(-50%, -50%);
   }
 }
+
+/* ===== DARK MODE OVERRIDES FOR LEGACY CLASSES ===== */
+.dark .company-card {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.dark .company-card:hover {
+  border-color: #16a34a;
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.12);
+}
+
+.dark .hero-card {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #94a3b8;
+  opacity: 0.5;
+}
+
+.dark .input {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.dark .input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+
+.dark .nav-blur {
+  backdrop-filter: blur(10px);
+  background: rgba(2, 6, 23, 0.85);
+}
+
+/* Disable global transition on border-color to prevent dark mode flicker */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.15s ease, box-shadow 0.2s ease;
+}
+
+/* ===== CUSTOM SCROLLBAR DARK ===== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
