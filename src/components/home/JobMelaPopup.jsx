@@ -47,10 +47,10 @@ const JobMelaPopup = () => {
         onClick={() => setIsOpen(false)}
       />
 
-      <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800/80 z-10 transition-colors">
+      <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[1.5rem] sm:rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(16,185,129,0.15)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 border border-slate-200 dark:border-slate-800/80 z-10 transition-colors">
 
         {/* Banner Section */}
-        <div className="relative h-56 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <div className="relative h-40 sm:h-56 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
           {mela.image ? (
             <img
               src={mela.image}
@@ -78,8 +78,8 @@ const JobMelaPopup = () => {
           </div>
         </div>
 
-        <div className="p-8 sm:p-10">
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-3 leading-tight tracking-tight">
+        <div className="p-6 sm:p-10">
+          <h2 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white mb-2 sm:mb-3 leading-tight tracking-tight">
             {mela.title}
           </h2>
 
@@ -94,7 +94,7 @@ const JobMelaPopup = () => {
             </div>
           </div>
 
-          <p className="text-slate-600 dark:text-slate-400 text-base mb-8 line-clamp-4 font-medium leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mb-4 sm:mb-8 line-clamp-3 sm:line-clamp-4 font-medium leading-relaxed">
             {mela.description}
           </p>
 
@@ -114,7 +114,7 @@ const JobMelaPopup = () => {
               <a
                 href={mela.registrationLink.startsWith('http') ? mela.registrationLink : `https://${mela.registrationLink}`}
                 target="_blank" rel="noreferrer"
-                className="flex-[2] bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-black py-4 px-8 rounded-full flex items-center justify-center gap-2 transition-all shadow-xl shadow-emerald-600/20 active:scale-95 group"
+                className="flex-[2] bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-black py-3 sm:py-4 px-8 rounded-full flex items-center justify-center gap-2 transition-all shadow-xl shadow-emerald-600/20 active:scale-95 group"
               >
                 Secure Your Seat <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </a>
@@ -128,7 +128,7 @@ const JobMelaPopup = () => {
             )}
             <button
               onClick={() => setIsOpen(false)}
-              className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-4 px-8 rounded-full border border-slate-200 dark:border-white/5 transition-all flex justify-center items-center active:scale-95"
+              className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-3 sm:py-4 px-8 rounded-full border border-slate-200 dark:border-white/5 transition-all flex justify-center items-center active:scale-95"
             >
               Close
             </button>

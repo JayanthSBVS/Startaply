@@ -57,9 +57,12 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <button onClick={() => setOpen(!open)} className="lg:hidden p-2 text-slate-800 dark:text-slate-200 hover:text-emerald-600 transition-colors">
-            {open ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="flex lg:hidden items-center gap-2">
+            <ThemeToggle />
+            <button onClick={() => setOpen(!open)} className="p-2 text-slate-800 dark:text-slate-200 hover:text-emerald-600 transition-colors">
+              {open ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -70,7 +73,6 @@ const Navbar = () => {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Menu</span>
-                <ThemeToggle />
               </div>
               <div className="space-y-1">
                 {menuItems.map((item) => (

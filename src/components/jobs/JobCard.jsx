@@ -109,11 +109,11 @@ const JobCard = ({ job, onViewDetails }) => {
         </div>
       )}
 
-      <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 text-[11px] font-bold flex-wrap">
+      <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 relative z-10">
+        <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 text-[11px] font-bold">
           {daysRemaining !== null && daysRemaining <= 7 ? (
             <span className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 px-2 py-1 rounded-md animate-pulse border border-red-100 dark:border-red-900/40">
-              <AlertCircle size={12} /> Last Date to Apply: {(() => {
+              <AlertCircle size={12} /> Last date: {(() => {
                 const d = new Date(new Date(createdAt).getTime() + (job.expiryDays * 24 * 60 * 60 * 1000));
                 return `${String(d.getDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
               })()}
@@ -124,7 +124,7 @@ const JobCard = ({ job, onViewDetails }) => {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-wider group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors duration-200 transform group-hover:translate-x-1">
+        <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-wider group-hover:text-emerald-500 dark:group-hover:text-emerald-300 transition-colors duration-200 transform group-hover:translate-x-1 shrink-0">
           View <ChevronRight size={14} />
         </div>
       </div>
