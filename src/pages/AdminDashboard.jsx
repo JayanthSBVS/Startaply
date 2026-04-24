@@ -90,7 +90,7 @@ const AdminDashboard = () => {
       axios.get(`${API}/companies/admin/list`, config).catch(() => ({ data: [] })),
       axios.get(`${API}/job-mela/admin/list`, config).catch(() => ({ data: [] })),
       axios.get(`${API}/feedback`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/testimonials`).catch(() => ({ data: [] })),
+      axios.get(`${API}/testimonials/admin/list`, config).catch(() => ({ data: [] })),
       axios.get(`${API}/prep-data/admin/list`, config).catch(() => ({ data: [] })),
       axios.get(`${API}/hero-banners`).catch(() => ({ data: [] }))
     ]).then(([jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes]) => {
