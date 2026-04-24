@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -8,10 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
 const { recordActivity } = require('./_shared');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const pool = getPool();
 
 const app = express();
 app.use(cors());
