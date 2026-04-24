@@ -1,17 +1,19 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 
 const { recordActivity } = require('./_shared');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const pool = getPool();
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// Helper to set cache headers
+const setCache = (res, sMaxAge = 60, stale = 300) => {
+  res.setHeader('Cache-Control', `s-maxage=${sMaxAge}, stale-while-revalidate=${stale}`);
+};
 
 // ── DB INIT ──────────────────────────────────────────────
 async function initDb() {
@@ -167,6 +169,13 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
     const { q } = req.query;
     if (!q || q.length < 2) return res.json([]);
 
+    const cacheKey = `sq_${q.toLowerCase()}`;
+    const cached = getMemCache(cacheKey, 600); // 10 mins Memory Cache
+    if (cached) {
+      setEdgeCache(res, 600, 3600);
+      return res.json(cached);
+    }
+
     const searchTerm = `%${q}%`;
     const { rows } = await pool.query(`
       (SELECT title as suggestion FROM jobs WHERE title ILIKE $1 AND isVisible = true)
@@ -175,7 +184,10 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
       LIMIT 8
     `, [searchTerm]);
 
-    res.json(rows.map(r => r.suggestion));
+    const result = rows.map(r => r.suggestion);
+    setMemCache(cacheKey, result);
+    setEdgeCache(res, 600, 3600);
+    res.json(result);
   } catch (err) {
     console.error('Suggestions error:', err);
     res.status(500).json([]);
@@ -206,30 +218,112 @@ app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   }
 });
 
-// GET all jobs (public with expiry filtering)
-app.get('/api/jobs', async (req, res) => {
+// Constants for DB Query Optimization
+// EXCLUDES: fullDescription, aboutCompany, benefits, techStack, etc.
+// INCLUDES description and requiredSkills for JobCard snippets!
+const JOBS_SELECT_LIGHT = `id, createdAt, updatedAt, title, subtitle, description, requiredSkills, company, companyLogo, location, workMode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId`;
+
+function processPublicJobs(rows) {
+  const now = Date.now();
+  let cleaned = [], deleteIds = [];
+  for (const row of rows) {
+    const job = mapRow(row);
+    if (!job) continue;
+    const expired = job.expiryDays > 0 && job.createdAt && (now > job.createdAt + job.expiryDays * 86400000);
+    if (expired) deleteIds.push(job.id);
+    else cleaned.push(job);
+  }
+  if (deleteIds.length > 0) pool.query('DELETE FROM jobs WHERE id = ANY($1::varchar[])', [deleteIds]).catch(err => console.error(err));
+  return cleaned;
+}
+
+// Helper to fetch list jobs safely (paginated & optimized)
+async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cacheKeyPrefix = 'jobs_list') {
   try {
-    const { rows } = await pool.query(`
-      SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
-      FROM jobs j
-      WHERE j.isVisible = true
-    `);
-    const now = Date.now();
-    let cleaned = [], deleteIds = [];
-    for (const row of rows) {
-      const job = mapRow(row);
-      const expired = job.expiryDays && job.createdAt &&
-        (now > job.createdAt + job.expiryDays * 86400000);
-      if (expired) deleteIds.push(job.id);
-      else cleaned.push(job);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20)); // Limit safety
+    const offset = (page - 1) * limit;
+    
+    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${req.url.replace(/\W/g, '_')}`;
+    const cached = getMemCache(cacheKey, 60);
+    if (cached) {
+      setEdgeCache(res, 60, 300);
+      return res.json(cached);
     }
-    if (deleteIds.length > 0)
-      await pool.query('DELETE FROM jobs WHERE id = ANY($1::varchar[])', [deleteIds]);
-    cleaned.sort((a, b) => b.createdAt - a.createdAt);
+
+    const whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
+    
+    const { rows } = await pool.query(`
+      SELECT ${JOBS_SELECT_LIGHT}
+      FROM jobs
+      ${whereClause}
+      ORDER BY createdAt DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `, [...params, limit, offset]);
+
+    const cleaned = processPublicJobs(rows);
+    setMemCache(cacheKey, cleaned);
+    setEdgeCache(res, 60, 300);
     res.json(cleaned);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error', detail: err.message });
+  }
+}
+
+// SPLIT ROUTES
+app.get('/api/jobs/latest', (req, res) => getPaginatedJobs(req, res, '', [], 'latest'));
+app.get('/api/jobs/featured', (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', [], 'featured'));
+app.get('/api/jobs/freshers', (req, res) => getPaginatedJobs(req, res, 'isFresh = true OR isToday = true', [], 'freshers'));
+app.get('/api/jobs/today', (req, res) => getPaginatedJobs(req, res, 'isToday = true', [], 'today'));
+
+app.get('/api/jobs/government', (req, res) => {
+  const govtFilter = req.query.govtFilter; // Central or State or All
+  let addlt = `(category = 'Government Jobs' OR jobcategory = 'Government Jobs')`;
+  const p = [];
+  if (govtFilter === 'Central' || govtFilter === 'State') {
+    addlt += ` AND (govtJobType = $1 OR govtjobtype = $1)`;
+    p.push(govtFilter);
+  }
+  return getPaginatedJobs(req, res, addlt, p, 'govt');
+});
+
+app.get('/api/jobs/it', (req, res) => {
+  // Original logic: cat === 'IT & Non-IT Jobs' && jobCategoryType === 'IT Job'
+  return getPaginatedJobs(req, res, `(category = 'IT & Non-IT Jobs' OR jobcategory = 'IT & Non-IT Jobs') AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, [], 'it');
+});
+
+app.get('/api/jobs/non-it', (req, res) => {
+  return getPaginatedJobs(req, res, `(category = 'IT & Non-IT Jobs' OR jobcategory = 'IT & Non-IT Jobs') AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, [], 'nonit');
+});
+
+// GET all jobs (public with expiry filtering) - Legacy paginated fallback
+app.get('/api/jobs', (req, res) => {
+  return getPaginatedJobs(req, res, '', [], 'all');
+});
+
+// NEW FRONTEND ROUTE - Fetch single job FULL details
+app.get('/api/jobs/:id/view', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check cache
+    const cacheKey = `job_full_${id}`;
+    const cached = getMemCache(cacheKey, 60);
+    if (cached) {
+      setEdgeCache(res, 60, 300);
+      return res.json(cached);
+    }
+
+    const { rows } = await pool.query('SELECT * FROM jobs WHERE id = $1', [id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Not found' });
+    
+    const maxJob = mapRow(rows[0]);
+    setMemCache(cacheKey, maxJob);
+    setEdgeCache(res, 60, 300);
+    res.json(maxJob);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -253,6 +347,8 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
       j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
       j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,j.createdByAdminId
     ]);
+      clearMemCachePrefix('jobs_list');
+      clearMemCachePrefix(`job_full_${j.id}`);
       await recordActivity(pool, req.user, 'Jobs', `Created job: ${j.title}`, j.id);
       res.status(201).json(mapRow(rows[0]));
   } catch (err) {
@@ -294,6 +390,8 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
       j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
       j.createdByAdminId, id
     ]);
+      clearMemCachePrefix('jobs_list');
+      clearMemCachePrefix(`job_full_${id}`);
       await recordActivity(pool, req.user, 'Jobs', `Updated job: ${j.title}`, j.id);
       res.json(mapRow(rows[0]));
   } catch (err) {
@@ -312,6 +410,8 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'You can only delete your own jobs' });
     }
     await pool.query('DELETE FROM jobs WHERE id=$1', [id]);
+    clearMemCachePrefix('jobs_list');
+    clearMemCachePrefix(`job_full_${id}`);
     await recordActivity(pool, req.user, 'Jobs', `Deleted job ID: ${id}`, id);
     res.json({ message: 'Deleted' });
   } catch (err) {

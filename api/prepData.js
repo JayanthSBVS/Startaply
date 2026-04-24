@@ -1,13 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
-
+const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 const { recordActivity } = require('./_shared');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const pool = getPool();
 
 const app = express();
 app.use(cors());
@@ -88,8 +84,22 @@ app.get('/api/prep-data/admin/list', authMiddleware, async (req, res) => {
 
 app.get('/api/prep-data', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC');
-    res.json(rows.map(mapRow));
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+
+    const cacheKey = `prep_${page}_${limit}`;
+    const cached = getMemCache(cacheKey, 60);
+    if (cached) {
+      setEdgeCache(res, 60, 300);
+      return res.json(cached);
+    }
+
+    const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC LIMIT $1 OFFSET $2', [limit, offset]);
+    const result = rows.map(mapRow);
+    setMemCache(cacheKey, result);
+    setEdgeCache(res, 60, 300);
+    res.json(result);
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
@@ -103,6 +113,7 @@ app.post('/api/prep-data', authMiddleware, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [id, heading || question || '', jobType || 'IT Jobs', content || answer || '', type, fileUrl || '', question || '', answer || content || '', Date.now(), req.user.id]
     );
+    clearMemCachePrefix('prep_');
     await recordActivity(pool, req.user, 'Preparation', `Added prep material: ${heading || 'New Content'}`, id);
     res.json(mapRow(rows[0]));
   } catch (err) {
@@ -120,6 +131,7 @@ app.delete('/api/prep-data/:id', authMiddleware, async (req, res) => {
        return res.status(403).json({ error: 'Forbidden' });
     }
     await pool.query('DELETE FROM prep_data WHERE id=$1', [id]);
+    clearMemCachePrefix('prep_');
     await recordActivity(pool, req.user, 'Preparation', `Deleted prep material ID: ${id}`, id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ message: 'Server error' }); }

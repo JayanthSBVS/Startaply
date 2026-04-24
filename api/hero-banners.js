@@ -1,11 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const pool = getPool();
 
 const app = express();
 app.use(cors());
@@ -32,7 +29,14 @@ initDb();
 // GET all active banners
 app.get('/api/hero-banners', async (req, res) => {
   try {
+    const cached = getMemCache('banners_active', 120);
+    if (cached) {
+      setEdgeCache(res, 60, 300);
+      return res.json(cached);
+    }
     const { rows } = await pool.query('SELECT * FROM hero_banners ORDER BY createdAt DESC LIMIT 5');
+    setMemCache('banners_active', rows);
+    setEdgeCache(res, 60, 300);
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -53,7 +57,7 @@ app.post('/api/hero-banners', async (req, res) => {
       `INSERT INTO hero_banners (id, image, createdAt) VALUES ($1, $2, $3) RETURNING *`,
       [id, image, createdAt]
     );
-
+    clearMemCachePrefix('banners_');
     res.status(201).json(rows[0]);
   } catch (err) {
     console.error(err);
@@ -65,6 +69,7 @@ app.post('/api/hero-banners', async (req, res) => {
 app.delete('/api/hero-banners/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM hero_banners WHERE id=$1', [req.params.id]);
+    clearMemCachePrefix('banners_');
     res.json({ message: 'Deleted successfully' });
   } catch (err) {
     console.error(err);

@@ -30,34 +30,43 @@ export const JobsProvider = ({ children }) => {
     const fetchPublicData = async () => {
       try {
         const [jobsRes, compRes, melasRes, prepRes] = await Promise.all([
-          axios.get(`${API}/jobs`).catch(() => ({ data: [] })),
-          axios.get(`${API}/companies`).catch(() => ({ data: [] })),
-          axios.get(`${API}/job-mela`).catch(() => ({ data: [] })),
-          axios.get(`${API}/prep-data`).catch(() => ({ data: [] }))
+          axios.get(`${API}/jobs`).catch(err => ({ error: true, err })),
+          axios.get(`${API}/companies`).catch(err => ({ error: true, err })),
+          axios.get(`${API}/job-mela`).catch(err => ({ error: true, err })),
+          axios.get(`${API}/prep-data`).catch(err => ({ error: true, err }))
         ]);
 
-        const finalJobs = Array.isArray(jobsRes.data) ? jobsRes.data : [];
-        const finalComps = Array.isArray(compRes.data) ? compRes.data : [];
-        const finalMelas = Array.isArray(melasRes.data) ? melasRes.data : [];
-        const finalPrep = Array.isArray(prepRes.data) ? prepRes.data : [];
-
-        setJobs(finalJobs);
-        setCompanies(finalComps);
-        setMelas(finalMelas);
-        setPrepData(finalPrep);
-
-        try {
+        if (!jobsRes.error) {
+          const finalJobs = Array.isArray(jobsRes.data) ? jobsRes.data : [];
+          setJobs(finalJobs);
           localStorage.setItem('cache_jobs', JSON.stringify(finalJobs));
+        }
+        
+        if (!compRes.error) {
+          const finalComps = Array.isArray(compRes.data) ? compRes.data : [];
+          setCompanies(finalComps);
           localStorage.setItem('cache_companies', JSON.stringify(finalComps));
+        }
+
+        if (!melasRes.error) {
+          const finalMelas = Array.isArray(melasRes.data) ? melasRes.data : [];
+          setMelas(finalMelas);
           localStorage.setItem('cache_melas', JSON.stringify(finalMelas));
+        }
+
+        if (!prepRes.error) {
+          const finalPrep = Array.isArray(prepRes.data) ? prepRes.data : [];
+          setPrepData(finalPrep);
           localStorage.setItem('cache_prep', JSON.stringify(finalPrep));
-        } catch (e) { console.warn("Cache quota", e); }
+        }
+
       } catch (err) { console.error("Public API Error:", err); }
     };
 
     const fetchHeroBanners = async () => {
       try {
-        const res = await axios.get(`${API}/hero-banners`).catch(() => ({ data: [] }));
+        const res = await axios.get(`${API}/hero-banners`).catch(err => ({ error: true, err }));
+        if (res.error) return; // Do not overwrite state if error
         const banners = Array.isArray(res.data) ? res.data : [];
         
         // SYNC & CLEANUP CACHE

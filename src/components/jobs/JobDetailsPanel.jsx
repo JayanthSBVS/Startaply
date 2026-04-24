@@ -14,11 +14,17 @@ const JobDetailsPanel = ({ job, onClose }) => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', resume: '' });
   const [errors, setErrors] = useState({});
 
+  // Fetch full details dynamically
+  const [fullJob, setFullJob] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const displayJob = fullJob || job;
+
   const handleShare = async () => {
     const shareData = {
-      title: `${job.title} at ${job.company}`,
-      text: `Check out this ${job.title} opportunity at ${job.company} on Strataply!`,
-      url: window.location.origin + `/jobs?id=${job.id}`,
+      title: `${displayJob.title} at ${displayJob.company}`,
+      text: `Check out this ${displayJob.title} opportunity at ${displayJob.company} on Strataply!`,
+      url: window.location.origin + `/jobs?id=${displayJob.id}`,
     };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch (err) { }
@@ -36,10 +42,18 @@ const JobDetailsPanel = ({ job, onClose }) => {
       setShowForm(false);
       setFormData({ name: '', email: '', phone: '', resume: '' });
       setErrors({});
-      axios.post(`${API}/jobs/${job.id}/view`).catch(() => { });
+      setFullJob(null);
+      setLoadingDetails(true);
+      
+      axios.get(`${API}/jobs/${job.id}/view`)
+        .then(res => setFullJob(res.data))
+        .catch(err => console.error("Failed to fetch full job view", err))
+        .finally(() => setLoadingDetails(false));
+        
     } else {
       setIsVisible(false);
       document.body.style.overflow = '';
+      setFullJob(null);
     }
     return () => (document.body.style.overflow = '');
   }, [job]);
@@ -82,15 +96,15 @@ const JobDetailsPanel = ({ job, onClose }) => {
       // Include Job context so Admin Dashboard displays correct data instead of "Unknown"
       const payload = {
         ...formData,
-        jobTitle: job.title,
-        companyName: job.company
+        jobTitle: displayJob.title,
+        companyName: displayJob.company
       };
 
-      await axios.post(`${API}/jobs/${job.id}/apply`, payload);
+      await axios.post(`${API}/jobs/${displayJob.id}/apply`, payload);
       setApplied(true);
       setIsSubmitting(false);
 
-      if (job.applyType === 'external' && job.applyUrl) window.open(job.applyUrl, '_blank');
+      if (displayJob.applyType === 'external' && displayJob.applyUrl) window.open(displayJob.applyUrl, '_blank');
       setTimeout(() => { setIsVisible(false); setTimeout(onClose, 300); }, 2000);
     } catch (err) {
       toast.error('Failed to submit application. Please try again.');
@@ -109,8 +123,8 @@ const JobDetailsPanel = ({ job, onClose }) => {
         {/* HEADER */}
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-950/50 shrink-0">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight pr-4">{job.title}</h2>
-            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">{job.company}</p>
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight pr-4">{displayJob.title}</h2>
+            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">{displayJob.company}</p>
           </div>
           <div className="flex gap-2 shrink-0">
             <button onClick={handleShare} className="p-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full text-emerald-600 dark:text-emerald-400 transition-colors border border-emerald-100 dark:border-emerald-800"><Share2 size={18} /></button>
@@ -157,13 +171,13 @@ const JobDetailsPanel = ({ job, onClose }) => {
 
             {/* TAGS */}
             <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-              {job.location && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><MapPin size={14} className="text-emerald-500 dark:text-emerald-400" /> {job.location}</span>}
-              {job.type && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><Briefcase size={14} className="text-emerald-500 dark:text-emerald-400" /> {job.type}</span>}
-              {job.salary && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><IndianRupee size={14} className="text-emerald-500 dark:text-emerald-400" /> {job.salary}</span>}
-              {job.expiryDays && (
+              {displayJob.location && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><MapPin size={14} className="text-emerald-500 dark:text-emerald-400" /> {displayJob.location}</span>}
+              {displayJob.type && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><Briefcase size={14} className="text-emerald-500 dark:text-emerald-400" /> {displayJob.type}</span>}
+              {displayJob.salary && <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors"><IndianRupee size={14} className="text-emerald-500 dark:text-emerald-400" /> {displayJob.salary}</span>}
+              {displayJob.expiryDays && (
                 <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition-colors">
                   <CalendarDays size={14} className="text-emerald-500 dark:text-emerald-400" /> Last Date to Apply: {(() => {
-                    const d = new Date(new Date(job.createdAt || Date.now()).getTime() + (job.expiryDays * 24 * 60 * 60 * 1000));
+                    const d = new Date(new Date(displayJob.createdAt || Date.now()).getTime() + (displayJob.expiryDays * 24 * 60 * 60 * 1000));
                     return `${String(d.getDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
                   })()}
                 </span>
@@ -171,15 +185,15 @@ const JobDetailsPanel = ({ job, onClose }) => {
             </div>
 
             {/* MAP LOCATION FOR VOICE/NON-VOICE PROCESSES */}
-            {(job.processType === 'Voice Process' || job.processType === 'Non-Voice Process') && job.mapLocationUrl && (
+            {(displayJob.processType === 'Voice Process' || displayJob.processType === 'Non-Voice Process') && displayJob.mapLocationUrl && (
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
                   <MapPin size={16} /> Interview Walk-in Location
                 </h3>
                 <div className="w-full h-64 bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
-                  {job.mapLocationUrl.includes('<iframe') || job.mapLocationUrl.includes('embed') ? (
+                  {displayJob.mapLocationUrl.includes('<iframe') || displayJob.mapLocationUrl.includes('embed') ? (
                     <iframe
-                      src={job.mapLocationUrl.match(/src="([^"]+)"/)?.[1] || job.mapLocationUrl}
+                      src={displayJob.mapLocationUrl.match(/src="([^"]+)"/)?.[1] || displayJob.mapLocationUrl}
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
@@ -189,7 +203,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
                       title="Interview Location"
                     />
                   ) : (
-                    <a href={job.mapLocationUrl} target="_blank" rel="noreferrer" className="w-full h-full flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                    <a href={displayJob.mapLocationUrl} target="_blank" rel="noreferrer" className="w-full h-full flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                       <MapPin size={32} className="mb-2" />
                       <span className="font-bold">Click to open Google Maps</span>
                     </a>
@@ -198,24 +212,32 @@ const JobDetailsPanel = ({ job, onClose }) => {
               </div>
             )}
 
-            {/* DESCRIPTIONS */}
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Job Description</h3>
-              <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{job.fullDescription || job.description || 'No detailed description provided.'}</div>
-            </div>
-
-            {job.benefits && (
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Benefits & Perks</h3>
-                <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{job.benefits}</div>
+            {loadingDetails ? (
+              <div className="flex justify-center py-6">
+                 <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
-            )}
+            ) : (
+              <>
+                {/* DESCRIPTIONS */}
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Job Description</h3>
+                  <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{displayJob.fullDescription || displayJob.description || 'No detailed description provided.'}</div>
+                </div>
 
-            {job.aboutCompany && (
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">About {job.company}</h3>
-                <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{job.aboutCompany}</div>
-              </div>
+                {displayJob.benefits && (
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Benefits & Perks</h3>
+                    <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{displayJob.benefits}</div>
+                  </div>
+                )}
+
+                {displayJob.aboutCompany && (
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">About {displayJob.company}</h3>
+                    <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{displayJob.aboutCompany}</div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -224,7 +246,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
         <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.3)] z-20">
           {showForm ? (
             <button type="submit" form="applyForm" disabled={isSubmitting || applied} className={`w-full py-4 rounded-full font-bold text-lg flex justify-center items-center gap-2 transition-all ${applied ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'}`}>
-              {applied ? <><CheckCircle2 size={20} /> Application Saved</> : isSubmitting ? "Processing..." : job.applyType === 'external' ? "Proceed to Apply" : "Submit Application"}
+              {applied ? <><CheckCircle2 size={20} /> Application Saved</> : isSubmitting ? "Processing..." : displayJob.applyType === 'external' ? "Proceed to Apply" : "Submit Application"}
             </button>
           ) : (
             <button onClick={() => setShowForm(true)} className="w-full py-4 rounded-full font-bold text-lg flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-600/30">

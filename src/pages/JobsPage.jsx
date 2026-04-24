@@ -10,6 +10,7 @@ import Footer from '../components/common/Footer';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import { useJobs } from '../context/JobsContext';
+import axios from 'axios';
 
 // ─── Section definitions ───────────────────────────────────────────────────
 const SECTIONS = [
@@ -44,7 +45,6 @@ function getInitialSection(searchParams) {
 }
 
 const JobsPage = () => {
-  const { jobs } = useJobs();
   const [searchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get('company') || '');
@@ -53,75 +53,76 @@ const JobsPage = () => {
   const [workMode, setWorkMode] = useState('All');
   const [selectedJob, setSelectedJob] = useState(null);
 
-  // Sync when URL params change (e.g. navigation from Hero)
+  // Pagination State
+  const [localJobs, setLocalJobs] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  // Sync when URL params change
   useEffect(() => {
     setActiveSection(getInitialSection(searchParams));
     setSearch(searchParams.get('company') || '');
   }, [searchParams]);
 
-  // ─── Filtering ───────────────────────────────────────────────
-  const filtered = useMemo(() => {
-    return jobs.filter((job) => {
-      const catField = (job.jobCategory || job.category || '').trim();
-      const q = search.toLowerCase().trim();
+  // Server-side Fetch Effect
+  useEffect(() => {
+    setPage(1); // Reset page on filter change
+    setLocalJobs([]);
+    setHasMore(true);
+  }, [activeSection, govtFilter, search]);
 
-      // Section filter
-      let sectionMatch = true;
-      switch (activeSection) {
-        case 'government':
-          sectionMatch = catField === 'Government Jobs';
-          if (govtFilter === 'Central') sectionMatch = sectionMatch && job.govtJobType === 'Central';
-          if (govtFilter === 'State')   sectionMatch = sectionMatch && job.govtJobType === 'State';
-          break;
-        case 'it':
-          sectionMatch = catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'IT Job';
-          break;
-        case 'nonit':
-          sectionMatch = catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'Non-IT Job';
-          break;
-        case 'freshers':
-          sectionMatch = !!job.isToday || !!job.isFresh;
-          break;
-        case 'featured':
-          sectionMatch = !!job.isFeatured;
-          break;
-        case 'today':
-          sectionMatch = !!job.isToday;
-          break;
-        default:
-          sectionMatch = true;
-      }
-
-      const modeMatch = workMode === 'All' || (job.workMode || job.mode) === workMode;
-
-      const searchMatch = !q ||
-        (job.title || '').toLowerCase().includes(q) ||
-        (job.company || '').toLowerCase().includes(q) ||
-        (job.location || '').toLowerCase().includes(q);
-
-      return sectionMatch && modeMatch && searchMatch;
-    });
-  }, [jobs, search, activeSection, govtFilter, workMode]);
-
-  // Count per section for badges
-  const sectionCounts = useMemo(() => {
-    const counts = {};
-    SECTIONS.forEach(s => {
-      counts[s.id] = jobs.filter(job => {
-        const catField = (job.jobCategory || job.category || '').trim();
-        switch (s.id) {
-          case 'government': return catField === 'Government Jobs';
-          case 'it':         return catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'IT Job';
-          case 'nonit':      return catField === 'IT & Non-IT Jobs' && job.jobCategoryType === 'Non-IT Job';
-          case 'freshers':   return !!job.isToday || !!job.isFresh;
-          case 'featured':   return !!job.isFeatured;
-          case 'today':      return !!job.isToday;
-          default:           return true;
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchJobs = async () => {
+      if (!hasMore) return;
+      setLoading(true);
+      setFailed(false);
+      try {
+        const routeMap = {
+          'all': '/api/jobs',
+          'government': '/api/jobs/government',
+          'it': '/api/jobs/it',
+          'nonit': '/api/jobs/non-it',
+          'freshers': '/api/jobs/freshers',
+          'today': '/api/jobs/today',
+          'featured': '/api/jobs/featured'
+        };
+        const endpoint = routeMap[activeSection] || '/api/jobs';
+        
+        let queryParams = `?page=${page}&limit=20`;
+        if (activeSection === 'government' && govtFilter !== 'All') {
+          queryParams += `&govtFilter=${govtFilter}`;
         }
-      }).length;
+        
+        const res = await axios.get(`${endpoint}${queryParams}`);
+        if (!isCancelled) {
+          const newJobs = res.data || [];
+          if (newJobs.length < 20) setHasMore(false);
+          setLocalJobs(prev => page === 1 ? newJobs : [...prev, ...newJobs]);
+        }
+      } catch (err) {
+        setFailed(true);
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+    };
+    fetchJobs();
+    return () => { isCancelled = true; };
+  }, [activeSection, govtFilter, page]);
+
+  // Client-side sub-filtering (for search and mode, if needed. Search ideal server side, but client fallback is fine for loaded chunks)
+  const filtered = useMemo(() => {
+    return localJobs.filter(job => {
+      const modeMatch = workMode === 'All' || (job.workMode || job.mode) === workMode;
+      const searchMatch = !search ||
+        (job.title || '').toLowerCase().includes(search.toLowerCase()) ||
+        (job.company || '').toLowerCase().includes(search.toLowerCase()) ||
+        (job.location || '').toLowerCase().includes(search.toLowerCase());
+      return modeMatch && searchMatch;
     });
-    return counts;
-  }, [jobs]);
+  }, [localJobs, search, workMode]);
 
   const activeConfig = SECTIONS.find(s => s.id === activeSection) || SECTIONS[0];
   const colors = colorMap[activeConfig.color];
@@ -138,7 +139,7 @@ const JobsPage = () => {
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 text-white">
             Discover Your Next <span className="text-emerald-400">Opportunity</span>
           </h1>
-          <p className="text-slate-400 mb-8 text-lg font-medium">Browse {jobs.length}+ verified openings across India</p>
+          <p className="text-slate-400 mb-8 text-lg font-medium">Browse verified openings across India</p>
 
           <div className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all shadow-2xl">
             <div className="flex-1 flex items-center pl-5">
@@ -184,9 +185,6 @@ const JobsPage = () => {
                 >
                   <Ic size={15} />
                   {sec.label}
-                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
-                    {sectionCounts[sec.id] || 0}
-                  </span>
                 </button>
               );
             })}
@@ -234,7 +232,7 @@ const JobsPage = () => {
               </span>
               {activeConfig.label}
               <span className={`text-sm font-black px-3 py-1 rounded-full ${colors.idle} border`}>
-                {filtered.length} Results
+                {localJobs.length}{hasMore ? '+' : ''} Results
               </span>
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 pl-11 font-medium">{activeConfig.desc}</p>
@@ -257,8 +255,19 @@ const JobsPage = () => {
           </div>
         </div>
 
+        {/* ── FAILSAFE ALERT ────────────────────────────────────────── */}
+        {failed && localJobs.length === 0 && (
+          <div className="mb-8 p-4 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-rose-800 text-sm font-medium text-center">
+            Live data temporarily unavailable. Please try again later.
+          </div>
+        )}
+
         {/* ── RESULTS ─────────────────────────────────────────────── */}
-        {filtered.length === 0 ? (
+        {loading && localJobs.length === 0 ? (
+          <div className="flex justify-center items-center py-24">
+            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : filtered.length === 0 && !loading ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -295,6 +304,24 @@ const JobsPage = () => {
               ))}
             </AnimatePresence>
           </motion.div>
+        )}
+
+        {/* ── PAGINATION ─────────────────────────────────────────────── */}
+        {hasMore && !loading && localJobs.length > 0 && (
+          <div className="mt-12 text-center">
+            <button
+              onClick={() => setPage(p => p + 1)}
+              className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white font-bold py-3 px-8 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm transition-all"
+            >
+              Load More {activeConfig.label}
+            </button>
+          </div>
+        )}
+        {loading && localJobs.length > 0 && (
+          <div className="mt-8 text-center text-emerald-500 font-bold flex justify-center uppercase tracking-widest text-sm items-center gap-2">
+            <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            Loading...
+          </div>
         )}
       </div>
 
