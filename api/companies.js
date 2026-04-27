@@ -10,8 +10,11 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Init tables
+// Init tables (guarded to prevent re-run on warm invocations)
+let companiesInitialized = false;
 async function init() {
+  if (companiesInitialized) return;
+  companiesInitialized = true;
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS companies (
@@ -35,7 +38,14 @@ async function init() {
     }
     await pool.query(`UPDATE companies SET createdByAdminId = 'admin_jayanth' WHERE createdByAdminId IS NULL OR createdByAdminId = ''`);
 
-  } catch (err) { console.error('Companies init error:', err.message); }
+    // Performance index
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_createdat ON companies(createdat DESC)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_adminid ON companies(createdbyadminid)`);
+
+  } catch (err) {
+    console.error('Companies init error:', err.message);
+    companiesInitialized = false; // Allow retry
+  }
 }
 init();
 
@@ -127,7 +137,7 @@ app.post('/api/companies', authMiddleware, async (req, res) => {
       [id, name, logo || '', website || '', location || '', description || '', industry || '', companyType || '', Date.now(), req.user.id]
     );
     clearMemCachePrefix('comp_');
-    await recordActivity(pool, req.user, 'Companies', `Registered partner company: ${name}`, id);
+    recordActivity(pool, req.user, 'Companies', `Registered partner company: ${name}`, id).catch(() => {});
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
     console.error('POST /api/companies:', err.message);
@@ -152,7 +162,7 @@ app.put('/api/companies/:id', authMiddleware, async (req, res) => {
       [name || ex[0].name, logo || '', website || '', location || '', description || '', industry || '', companyType || '', id]
     );
     clearMemCachePrefix('comp_');
-    await recordActivity(pool, req.user, 'Companies', `Updated company: ${name}`, id);
+    recordActivity(pool, req.user, 'Companies', `Updated company: ${name}`, id).catch(() => {});
     res.json(mapRow(rows[0]));
   } catch (err) {
     console.error('PUT /api/companies/:id:', err.message);
@@ -171,7 +181,7 @@ app.delete('/api/companies/:id', authMiddleware, async (req, res) => {
     }
     await pool.query('DELETE FROM companies WHERE id=$1', [id]);
     clearMemCachePrefix('comp_');
-    await recordActivity(pool, req.user, 'Companies', `Removed company: ${ex[0]?.name || id}`, id);
+    recordActivity(pool, req.user, 'Companies', `Removed company: ${ex[0]?.name || id}`, id).catch(() => {});
     res.json({ message: 'Deleted' });
   } catch (err) {
     console.error('DELETE /api/companies/:id:', err.message);

@@ -1,42 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { X, Calendar, MapPin, ArrowRight, BellRing, Building2, ExternalLink } from 'lucide-react';
+import { X, Calendar, ArrowRight, BellRing, Building2, ExternalLink } from 'lucide-react';
+import { useJobs } from '../../context/JobsContext';
 
 const JobMelaPopup = () => {
-  const [mela, setMela] = useState(null);
+  const { melas } = useJobs();
+  const [mela, setMela]   = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    // Don't show again in the same session
     const hasBeenShown = sessionStorage.getItem('mela_popup_shown');
     if (hasBeenShown) return;
 
-    let timer;
+    // Wait until melas are loaded from context (no separate API call needed)
+    if (!melas || melas.length === 0) return;
 
-    axios.get('/api/job-mela/active')
-      .then(res => {
-        // DB returns lowercase 'showpopup'
-        if (res.data && res.data.showPopup) {
-          const melaData = { ...res.data };
-          if (melaData.description) {
-            melaData.description = melaData.description.replace(/thei sjob mea/gi, 'this job mela');
-          }
+    // Find the first active mela that has showPopup set
+    const activeMela = melas.find(m => m.showPopup || m.showpopup);
+    if (!activeMela) return;
 
-          setMela(melaData);
+    const melaData = { ...activeMela };
+    if (melaData.description) {
+      melaData.description = melaData.description.replace(/thei sjob mea/gi, 'this job mela');
+    }
 
-          // Trigger exact 5 second delay
-          timer = setTimeout(() => {
-            setIsOpen(true);
-            sessionStorage.setItem('mela_popup_shown', 'true');
-          }, 5000);
-        }
-      })
-      .catch(() => { });
+    setMela(melaData);
 
-    // Proper cleanup block to prevent memory leaks
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, []);
+    // Show after 5-second delay
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+      sessionStorage.setItem('mela_popup_shown', 'true');
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [melas]); // re-run if melas loads after initial render
 
   if (!isOpen || !mela) return null;
 
@@ -55,7 +52,7 @@ const JobMelaPopup = () => {
             <img
               src={mela.image}
               alt="Job Mela Banner"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              className="w-full h-full object-cover transition-transform duration-700"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-600/10 dark:from-emerald-600/20 to-slate-200 dark:to-slate-900 border-b border-slate-200 dark:border-slate-800">
@@ -89,9 +86,11 @@ const JobMelaPopup = () => {
                 <Building2 size={16} className="text-emerald-600 dark:text-emerald-400" /> {mela.company}
               </div>
             )}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-              <Calendar className="text-emerald-600 dark:text-emerald-400" size={16} /> {mela.date}
-            </div>
+            {mela.date && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                <Calendar className="text-emerald-600 dark:text-emerald-400" size={16} /> {mela.date}
+              </div>
+            )}
           </div>
 
           <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base mb-4 sm:mb-8 line-clamp-3 sm:line-clamp-4 font-medium leading-relaxed">

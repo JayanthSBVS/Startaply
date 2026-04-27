@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Briefcase, Building2, Monitor, GraduationCap,
   Star, Zap, Filter, X, ChevronDown
@@ -9,7 +9,6 @@ import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
-import { useJobs } from '../context/JobsContext';
 import axios from 'axios';
 
 // ─── Section definitions ───────────────────────────────────────────────────
@@ -44,35 +43,48 @@ function getInitialSection(searchParams) {
   return 'all';
 }
 
+// ─── Debounce hook ─────────────────────────────────────────────────────────
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 const JobsPage = () => {
   const [searchParams] = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get('company') || '');
+  const [search, setSearch]             = useState(searchParams.get('company') || '');
   const [activeSection, setActiveSection] = useState(() => getInitialSection(searchParams));
-  const [govtFilter, setGovtFilter] = useState('All'); // All | Central | State
-  const [workMode, setWorkMode] = useState('All');
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [govtFilter, setGovtFilter]     = useState('All');
+  const [workMode, setWorkMode]         = useState('All');
+  const [selectedJob, setSelectedJob]   = useState(null);
 
-  // Pagination State
+  // Server-fetch state
   const [localJobs, setLocalJobs] = useState([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [page, setPage]           = useState(1);
+  const [loading, setLoading]     = useState(true);
+  const [hasMore, setHasMore]     = useState(true);
+  const [failed, setFailed]       = useState(false);
 
-  // Sync when URL params change
+  // Sync when URL params change (section only — not search, which is client-side)
   useEffect(() => {
     setActiveSection(getInitialSection(searchParams));
     setSearch(searchParams.get('company') || '');
   }, [searchParams]);
 
-  // Server-side Fetch Effect
+  // ─── CRITICAL FIX: Only server-side filters reset the job list ─────────
+  // search is client-side filtering only — removing it from reset deps
+  // prevents the loading flicker on every keystroke.
   useEffect(() => {
-    setPage(1); // Reset page on filter change
+    setPage(1);
     setLocalJobs([]);
     setHasMore(true);
-  }, [activeSection, govtFilter, search]);
+  }, [activeSection, govtFilter]);
 
+  // ─── Server fetch effect ───────────────────────────────────────────────
   useEffect(() => {
     let isCancelled = false;
     const fetchJobs = async () => {
@@ -81,21 +93,21 @@ const JobsPage = () => {
       setFailed(false);
       try {
         const routeMap = {
-          'all': '/api/jobs',
+          'all':        '/api/jobs',
           'government': '/api/jobs/government',
-          'it': '/api/jobs/it',
-          'nonit': '/api/jobs/non-it',
-          'freshers': '/api/jobs/freshers',
-          'today': '/api/jobs/today',
-          'featured': '/api/jobs/featured'
+          'it':         '/api/jobs/it',
+          'nonit':      '/api/jobs/non-it',
+          'freshers':   '/api/jobs/freshers',
+          'today':      '/api/jobs/today',
+          'featured':   '/api/jobs/featured',
         };
         const endpoint = routeMap[activeSection] || '/api/jobs';
-        
+
         let queryParams = `?page=${page}&limit=20`;
         if (activeSection === 'government' && govtFilter !== 'All') {
           queryParams += `&govtFilter=${govtFilter}`;
         }
-        
+
         const res = await axios.get(`${endpoint}${queryParams}`);
         if (!isCancelled) {
           const newJobs = res.data || [];
@@ -103,30 +115,31 @@ const JobsPage = () => {
           setLocalJobs(prev => page === 1 ? newJobs : [...prev, ...newJobs]);
         }
       } catch (err) {
-        setFailed(true);
+        if (!isCancelled) setFailed(true);
       } finally {
         if (!isCancelled) setLoading(false);
       }
     };
     fetchJobs();
     return () => { isCancelled = true; };
-  }, [activeSection, govtFilter, page]);
+  }, [activeSection, govtFilter, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Client-side sub-filtering (for search and mode, if needed. Search ideal server side, but client fallback is fine for loaded chunks)
+  // ─── Client-side filter (search + workMode) ────────────────────────────
+  // search changes do NOT trigger a server refetch — just filter what's loaded
   const filtered = useMemo(() => {
     return localJobs.filter(job => {
       const modeMatch = workMode === 'All' || (job.workMode || job.mode) === workMode;
       const searchMatch = !search ||
-        (job.title || '').toLowerCase().includes(search.toLowerCase()) ||
-        (job.company || '').toLowerCase().includes(search.toLowerCase()) ||
+        (job.title    || '').toLowerCase().includes(search.toLowerCase()) ||
+        (job.company  || '').toLowerCase().includes(search.toLowerCase()) ||
         (job.location || '').toLowerCase().includes(search.toLowerCase());
       return modeMatch && searchMatch;
     });
   }, [localJobs, search, workMode]);
 
   const activeConfig = SECTIONS.find(s => s.id === activeSection) || SECTIONS[0];
-  const colors = colorMap[activeConfig.color];
-  const IconComp = activeConfig.icon;
+  const colors       = colorMap[activeConfig.color];
+  const IconComp     = activeConfig.icon;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-white transition-colors duration-300">

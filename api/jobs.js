@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+const cors    = require('cors');
 const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 
 const { recordActivity } = require('./_shared');
@@ -10,13 +10,15 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Helper to set cache headers
-const setCache = (res, sMaxAge = 60, stale = 300) => {
-  res.setHeader('Cache-Control', `s-maxage=${sMaxAge}, stale-while-revalidate=${stale}`);
-};
+// ── JWT Secret guard ────────────────────────────────────────────────────────
+const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
-// ── DB INIT ──────────────────────────────────────────────
+// ── DB INIT ──────────────────────────────────────────────────────────────────
+// Runs once per cold start. CREATE TABLE IF NOT EXISTS is idempotent.
+let dbInitialized = false;
 async function initDb() {
+  if (dbInitialized) return;
+  dbInitialized = true;
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS jobs (
@@ -36,8 +38,8 @@ async function initDb() {
         createdByAdminId TEXT
       )
     `);
-    
-    // Migrations
+
+    // Migrations (idempotent)
     const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId'];
     for (const col of cols) {
       await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col} TEXT`);
@@ -45,9 +47,22 @@ async function initDb() {
     await pool.query(`ALTER TABLE jobs ALTER COLUMN applyType SET DEFAULT 'external'`);
     await pool.query(`ALTER TABLE jobs ALTER COLUMN views SET DEFAULT 0`);
     await pool.query(`ALTER TABLE jobs ALTER COLUMN isVisible SET DEFAULT true`);
-    
-    // Data Migration: Assign existing jobs to Jayanth if they have no owner
+
+    // Ownership backfill
     await pool.query(`UPDATE jobs SET createdByAdminId = 'admin_jayanth' WHERE createdByAdminId IS NULL OR createdByAdminId = ''`);
+
+    // ── PERFORMANCE INDEXES ─────────────────────────────────────────────────
+    // These turn full-table-scans into fast index scans for every filter query.
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_createdat ON jobs(createdat DESC)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isvisible ON jobs(isvisible)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isfeatured ON jobs(isfeatured)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_istoday ON jobs(istoday)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isfresh ON jobs(isfresh)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_govtjobtype ON jobs(govtjobtype)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_jobcategorytype ON jobs(jobcategorytype)`);
+    // Composite for the most common public query pattern
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_visible_created ON jobs(isvisible, createdat DESC)`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS applications (
@@ -58,16 +73,16 @@ async function initDb() {
     `);
   } catch (err) {
     console.error('DB init error:', err.message);
+    dbInitialized = false; // Allow retry on next request if init failed
   }
 }
-
 initDb();
 
-// ── HELPERS ──────────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 
 function normalizeJob(body, existing = null, adminId = null) {
-  const now = Date.now();
+  const now      = Date.now();
   const fullDesc = body.fullDescription || existing?.fullDescription || '';
   const shortDesc = body.description || (fullDesc ? fullDesc.substring(0, 200) : '') || existing?.description || '';
 
@@ -112,7 +127,6 @@ function normalizeJob(body, existing = null, adminId = null) {
 
 function mapRow(r) {
   if (!r) return null;
-  // Handle PostgreSQL lowercase column mapping
   return {
     ...r,
     id: r.id,
@@ -132,14 +146,12 @@ function mapRow(r) {
     mapLocationUrl: r.maplocationurl || r.mapLocationUrl || '',
     processType: r.processtype || r.processType || 'Standard',
     createdByAdminId: r.createdbyadminid || r.createdByAdminId || '',
-    // Critical alias: DB stores 'category' but frontend filters on 'jobCategory'
     jobCategory: r.category || r.jobcategory || r.jobCategory || ''
   };
 }
 
-// ── AUTH MIDDLEWARE ───────────────────────────────────────────
+// ── AUTH MIDDLEWARE ───────────────────────────────────────────────────────────
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -151,26 +163,78 @@ const authMiddleware = (req, res, next) => {
   } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
 };
 
-// ── ROUTES ───────────────────────────────────────────────
+// ── SET CACHE HEADERS ─────────────────────────────────────────────────────────
+const setCache = (res, sMaxAge = 60, stale = 300) => {
+  res.setHeader('Cache-Control', `s-maxage=${sMaxAge}, stale-while-revalidate=${stale}`);
+};
 
-// POST increment view
-app.post('/api/jobs/:id/view', async (req, res) => {
-  try {
-    await pool.query('UPDATE jobs SET views = COALESCE(views, 0) + 1 WHERE id = $1', [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false });
+// ── JOBS SELECT (light — excludes heavy text blobs) ───────────────────────────
+const JOBS_SELECT_LIGHT = `id, createdAt, updatedAt, title, subtitle, description, requiredSkills, company, companyLogo, location, workMode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId`;
+
+function processPublicJobs(rows) {
+  const now = Date.now();
+  const cleaned   = [];
+  const deleteIds = [];
+  for (const row of rows) {
+    const job = mapRow(row);
+    if (!job) continue;
+    const expired = job.expiryDays > 0 && job.createdAt && (now > job.createdAt + job.expiryDays * 86400000);
+    if (expired) deleteIds.push(job.id);
+    else cleaned.push(job);
   }
-});
+  if (deleteIds.length > 0) {
+    // Fire-and-forget cleanup — don't block the response
+    pool.query('DELETE FROM jobs WHERE id = ANY($1::varchar[])', [deleteIds]).catch(err => console.error('[Expiry cleanup]', err));
+  }
+  return cleaned;
+}
 
-// GET search suggestions (titles and companies)
+// ── PAGINATED JOBS HELPER ─────────────────────────────────────────────────────
+async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cacheKeyPrefix = 'jobs_list') {
+  try {
+    const page   = Math.max(1, parseInt(req.query.page) || 1);
+    const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+
+    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${req.url.replace(/\W/g, '_')}`;
+    const cached   = getMemCache(cacheKey, 60);
+    if (cached) {
+      setEdgeCache(res, 60, 300);
+      return res.json(cached);
+    }
+
+    const whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
+
+    const { rows } = await pool.query(`
+      SELECT ${JOBS_SELECT_LIGHT}
+      FROM jobs
+      ${whereClause}
+      ORDER BY createdAt DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `, [...params, limit, offset]);
+
+    const cleaned = processPublicJobs(rows);
+    setMemCache(cacheKey, cleaned);
+    setEdgeCache(res, 60, 300);
+    res.json(cleaned);
+  } catch (err) {
+    console.error('[getPaginatedJobs]', err);
+    res.status(500).json({ message: 'Server error', detail: err.message });
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ROUTES
+// ──────────────────────────────────────────────────────────────────────────────
+
+// GET search suggestions
 app.get('/api/jobs/search/suggestions', async (req, res) => {
   try {
     const { q } = req.query;
     if (!q || q.length < 2) return res.json([]);
 
     const cacheKey = `sq_${q.toLowerCase()}`;
-    const cached = getMemCache(cacheKey, 600); // 10 mins Memory Cache
+    const cached   = getMemCache(cacheKey, 600);
     if (cached) {
       setEdgeCache(res, 600, 3600);
       return res.json(cached);
@@ -189,28 +253,24 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
     setEdgeCache(res, 600, 3600);
     res.json(result);
   } catch (err) {
-    console.error('Suggestions error:', err);
+    console.error('[suggestions]', err);
     res.status(500).json([]);
   }
 });
 
-// GET all jobs for admin (no expiry filtering, handles ownership)
+// GET jobs for admin (no expiry filtering)
 app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   try {
     const isManager = req.user.role === 'manager';
-    let query = `
-      SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount
-      FROM jobs j
-    `;
+    let query  = `SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount FROM jobs j`;
     let params = [];
-    
+
     if (!isManager) {
       query += ` WHERE j.createdByAdminId = $1`;
       params.push(req.user.id);
     }
-    
     query += ` ORDER BY j.createdat DESC`;
-    
+
     const { rows } = await pool.query(query, params);
     res.json(rows.map(mapRow));
   } catch (err) {
@@ -218,67 +278,14 @@ app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   }
 });
 
-// Constants for DB Query Optimization
-// EXCLUDES: fullDescription, aboutCompany, benefits, techStack, etc.
-// INCLUDES description and requiredSkills for JobCard snippets!
-const JOBS_SELECT_LIGHT = `id, createdAt, updatedAt, title, subtitle, description, requiredSkills, company, companyLogo, location, workMode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId`;
-
-function processPublicJobs(rows) {
-  const now = Date.now();
-  let cleaned = [], deleteIds = [];
-  for (const row of rows) {
-    const job = mapRow(row);
-    if (!job) continue;
-    const expired = job.expiryDays > 0 && job.createdAt && (now > job.createdAt + job.expiryDays * 86400000);
-    if (expired) deleteIds.push(job.id);
-    else cleaned.push(job);
-  }
-  if (deleteIds.length > 0) pool.query('DELETE FROM jobs WHERE id = ANY($1::varchar[])', [deleteIds]).catch(err => console.error(err));
-  return cleaned;
-}
-
-// Helper to fetch list jobs safely (paginated & optimized)
-async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cacheKeyPrefix = 'jobs_list') {
-  try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20)); // Limit safety
-    const offset = (page - 1) * limit;
-    
-    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${req.url.replace(/\W/g, '_')}`;
-    const cached = getMemCache(cacheKey, 60);
-    if (cached) {
-      setEdgeCache(res, 60, 300);
-      return res.json(cached);
-    }
-
-    const whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
-    
-    const { rows } = await pool.query(`
-      SELECT ${JOBS_SELECT_LIGHT}
-      FROM jobs
-      ${whereClause}
-      ORDER BY createdAt DESC
-      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-    `, [...params, limit, offset]);
-
-    const cleaned = processPublicJobs(rows);
-    setMemCache(cacheKey, cleaned);
-    setEdgeCache(res, 60, 300);
-    res.json(cleaned);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error', detail: err.message });
-  }
-}
-
-// SPLIT ROUTES
-app.get('/api/jobs/latest', (req, res) => getPaginatedJobs(req, res, '', [], 'latest'));
-app.get('/api/jobs/featured', (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', [], 'featured'));
-app.get('/api/jobs/freshers', (req, res) => getPaginatedJobs(req, res, 'isFresh = true OR isToday = true', [], 'freshers'));
-app.get('/api/jobs/today', (req, res) => getPaginatedJobs(req, res, 'isToday = true', [], 'today'));
+// Split public routes — each hits a specific optimized query
+app.get('/api/jobs/latest',     (req, res) => getPaginatedJobs(req, res, '', [], 'latest'));
+app.get('/api/jobs/featured',   (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', [], 'featured'));
+app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, 'isFresh = true OR isToday = true', [], 'freshers'));
+app.get('/api/jobs/today',      (req, res) => getPaginatedJobs(req, res, 'isToday = true', [], 'today'));
 
 app.get('/api/jobs/government', (req, res) => {
-  const govtFilter = req.query.govtFilter; // Central or State or All
+  const govtFilter = req.query.govtFilter;
   let addlt = `(category = 'Government Jobs' OR jobcategory = 'Government Jobs')`;
   const p = [];
   if (govtFilter === 'Central' || govtFilter === 'State') {
@@ -289,7 +296,6 @@ app.get('/api/jobs/government', (req, res) => {
 });
 
 app.get('/api/jobs/it', (req, res) => {
-  // Original logic: cat === 'IT & Non-IT Jobs' && jobCategoryType === 'IT Job'
   return getPaginatedJobs(req, res, `(category = 'IT & Non-IT Jobs' OR jobcategory = 'IT & Non-IT Jobs') AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, [], 'it');
 });
 
@@ -297,19 +303,17 @@ app.get('/api/jobs/non-it', (req, res) => {
   return getPaginatedJobs(req, res, `(category = 'IT & Non-IT Jobs' OR jobcategory = 'IT & Non-IT Jobs') AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, [], 'nonit');
 });
 
-// GET all jobs (public with expiry filtering) - Legacy paginated fallback
+// GET all jobs (public paginated — legacy fallback)
 app.get('/api/jobs', (req, res) => {
   return getPaginatedJobs(req, res, '', [], 'all');
 });
 
-// NEW FRONTEND ROUTE - Fetch single job FULL details
+// GET single job full details
 app.get('/api/jobs/:id/view', async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Check cache
     const cacheKey = `job_full_${id}`;
-    const cached = getMemCache(cacheKey, 60);
+    const cached   = getMemCache(cacheKey, 60);
     if (cached) {
       setEdgeCache(res, 60, 300);
       return res.json(cached);
@@ -317,13 +321,26 @@ app.get('/api/jobs/:id/view', async (req, res) => {
 
     const { rows } = await pool.query('SELECT * FROM jobs WHERE id = $1', [id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Not found' });
-    
+
     const maxJob = mapRow(rows[0]);
     setMemCache(cacheKey, maxJob);
     setEdgeCache(res, 60, 300);
     res.json(maxJob);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST increment view count (single route — duplicate removed)
+app.post('/api/jobs/:id/view', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `UPDATE jobs SET views = COALESCE(views, 0) + 1 WHERE id = $1 RETURNING views`,
+      [req.params.id]
+    );
+    res.json({ views: rows.length > 0 ? rows[0].views : 0 });
+  } catch (err) {
+    res.status(500).json({ success: false });
   }
 });
 
@@ -341,16 +358,19 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35)
       RETURNING *
     `, [
-      j.id,j.createdAt,j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
-      j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,j.companyLogo,
-      j.location,j.workMode,j.qualification,j.experience,j.salary,j.type,j.category,
-      j.monthTag,j.applyUrl,j.applyType,j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
-      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,j.createdByAdminId
+      j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
+      j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company, j.companyLogo,
+      j.location, j.workMode, j.qualification, j.experience, j.salary, j.type, j.category,
+      j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
+      j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType, j.createdByAdminId
     ]);
-      clearMemCachePrefix('jobs_list');
-      clearMemCachePrefix(`job_full_${j.id}`);
-      await recordActivity(pool, req.user, 'Jobs', `Created job: ${j.title}`, j.id);
-      res.status(201).json(mapRow(rows[0]));
+    clearMemCachePrefix('jobs_list');
+    clearMemCachePrefix('latest');
+    clearMemCachePrefix('all');
+    clearMemCachePrefix(`job_full_${j.id}`);
+    // Fire-and-forget logging — don't delay response
+    recordActivity(pool, req.user, 'Jobs', `Created job: ${j.title}`, j.id).catch(() => {});
+    res.status(201).json(mapRow(rows[0]));
   } catch (err) {
     console.error('POST /api/jobs:', err);
     res.status(500).json({ message: 'Server error', detail: err.message });
@@ -364,7 +384,7 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
     const isManager = req.user.role === 'manager';
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ message: 'Not found' });
-    
+
     const existingJob = mapRow(ex[0]);
     if (!isManager && existingJob.createdByAdminId !== req.user.id) {
       return res.status(403).json({ error: 'You can only edit your own jobs' });
@@ -382,20 +402,22 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
         createdByAdminId=$33
       WHERE id=$34 RETURNING *
     `, [
-      j.updatedAt,j.title,j.subtitle,j.description,j.fullDescription,
-      j.requiredSkills,j.techStack,j.aboutCompany,j.benefits,j.company,
-      j.companyLogo,j.location,j.workMode,j.qualification,j.experience,
-      j.salary,j.type,j.category,j.monthTag,j.applyUrl,j.applyType,
-      j.expiryDays,j.isFeatured,j.isFresh,j.isTrending,j.isToday,j.isVisible,
-      j.govtJobType,j.stateName,j.jobCategoryType,j.mapLocationUrl,j.processType,
+      j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
+      j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
+      j.companyLogo, j.location, j.workMode, j.qualification, j.experience,
+      j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
+      j.expiryDays, j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
+      j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType,
       j.createdByAdminId, id
     ]);
-      clearMemCachePrefix('jobs_list');
-      clearMemCachePrefix(`job_full_${id}`);
-      await recordActivity(pool, req.user, 'Jobs', `Updated job: ${j.title}`, j.id);
-      res.json(mapRow(rows[0]));
+    clearMemCachePrefix('jobs_list');
+    clearMemCachePrefix('latest');
+    clearMemCachePrefix('all');
+    clearMemCachePrefix(`job_full_${id}`);
+    recordActivity(pool, req.user, 'Jobs', `Updated job: ${j.title}`, j.id).catch(() => {});
+    res.json(mapRow(rows[0]));
   } catch (err) {
-    console.error(err);
+    console.error('[PUT /api/jobs/:id]', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -411,42 +433,39 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
     }
     await pool.query('DELETE FROM jobs WHERE id=$1', [id]);
     clearMemCachePrefix('jobs_list');
+    clearMemCachePrefix('latest');
+    clearMemCachePrefix('all');
     clearMemCachePrefix(`job_full_${id}`);
-    await recordActivity(pool, req.user, 'Jobs', `Deleted job ID: ${id}`, id);
+    recordActivity(pool, req.user, 'Jobs', `Deleted job ID: ${id}`, id).catch(() => {});
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// GET all applications (filtered by ownership)
+// GET all applications
 app.get('/api/jobs/applications/all', authMiddleware, async (req, res) => {
   try {
     const isManager = req.user.role === 'manager';
-    let query = `
-      SELECT a.* 
-      FROM applications a
-      JOIN jobs j ON a.jobId = j.id
-    `;
+    let query  = `SELECT a.* FROM applications a JOIN jobs j ON a.jobId = j.id`;
     let params = [];
 
     if (!isManager) {
       query += ` WHERE j.createdByAdminId = $1`;
       params.push(req.user.id);
     }
-
     query += ` ORDER BY a.appliedAt DESC`;
 
     const { rows } = await pool.query(query, params);
-    res.json(rows.map(r => ({ 
-      ...r, 
-      appliedAt: Number(r.appliedat || r.appliedAt), 
-      jobId: r.jobid || r.jobId,
-      jobTitle: r.jobtitle || r.jobTitle,
+    res.json(rows.map(r => ({
+      ...r,
+      appliedAt:   Number(r.appliedat || r.appliedAt),
+      jobId:       r.jobid       || r.jobId,
+      jobTitle:    r.jobtitle    || r.jobTitle,
       companyName: r.companyname || r.companyName
     })));
   } catch (err) {
-    console.error('Applications error:', err);
+    console.error('[GET applications]', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -456,85 +475,59 @@ app.delete('/api/jobs/applications/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const isManager = req.user.role === 'manager';
-    
-    // Check ownership before delete if not manager
+
     if (!isManager) {
       const { rows } = await pool.query(`
         SELECT a.id FROM applications a
         JOIN jobs j ON a.jobId = j.id
         WHERE a.id = $1 AND j.createdByAdminId = $2
       `, [id, req.user.id]);
-      
-      if (rows.length === 0) {
-        return res.status(403).json({ error: 'Unauthorized to delete this applicant' });
-      }
+      if (rows.length === 0) return res.status(403).json({ error: 'Unauthorized to delete this applicant' });
     }
 
     await pool.query('DELETE FROM applications WHERE id = $1', [id]);
     res.json({ success: true, message: 'Applicant deleted' });
   } catch (err) {
-    console.error('DELETE application error:', err);
+    console.error('[DELETE application]', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-const nodemailer = require('nodemailer');
-
 // POST apply to job
+const nodemailer = require('nodemailer');
 app.post('/api/jobs/:id/apply', async (req, res) => {
   try {
     const { name, email, phone, resume, jobTitle, companyName } = req.body;
     if (!name || !email) return res.status(400).json({ message: 'Missing fields' });
     const id = String(Date.now());
-    
-    // Using a mocked ethereal transport OR console.log for dummy emails right now as requested.
-    // Replace with real transport later
-    async function sendMail() {
+
+    // Save application first — don't block on email
+    const { rows } = await pool.query(
+      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt,jobTitle,companyName) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [id, req.params.id, name, email, phone || '', resume || '', Date.now(), jobTitle || '', companyName || '']
+    );
+    res.status(201).json(rows[0]);
+
+    // Fire-and-forget email — failures don't affect the user response
+    (async () => {
       try {
-        let transporter = nodemailer.createTransport({
+        const transporter = nodemailer.createTransport({
           host: 'smtp.ethereal.email',
           port: 587,
-          secure: false, // true for 465, false for other ports
+          secure: false,
           auth: {
-            user: process.env.EMAIL_USER || 'dummy@ethereal.email', 
+            user: process.env.EMAIL_USER || 'dummy@ethereal.email',
             pass: process.env.EMAIL_PASS || 'dummy-pass'
           }
         });
-        
-        let info = await transporter.sendMail({
-          from: '"Startaply Demo" <demo@startaply.com>', 
-          to: email, 
-          subject: `Application Received: ${jobTitle || 'Job'} at ${companyName || 'our partner company'}`, 
-          text: `Hi ${name},\n\nWe have received your application for the ${jobTitle || 'Job'} role at ${companyName || 'our partner company'}.\n\nThank you for applying through Startaply!\n\nBest,\nStartaply Team`,
-          html: `<p>Hi ${name},</p><p>We have received your application for the <b>${jobTitle || 'Job'}</b> role at <b>${companyName || 'our partner company'}</b>.</p><p>Thank you for applying through Startaply!</p><p>Best,<br>Startaply Team</p>`
+        await transporter.sendMail({
+          from: '"Strataply" <noreply@strataply.com>',
+          to: email,
+          subject: `Application Received: ${jobTitle || 'Job'} at ${companyName || 'our partner company'}`,
+          text: `Hi ${name},\n\nWe have received your application.\n\nThank you for applying through Strataply!\n\nBest,\nStrataply Team`,
         });
-        
-        console.log("Email Dummy Sent: %s", info.messageId);
-      } catch (e) {
-        console.error("Nodemailer error (dummy expected):", e.message);
-      }
-    }
-
-    sendMail();
-
-    const { rows } = await pool.query(
-      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt, jobTitle, companyName) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [id, req.params.id, name, email, phone || '', resume, Date.now(), jobTitle || '', companyName || '']
-    );
-    res.status(201).json(rows[0]);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST view job
-app.post('/api/jobs/:id/view', async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      `UPDATE jobs SET views = COALESCE(views,0)+1 WHERE id=$1 RETURNING views`,
-      [req.params.id]
-    );
-    res.json({ views: rows.length > 0 ? rows[0].views : 0 });
+      } catch { /* email failure is non-critical */ }
+    })();
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

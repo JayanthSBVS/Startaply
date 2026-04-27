@@ -1,42 +1,55 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { MapPin, IndianRupee, Clock, Building2, ChevronRight, Share2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
-const JobCard = ({ job, onViewDetails }) => {
+// ── Pure component — only re-renders when the job object reference changes ─
+const JobCard = memo(({ job, onViewDetails }) => {
   if (!job) return <div className="animate-pulse bg-white border border-slate-100 rounded-[2rem] h-[22rem] w-full shadow-sm" />;
 
   const createdAt = job.createdAt || Date.now();
-  let daysRemaining = null;
 
-  // FIX: Only calculate and enforce expiry if expiryDays is explicitly set and > 0
-  if (job.expiryDays && job.expiryDays > 0) {
-    const expiryTimeMs = new Date(createdAt).getTime() + (job.expiryDays * 24 * 60 * 60 * 1000);
-    daysRemaining = Math.ceil((expiryTimeMs - Date.now()) / (24 * 60 * 60 * 1000));
+  // ── Expiry calculation ─────────────────────────────────────────────────
+  // Only calculate if expiryDays is explicitly set and > 0
+  const daysRemaining = useMemo(() => {
+    if (!job.expiryDays || job.expiryDays <= 0) return null;
+    const expiryTimeMs = createdAt + (job.expiryDays * 86400000);
+    return Math.ceil((expiryTimeMs - Date.now()) / 86400000);
+  }, [createdAt, job.expiryDays]);
 
-    // Hide from UI entirely if expired
-    if (daysRemaining < 0) return null;
-  }
+  // Hide if expired
+  if (daysRemaining !== null && daysRemaining < 0) return null;
 
-  const skills = job.requiredSkills ? job.requiredSkills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 3) : [];
+  // ── Derived values ─────────────────────────────────────────────────────
+  const skills = useMemo(
+    () => (job.requiredSkills ? job.requiredSkills.split(',').map(s => s.trim()).filter(Boolean).slice(0, 3) : []),
+    [job.requiredSkills]
+  );
 
-  const timeAgo = () => {
+  const timeAgo = useMemo(() => {
     const diff = Date.now() - createdAt;
-    const days = Math.floor(diff / 86400000);
+    const days  = Math.floor(diff / 86400000);
     const hours = Math.floor(diff / 3600000);
     if (days === 0) return hours < 1 ? 'Just now' : `${hours}h ago`;
     if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days}d ago`;
+    if (days < 7)  return `${days}d ago`;
     return `${Math.floor(days / 7)}w ago`;
-  };
+  }, [createdAt]);
+
+  const lastDateStr = useMemo(() => {
+    if (daysRemaining === null) return null;
+    const d = new Date(createdAt + (job.expiryDays * 86400000));
+    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+  }, [createdAt, job.expiryDays, daysRemaining]);
 
   const handleShare = async (e) => {
     e.stopPropagation();
     const shareText = `Explore this opportunity on Strataply!\nTitle: ${job.title}\nCompany: ${job.company}\nView: ${window.location.origin}/jobs?id=${job.id}`;
-    if (navigator.share) { try { await navigator.share({ title: job.title, text: shareText }); } catch (err) { } }
-    else { 
-      navigator.clipboard.writeText(shareText); 
-      toast.success('Job details copied to clipboard!'); 
+    if (navigator.share) {
+      try { await navigator.share({ title: job.title, text: shareText }); } catch { /* user cancelled */ }
+    } else {
+      navigator.clipboard.writeText(shareText);
+      toast.success('Job details copied to clipboard!');
     }
   };
 
@@ -53,15 +66,15 @@ const JobCard = ({ job, onViewDetails }) => {
       <div className="flex justify-between items-start mb-5 relative z-10">
         <div className="w-16 h-16 rounded-[1.25rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm p-3 flex items-center justify-center relative group-hover:shadow-md group-hover:border-emerald-200 transition-all duration-200 overflow-hidden">
           {job.companyLogo ? (
-            <img src={job.companyLogo} alt={job.company} className="w-full h-full object-contain relative z-10" />
+            <img src={job.companyLogo} alt={job.company} className="w-full h-full object-contain relative z-10" loading="lazy" />
           ) : (
             <Building2 size={28} className="text-slate-300 dark:text-slate-600 relative z-10" />
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <motion.button 
-            whileTap={{ scale: 0.8 }} 
-            onClick={handleShare} 
+          <motion.button
+            whileTap={{ scale: 0.8 }}
+            onClick={handleShare}
             className="p-2.5 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors duration-200"
           >
             <Share2 size={18} />
@@ -113,14 +126,11 @@ const JobCard = ({ job, onViewDetails }) => {
         <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 text-[11px] font-bold">
           {daysRemaining !== null && daysRemaining <= 7 ? (
             <span className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 px-2 py-1 rounded-md animate-pulse border border-red-100 dark:border-red-900/40">
-              <AlertCircle size={12} /> Last date: {(() => {
-                const d = new Date(new Date(createdAt).getTime() + (job.expiryDays * 24 * 60 * 60 * 1000));
-                return `${String(d.getDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
-              })()}
+              <AlertCircle size={12} /> Last date: {lastDateStr}
             </span>
           ) : (
             <span className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded-md">
-              <Clock size={12} /> {timeAgo()}
+              <Clock size={12} /> {timeAgo}
             </span>
           )}
         </div>
@@ -130,6 +140,8 @@ const JobCard = ({ job, onViewDetails }) => {
       </div>
     </motion.div>
   );
-};
+});
+
+JobCard.displayName = 'JobCard';
 
 export default JobCard;

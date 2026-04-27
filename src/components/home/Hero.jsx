@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Search, GraduationCap, Building2, Briefcase, ChevronRight, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useJobs } from '../../context/JobsContext';
@@ -8,53 +7,59 @@ import { useJobs } from '../../context/JobsContext';
 const Hero = () => {
   const navigate = useNavigate();
   const { jobs, companies, heroImages, melas } = useJobs();
-  const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+  const [query, setQuery]               = useState('');
+  const [suggestions, setSuggestions]   = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [currentImg, setCurrentImg] = useState(0);
+  const [currentImg, setCurrentImg]     = useState(0);
   const dropdownRef = useRef(null);
 
-  const images = (heroImages && heroImages.length > 0) ? heroImages : [];
+  const images = Array.isArray(heroImages) && heroImages.length > 0 ? heroImages : [];
 
+  // ── Image slideshow ──────────────────────────────────────────────────────
+  // Depend ONLY on images.length — not on currentImg — so the interval
+  // is not recreated on every slide change. The setCurrentImg updater form
+  // always has the latest prev value without needing it as a dep.
   useEffect(() => {
-    if (images.length === 0) return;
-    const img = new Image();
-    img.src = images[(currentImg + 1) % images.length];
+    if (images.length <= 1) return;
+    // Preload next image
+    const nextIdx = (currentImg + 1) % images.length;
+    const img = new window.Image();
+    img.src = images[nextIdx];
+    
     const timer = setInterval(() => {
-      setCurrentImg((prev) => (prev + 1) % images.length);
+      setCurrentImg(prev => (prev + 1) % images.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [currentImg, images.length]); // Only depend on length to prevent unnecessary cycles
+  }, [images.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Instant Local Search Suggestions (SEO & Perf Optimized)
+  // ── Local search suggestions from context data (no API call) ────────────
   useEffect(() => {
-    if (query.length < 2) {
+    if (!query || query.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
 
     const q = query.toLowerCase();
-    const matchedJobs = jobs?.filter(j => j.title && j.title.toLowerCase().includes(q)).map(j => j.title) || [];
-    const matchedComps = companies?.filter(c => c.name && c.name.toLowerCase().includes(q)).map(c => c.name) || [];
-    const matchedMelas = melas?.filter(m => m.title && m.title.toLowerCase().includes(q)).map(m => m.title) || [];
+    const matchedJobs  = (jobs   || []).filter(j => j.title && j.title.toLowerCase().includes(q)).map(j => j.title);
+    const matchedComps = (companies || []).filter(c => c.name  && c.name.toLowerCase().includes(q)).map(c => c.name);
+    const matchedMelas = (melas  || []).filter(m => m.title && m.title.toLowerCase().includes(q)).map(m => m.title);
 
     const combined = Array.from(new Set([...matchedJobs, ...matchedComps, ...matchedMelas])).slice(0, 8);
-    
     setSuggestions(combined);
     setShowSuggestions(combined.length > 0);
     setSelectedIndex(-1);
   }, [query, jobs, companies, melas]);
 
-  const handleSearch = (searchTerm) => {
+  const handleSearch = useCallback((searchTerm) => {
     const finalQuery = searchTerm || query;
     if (!finalQuery.trim()) return;
     setShowSuggestions(false);
     navigate(`/jobs?company=${encodeURIComponent(finalQuery.trim())}`);
-  };
+  }, [query, navigate]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') {
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
         setQuery(suggestions[selectedIndex]);
@@ -72,7 +77,7 @@ const Hero = () => {
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
-  };
+  }, [selectedIndex, suggestions, handleSearch]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -140,7 +145,7 @@ const Hero = () => {
               <Building2 size={14} /> Govt Jobs
             </span>
             <span className="flex items-center gap-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 px-4 py-2 rounded-full text-xs font-black border border-teal-500/20 transition-all shadow-sm hover:shadow-teal-500/20 hover:-translate-y-0.5 cursor-default">
-              <Zap size={14} /> Gig & Services
+              <Zap size={14} /> Gig &amp; Services
             </span>
           </motion.div>
 

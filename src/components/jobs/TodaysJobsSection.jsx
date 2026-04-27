@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useJobs } from '../../context/JobsContext';
 import JobCard from './JobCard';
 import JobDetailsPanel from './JobDetailsPanel';
+import SkeletonCard from '../common/SkeletonCard';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORIES = ["All", "IT & Non-IT Jobs", "Government Jobs"];
 
-const TodaysJobsSection = () => {
-  const { jobs } = useJobs();
-  const [activeTab, setActiveTab] = useState("All");
+const TodaysJobsSection = memo(() => {
+  const { jobs, loading } = useJobs();
+  const [activeTab, setActiveTab]   = useState("All");
   const [selectedJob, setSelectedJob] = useState(null);
 
   // Defensive programming: ensure arrays are used
-  const safeJobs = Array.isArray(jobs) ? jobs : [];
-  const freshJobs = safeJobs.filter(j => j.isToday || j.isFresh); // Fallback to isFresh for safety
-  const filtered = activeTab === "All"
+  const safeJobs  = Array.isArray(jobs) ? jobs : [];
+  const freshJobs = safeJobs.filter(j => j.isToday || j.isFresh);
+  const filtered  = activeTab === "All"
     ? freshJobs
     : freshJobs.filter(j => (j.jobCategory || j.category) === activeTab);
 
@@ -51,33 +52,41 @@ const TodaysJobsSection = () => {
               className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 ${activeTab === cat
                 ? 'bg-slate-900 dark:bg-emerald-600 text-white shadow-md'
                 : 'bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
+              }`}
             >
               {cat}
             </button>
           ))}
         </div>
 
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence mode="popLayout">
-            {safeFiltered.slice(0, 6).map(job => (
-              <motion.div
-                key={job.id}
-                layout
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                <JobCard job={job} onViewDetails={setSelectedJob} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        {/* Skeleton while loading */}
+        {loading && safeFiltered.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+          </div>
+        ) : (
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {safeFiltered.slice(0, 6).map(job => (
+                <motion.div
+                  key={job.id}
+                  layout
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <JobCard job={job} onViewDetails={setSelectedJob} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </div>
       <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
     </section>
   );
-};
+});
 
+TodaysJobsSection.displayName = 'TodaysJobsSection';
 export default TodaysJobsSection;
