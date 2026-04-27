@@ -82,18 +82,36 @@ const AdminDashboard = () => {
     const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
     const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@strataply.com';
     const config = { headers: { Authorization: `Bearer ${token}` } };
+
+    // Helper: catches 401/403 and redirects; otherwise returns fallback
+    const safeGet = async (url, cfg, fallback = []) => {
+      try {
+        const res = await axios.get(url, cfg);
+        return res;
+      } catch (err) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          toast.error('Session expired. Please log in again.');
+          logout();
+          navigate('/admin-login');
+          throw err; // Abort the rest of fetchData
+        }
+        return { data: fallback };
+      }
+    };
     
-    // 1. Fetch Core Data (Non-blocking)
-    Promise.all([
-      axios.get(`${API}/jobs/admin/list`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/jobs/applications/all`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/companies/admin/list`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/job-mela/admin/list`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/feedback`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/testimonials/admin/list`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/prep-data/admin/list`, config).catch(() => ({ data: [] })),
-      axios.get(`${API}/hero-banners`).catch(() => ({ data: [] }))
-    ]).then(([jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes]) => {
+    try {
+      // 1. Fetch Core Data in parallel
+      const [jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes] = await Promise.all([
+        safeGet(`${API}/jobs/admin/list`, config),
+        safeGet(`${API}/jobs/applications/all`, config),
+        safeGet(`${API}/companies/admin/list`, config),
+        safeGet(`${API}/job-mela/admin/list`, config),
+        safeGet(`${API}/feedback`, config),
+        safeGet(`${API}/testimonials/admin/list`, config),
+        safeGet(`${API}/prep-data/admin/list`, config),
+        safeGet(`${API}/hero-banners`, {}).catch(() => ({ data: [] })),
+      ]);
+
       setJobs(jobsRes.data || []);
       setApplications(appsRes.data || []);
       setCompanies(compRes.data || []);
@@ -102,34 +120,36 @@ const AdminDashboard = () => {
       setTestimonials(testRes.data || []);
       setPrepData(prepRes.data || []);
       setHeroBanners(heroBannersRes?.data || []);
-    }).catch(err => {
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        toast.error("Session Expired or Unauthorized.");
-        logout(); navigate('/admin-login');
-      }
-    });
 
-    // 2. Fetch Manager Data (Parallel, Decoupled for Speed)
-    if (currentIsManager) {
-      Promise.all([
-        axios.get(`${API}/auth/stats`, config).catch(e => { console.error("Stats Fetch Failed:", e.message); return { data: null }; }),
-        axios.get(`${API}/auth/logs`, config).catch(e => { console.error("Logs Fetch Failed:", e.message); return { data: [] }; }),
-        axios.get(`${API}/auth/users`, config).catch(e => { console.error("Admins Fetch Failed:", e.message); return { data: [] }; })
-      ]).then(([statsRes, logsRes, adminsRes]) => {
-        if (statsRes.data) {
+      // 2. Fetch Manager Data (decoupled)
+      if (currentIsManager) {
+        const [statsRes, logsRes, adminsRes] = await Promise.all([
+          safeGet(`${API}/auth/stats`, config, null),
+          safeGet(`${API}/auth/logs`, config),
+          safeGet(`${API}/auth/users`, config),
+        ]);
+
+        if (statsRes?.data) {
           setGlobalStats(prev => ({
             ...prev,
             ...statsRes.data,
-            // Ensure derived totals are calculated if not provided by API
-            totalToday: statsRes.data.totalToday || (parseInt(statsRes.data.todayJobs || 0) + parseInt(statsRes.data.todayPrep || 0) + parseInt(statsRes.data.todayMela || 0))
+            totalToday: statsRes.data.totalToday || (
+              parseInt(statsRes.data.todayJobs || 0) +
+              parseInt(statsRes.data.todayPrep || 0) +
+              parseInt(statsRes.data.todayMela || 0)
+            )
           }));
         }
-        if (logsRes.data) {
-          // Only update if logs have actually changed to prevent render jitter
+        if (logsRes?.data) {
           setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : logsRes.data);
         }
-        if (adminsRes.data) setAdmins(adminsRes.data);
-      });
+        if (adminsRes?.data) setAdmins(adminsRes.data);
+      }
+    } catch (err) {
+      // 401/403 already handled inside safeGet — this catches unexpected errors only
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        console.error('[Dashboard fetch error]', err.message);
+      }
     }
   };
 
