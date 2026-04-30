@@ -43,11 +43,11 @@ const managerMiddleware = (req, res, next) => {
 };
 
 // ── DB INIT ───────────────────────────────────────────────────────────────────
-let authDbInitialized = false;
+let authDbPromise = null;
 async function initAuthDb() {
-  if (authDbInitialized) return;
-  authDbInitialized = true;
-  try {
+  if (authDbPromise) return authDbPromise;
+  authDbPromise = (async () => {
+    try {
     // 1. Users table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -165,12 +165,15 @@ async function initAuthDb() {
       ).catch(() => {});
     }
 
-  } catch (err) {
-    console.error('[Auth DB init error]', err.message);
-    authDbInitialized = false; // Allow retry on next invocation
-  }
+    } catch (err) {
+      console.error('[Auth DB init error]', err.message);
+      authDbPromise = null; // Allow retry on next invocation
+      throw err;
+    }
+  })();
+  return authDbPromise;
 }
-initAuthDb();
+initAuthDb().catch(() => {});
 
 // ── ROUTES ────────────────────────────────────────────────────────────────────
 
@@ -322,6 +325,7 @@ app.get('/api/auth/logs', authMiddleware, managerMiddleware, async (req, res) =>
 // GET role permissions (any authenticated user — each sees their own role's config)
 app.get('/api/auth/permissions', authMiddleware, async (req, res) => {
   try {
+    await initAuthDb(); // Ensure tables are ready
     const cacheKey = 'role_perms_all';
     const cached = getMemCache(cacheKey, 30);
     if (cached) return res.json(cached);
@@ -332,7 +336,12 @@ app.get('/api/auth/permissions', authMiddleware, async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('[Permissions fetch error]', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: err.message,
+      code: err.code,
+      hint: err.hint
+    });
   }
 });
 
