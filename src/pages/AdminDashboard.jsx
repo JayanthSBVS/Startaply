@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import {
   LayoutDashboard, PlusCircle, Briefcase, Trash2, Edit2,
@@ -6,7 +6,8 @@ import {
   Megaphone, Calendar, MapPin, Download, Star, Zap,
   MessageSquareQuote, BookOpen, Search, Eye, Image as ImageIcon,
   BarChart3, ShieldCheck, Activity, TrendingUp, PieChart, Users2,
-  Bell, History, Settings, CheckCircle2, AlertCircle, FileText, RefreshCw
+  Bell, History, Settings, CheckCircle2, AlertCircle, FileText, RefreshCw,
+  Lock, Unlock, UserPlus, Phone, Mail, Sliders, Crown, BadgeCheck, UserCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -20,9 +21,19 @@ const inputCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 d
 const selectCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-slate-900 dark:text-white cursor-pointer focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm dark:shadow-inner appearance-none";
 const textareaCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-[1.5rem] px-5 py-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all resize-none shadow-sm dark:shadow-inner";
 
+// Role presentation helpers
+const ROLE_CONFIG = {
+  manager:              { label: 'Manager',              color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/20',  icon: Crown },
+  operational_manager:  { label: 'Op. Manager',          color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: BadgeCheck },
+  executive:            { label: 'Exec.',                color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    icon: UserCheck },
+  admin:                { label: 'Exec.',                color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    icon: UserCheck },
+};
+const getRoleConfig  = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.executive;
+const getRoleLabel   = (role) => getRoleConfig(role).label;
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, logout, isManager } = useAuth();
+  const { user, logout, isManager, isOpManager, isExecutive, canDo, permissions, refreshPermissions } = useAuth();
   
   const getConfig = () => {
     const token = localStorage.getItem('strataply_token');
@@ -70,6 +81,14 @@ const AdminDashboard = () => {
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' });
   const [testimonialForm, setTestimonialForm] = useState({ name: '', tagline: '', description: '', photo: '' });
   const [prepForm, setPrepForm] = useState({ heading: '', jobType: 'IT Jobs', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
+
+  // Team Management state
+  const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'executive', department: '', mobile: '', joinedAt: '' });
+  const [showTeamModal, setShowTeamModal] = useState(false);
+
+  // Role Permissions state — keyed by role name
+  const [permForm, setPermForm] = useState({});
+  const [permSaving, setPermSaving] = useState({});
 
   const fetchData = async () => {
     const token = localStorage.getItem('strataply_token');
@@ -204,19 +223,20 @@ const AdminDashboard = () => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     ...(isManager() ? [
-      { id: 'admins', label: 'Admin Management', icon: ShieldCheck },
-      { id: 'logs', label: 'Activity Logs', icon: History },
+      { id: 'team',        label: 'Team Management', icon: Users2 },
+      { id: 'permissions', label: 'Role Permissions', icon: Sliders },
+      { id: 'logs',        label: 'Activity Logs',   icon: History },
       { id: 'global_stats', label: 'Global Intelligence', icon: BarChart3 },
-      { id: 'herobanners', label: 'Hero Banners', icon: ImageIcon },
+      { id: 'herobanners', label: 'Hero Banners',    icon: ImageIcon },
     ] : []),
-    { id: 'add', label: 'Post Job', icon: PlusCircle },
-    { id: 'manage', label: 'Jobs List', icon: Briefcase },
-    { id: 'applications', label: 'Applicants', icon: Users },
-    { id: 'companies', label: 'Companies', icon: Building2 },
-    { id: 'jobmela', label: 'Job Mela', icon: Megaphone },
-    { id: 'prep', label: 'Preparation', icon: BookOpen },
+    { id: 'add',          label: 'Post Job',     icon: PlusCircle },
+    { id: 'manage',       label: 'Jobs List',    icon: Briefcase },
+    { id: 'applications', label: 'Applicants',   icon: Users },
+    { id: 'companies',    label: 'Companies',    icon: Building2 },
+    { id: 'jobmela',      label: 'Job Mela',     icon: Megaphone },
+    { id: 'prep',         label: 'Preparation',  icon: BookOpen },
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
-    { id: 'feedback', label: 'Feedbacks', icon: MessageSquare },
+    { id: 'feedback',     label: 'Feedbacks',    icon: MessageSquare },
   ];
 
   return (
@@ -249,7 +269,7 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-emerald-600 uppercase tracking-tighter">{user?.role === 'manager' ? 'Operational Manager' : 'System Admin'}</p>
+              <p className="text-xs font-black text-emerald-600 uppercase tracking-tighter">{getRoleLabel(user?.role)}</p>
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{user?.name || 'Authorized User'}</p>
             </div>
             <div className="w-10 h-10 bg-emerald-500/10 rounded-full border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-black shadow-inner">
@@ -470,14 +490,14 @@ const AdminDashboard = () => {
                        <div className="w-px h-8 bg-slate-200 dark:bg-slate-800" />
                        <div className="px-4 py-2 text-center">
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Active Admins</p>
-                          <p className="text-xl font-black text-blue-500">{admins.filter(a => a.isactive).length}</p>
+                          <p className="text-xl font-black text-blue-500">{(Array.isArray(admins) ? admins : []).filter(a => a.isactive).length}</p>
                        </div>
                        <button onClick={fetchData} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-emerald-500"><RefreshCw size={14} /></button>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    {logs.slice(0, 6).map((log, i) => {
+                    {(Array.isArray(logs) ? logs : []).slice(0, 6).map((log, i) => {
                        const moduleColors = {
                         'Jobs': 'text-sky-500 bg-sky-500/10 border-sky-500/20',
                         'Auth': 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
@@ -520,8 +540,8 @@ const AdminDashboard = () => {
                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
                       <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-8 flex items-center gap-2"><Zap size={16} className="text-amber-400" /> Operational Health</h3>
                       <div className="space-y-6">
-                        {admins.slice(0, 5).map(admin => {
-                          const p = globalStats?.adminProductivity?.find(x => x.id === admin.id);
+                        {(Array.isArray(admins) ? admins : []).slice(0, 5).map(admin => {
+                          const p = (Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).find(x => x.id === admin.id);
                           const progress = Math.min(((p?.todayTotal || 0) / 10) * 100, 100);
                           return (
                             <div key={admin.id} className="space-y-2.5">
@@ -611,8 +631,15 @@ const AdminDashboard = () => {
                       </div>
 
                       <div className="flex gap-2 border-l border-slate-200 dark:border-slate-800/80 pl-6">
-                        <button onClick={() => { setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '' }); setEditingJobId(job.id); setActiveTab('add'); }} className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-colors"><Edit2 size={18} /></button>
-                        <button onClick={() => handleJobDelete(job.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors"><Trash2 size={18} /></button>
+                        {job.canEdit !== false && (
+                          <button onClick={() => { setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '' }); setEditingJobId(job.id); setActiveTab('add'); }} className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-colors"><Edit2 size={18} /></button>
+                        )}
+                        {job.canDelete !== false && (
+                          <button onClick={() => handleJobDelete(job.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors"><Trash2 size={18} /></button>
+                        )}
+                        {!job.canEdit && !job.canDelete && (
+                          <span className="px-3 py-1.5 text-[9px] font-black uppercase bg-slate-100 dark:bg-slate-800/50 text-slate-400 rounded-xl border border-slate-200 dark:border-slate-700 tracking-widest">VIEW ONLY</span>
+                        )}
                       </div>
                       </div>
                     </div>
@@ -1131,7 +1158,7 @@ const AdminDashboard = () => {
                 
                 <div className="p-8">
                   <div className="space-y-6">
-                    {logs.map((log, idx) => {
+                    {(Array.isArray(logs) ? logs : []).map((log, idx) => {
                       const moduleColors = {
                         'Jobs': 'bg-sky-500/10 text-sky-500 border-sky-500/20',
                         'Companies': 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
@@ -1198,65 +1225,260 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {isManager() && activeTab === 'admins' && (
-            <div className="animate-in fade-in slide-in-from-bottom-5 grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1">
-                <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 p-8 rounded-[2.5rem] sticky top-24 shadow-2xl">
-                  <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-emerald-400"><Users2 size={28} /> Deploy Admin</h2>
-                  <div className="space-y-4">
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Full Name</label><input id="newAdminName" className={inputCls} placeholder="Admin Name" /></div>
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Email Address</label><input id="newAdminEmail" className={inputCls} placeholder="admin@strataply.com" /></div>
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Temporary Password</label><input id="newAdminPassword" type="password" className={inputCls} placeholder="••••••••" /></div>
-                     <button onClick={async () => {
-                       const name = document.getElementById('newAdminName').value;
-                       const email = document.getElementById('newAdminEmail').value;
-                       const password = document.getElementById('newAdminPassword').value;
-                       if(!name || !email || !password) return toast.error("All fields required");
-                       try {
-                         await axios.post(`${API}/auth/register`, { name, email, password }, getConfig());
-                         toast.success("Admin Authorized");
-                         fetchData();
-                       } catch(e) { toast.error(e.response?.data?.error || "Creation failed"); }
-                     }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-full mt-6 shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">Authorize Access</button>
-                  </div>
+          {/* ═══════════════════════ TEAM MANAGEMENT TAB ═══════════════════════ */}
+          {isManager() && activeTab === 'team' && (
+            <div className="animate-in fade-in slide-in-from-bottom-5 space-y-8">
+
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+                    <Users2 className="text-purple-400" size={30} /> Team Management
+                  </h2>
+                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mt-1 pl-12">Manage your administrative team</p>
+                </div>
+                <button
+                  onClick={() => setShowTeamModal(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-full shadow-xl shadow-purple-500/25 active:scale-95 transition-all text-sm"
+                >
+                  <UserPlus size={16} /> Add Member
+                </button>
+              </div>
+
+              {/* Team Table */}
+              <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-50/80 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800">
+                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Member</th>
+                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Contact & Dept</th>
+                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Role</th>
+                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Status</th>
+                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Joined</th>
+                        <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                      {(Array.isArray(admins) ? admins : []).map(member => {
+                        const rc = getRoleConfig(member.role);
+                        const RoleIcon = rc.icon;
+                        return (
+                          <tr key={member.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+                            {/* Member */}
+                            <td className="px-8 py-6">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border ${rc.bg} ${rc.border} ${rc.color} shadow-inner group-hover:scale-105 transition-transform`}>
+                                  {member.name?.charAt(0)?.toUpperCase() || '?'}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{member.name}</p>
+                                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{member.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            {/* Contact & Dept */}
+                            <td className="px-8 py-6">
+                              <div className="space-y-1">
+                                {member.mobile && <p className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><Phone size={10} className="text-slate-400" />{member.mobile}</p>}
+                                {member.department && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{member.department}</p>}
+                                {!member.mobile && !member.department && <p className="text-[10px] text-slate-400 italic">—</p>}
+                              </div>
+                            </td>
+                            {/* Role badge */}
+                            <td className="px-8 py-6">
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${rc.bg} ${rc.border} ${rc.color}`}>
+                                <RoleIcon size={10} /> {rc.label}
+                              </span>
+                            </td>
+                            {/* Status */}
+                            <td className="px-8 py-6">
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${member.isactive ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-slate-500/10 border-slate-500/20 text-slate-400'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${member.isactive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                                {member.isactive ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            {/* Joined */}
+                            <td className="px-8 py-6">
+                              <p className="text-xs font-bold text-slate-500">
+                                {member.joinedat ? new Date(parseInt(member.joinedat)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : member.createdat ? new Date(parseInt(member.createdat)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              </p>
+                            </td>
+                            {/* Actions */}
+                            <td className="px-8 py-6">
+                              {member.role !== 'manager' && (
+                                <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={async () => { await axios.put(`${API}/auth/users/${member.id}/toggle`, { isActive: !member.isactive }, getConfig()); fetchData(); toast.success('Status updated'); }}
+                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${member.isactive ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20'}`}
+                                  >
+                                    {member.isactive ? 'Deactivate' : 'Activate'}
+                                  </button>
+                                  <button
+                                    onClick={() => confirmAction(`Remove ${member.name} from team?`, async () => { await axios.delete(`${API}/auth/users/${member.id}`, getConfig()); fetchData(); toast.success('Member removed'); })}
+                                    className="p-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg text-rose-500 transition-colors"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              )}
+                              {member.role === 'manager' && (
+                                <span className="text-[9px] font-black uppercase text-purple-500 tracking-widest flex items-center gap-1 justify-end"><Crown size={10} /> Manager</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {(Array.isArray(admins) ? admins : []).length === 0 && (
+                    <div className="py-20 text-center text-slate-500 font-black uppercase text-xs tracking-[0.3em]">No team members yet. Add one above.</div>
+                  )}
                 </div>
               </div>
-              <div className="lg:col-span-2 space-y-4">
-                <h2 className="text-sm font-black uppercase text-slate-500 tracking-widest px-4">Administrative Team</h2>
-                <div className="grid grid-cols-1 gap-4">
-                  {admins.map(admin => (
-                    <div key={admin.id} className="bg-white dark:bg-slate-900/40 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800/80 flex items-center justify-between group">
-                       <div className="flex items-center gap-5">
-                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl border ${admin.isactive ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-slate-500/10 border-slate-500/20 text-slate-500'}`}>
-                           {admin.name?.charAt(0) || '?'}
-                         </div>
-                         <div>
-                            <div className="font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                              {admin.name} {admin.role === 'manager' && <ShieldCheck size={14} className="text-emerald-500" />}
-                            </div>
-                            <div className="text-xs text-slate-500 font-bold">{admin.email} • {admin.role?.toUpperCase() || 'ADMIN'}</div>
-                         </div>
-                       </div>
-                       <div className="flex items-center gap-4">
-                          {admin.role !== 'manager' && (
-                            <>
-                              <button onClick={async () => {
-                                await axios.put(`${API}/auth/users/${admin.id}/toggle`, { isActive: !admin.isactive }, getConfig());
-                                fetchData();
-                                toast.success("Status Updated");
-                              }} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${admin.isactive ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' : 'bg-rose-500/10 text-rose-500 border-rose-500/30'}`}>
-                                {admin.isactive ? 'Deactivate' : 'Activate'}
-                              </button>
-                              <button onClick={() => confirmAction('Revoke access?', async () => {
-                                await axios.delete(`${API}/auth/users/${admin.id}`, getConfig());
-                                fetchData();
-                                toast.success("Access Revoked");
-                              })} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={18} /></button>
-                            </>
-                          )}
-                       </div>
+
+              {/* Add Member Modal */}
+              {showTeamModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-2xl w-full max-w-lg p-8 relative animate-in fade-in zoom-in-95">
+                    <button onClick={() => setShowTeamModal(false)} className="absolute top-6 right-6 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-400"><X size={20} /></button>
+                    <h3 className="text-2xl font-black mb-1 flex items-center gap-3 text-slate-900 dark:text-white"><UserPlus className="text-purple-400" size={24} /> Add Team Member</h3>
+                    <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-8">Onboard a new admin to the system</p>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Full Name *</label><input className={inputCls} placeholder="Full name" value={teamForm.name} onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))} /></div>
+                      <div className="col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Work Email *</label><input type="email" className={inputCls} placeholder="name@strataply.com" value={teamForm.email} onChange={e => setTeamForm(f => ({ ...f, email: e.target.value }))} /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mobile</label><input type="tel" className={inputCls} placeholder="+91 XXXXX XXXXX" value={teamForm.mobile} onChange={e => setTeamForm(f => ({ ...f, mobile: e.target.value }))} /></div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><input className={inputCls} placeholder="e.g. Recruitment" value={teamForm.department} onChange={e => setTeamForm(f => ({ ...f, department: e.target.value }))} /></div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role *</label>
+                        <select className={selectCls} value={teamForm.role} onChange={e => setTeamForm(f => ({ ...f, role: e.target.value }))}>
+                          <option value="executive">Executive</option>
+                          <option value="operational_manager">Operational Manager</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Date of Joining</label><input type="date" className={inputCls} value={teamForm.joinedAt} onChange={e => setTeamForm(f => ({ ...f, joinedAt: e.target.value }))} /></div>
+                      <div className="col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Temporary Password *</label><input type="password" className={inputCls} placeholder="Min. 8 characters" value={teamForm.password} onChange={e => setTeamForm(f => ({ ...f, password: e.target.value }))} /></div>
                     </div>
-                  ))}
+
+                    <div className="flex gap-4 mt-8">
+                      <button onClick={() => setShowTeamModal(false)} className="flex-1 py-3.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 font-black text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">Cancel</button>
+                      <button
+                        onClick={async () => {
+                          const { name, email, password, role, department, mobile, joinedAt } = teamForm;
+                          if (!name || !email || !password) return toast.error('Name, email and password are required');
+                          try {
+                            await axios.post(`${API}/auth/register`, { name, email, password, role, department, mobile, joinedAt }, getConfig());
+                            toast.success(`${name} added to team!`);
+                            setShowTeamModal(false);
+                            setTeamForm({ name: '', email: '', password: '', role: 'executive', department: '', mobile: '', joinedAt: '' });
+                            fetchData();
+                          } catch(e) { toast.error(e.response?.data?.error || 'Failed to add member'); }
+                        }}
+                        className="flex-1 py-3.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black text-sm shadow-xl shadow-purple-500/25 active:scale-95 transition-all"
+                      >
+                        Add to Team
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══════════════════════ ROLE PERMISSIONS TAB ══════════════════════ */}
+          {isManager() && activeTab === 'permissions' && (
+            <div className="animate-in fade-in slide-in-from-bottom-5 space-y-8">
+              <div>
+                <h2 className="text-3xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+                  <Sliders className="text-amber-400" size={30} /> Role Permissions
+                </h2>
+                <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mt-1 pl-12">Configure what each role can do in the system</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {['operational_manager', 'executive'].map(role => {
+                  const rc = getRoleConfig(role);
+                  const RoleIcon = rc.icon;
+                  const serverRow = (Array.isArray(permissions) ? permissions : []).find(p => p.role === role) || {};
+                  const local = permForm[role] || serverRow;
+
+                  const PERMS = [
+                    { key: 'can_post_job',          label: 'Post Jobs',          desc: 'Create new job listings' },
+                    { key: 'can_edit_job',           label: 'Edit Jobs',          desc: 'Modify existing job listings' },
+                    { key: 'can_delete_job',         label: 'Delete Jobs',        desc: 'Permanently remove job listings' },
+                    { key: 'can_view_applicants',    label: 'View Applicants',    desc: 'Access applications dashboard' },
+                    { key: 'can_manage_companies',   label: 'Manage Companies',   desc: 'Add / edit / delete companies' },
+                    { key: 'can_manage_mela',        label: 'Manage Job Mela',    desc: 'Create and manage job fairs' },
+                    { key: 'can_manage_prep',        label: 'Manage Prep Content','desc': 'Add preparation materials' },
+                  ];
+
+                  return (
+                    <div key={role} className={`bg-white dark:bg-slate-900/40 border rounded-[2.5rem] shadow-xl overflow-hidden ${rc.border}`}>
+                      {/* Card header */}
+                      <div className={`p-7 border-b ${rc.border} ${rc.bg} flex items-center justify-between`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-2xl ${rc.bg} border ${rc.border} flex items-center justify-center`}><RoleIcon size={22} className={rc.color} /></div>
+                          <div>
+                            <h3 className={`text-lg font-black ${rc.color}`}>{rc.label === 'Exec.' ? 'Executive' : 'Operational Manager'}</h3>
+                            <p className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Permission Matrix</p>
+                          </div>
+                        </div>
+                        <button
+                          disabled={permSaving[role]}
+                          onClick={async () => {
+                            const payload = { role, ...local };
+                            setPermSaving(s => ({ ...s, [role]: true }));
+                            try {
+                              await axios.put(`${API}/auth/permissions`, payload, getConfig());
+                              refreshPermissions();
+                              toast.success(`${rc.label} permissions saved!`);
+                            } catch(e) { toast.error(e.response?.data?.error || 'Save failed'); }
+                            finally { setPermSaving(s => ({ ...s, [role]: false })); }
+                          }}
+                          className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${permSaving[role] ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-wait' : `${rc.bg} border ${rc.border} ${rc.color} hover:brightness-110`}`}
+                        >
+                          {permSaving[role] ? 'Saving…' : 'Save Changes'}
+                        </button>
+                      </div>
+
+                      {/* Permission toggles */}
+                      <div className="p-6 space-y-3">
+                        {PERMS.map(({ key, label, desc }) => {
+                          const isOn = local[key] !== false && local[key] !== undefined ? (local[key] === true || local[key] === 'true') : key !== 'can_delete_job';
+                          return (
+                            <div key={key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200/50 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isOn ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>
+                                  {isOn ? <Unlock size={14} /> : <Lock size={14} />}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-black text-slate-800 dark:text-slate-200">{label}</p>
+                                  <p className="text-[10px] text-slate-500 font-bold">{desc}</p>
+                                </div>
+                              </div>
+                              {/* Toggle switch */}
+                              <button
+                                onClick={() => setPermForm(prev => ({ ...prev, [role]: { ...local, [key]: !isOn } }))}
+                                className={`relative w-12 h-6 rounded-full transition-colors ${isOn ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                              >
+                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all ${isOn ? 'left-7' : 'left-1'}`} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Manager note */}
+              <div className="bg-purple-500/5 border border-purple-500/20 rounded-[2rem] p-6 flex items-start gap-4">
+                <Crown size={20} className="text-purple-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-black text-purple-400 mb-1">Manager Role — Always Full Access</p>
+                  <p className="text-xs font-bold text-slate-500">Managers bypass all permission restrictions and have full system control. This cannot be modified for security reasons.</p>
                 </div>
               </div>
             </div>
@@ -1271,7 +1493,7 @@ const AdminDashboard = () => {
                     label: 'Total Jobs',
                     value: globalStats?.totalJobs || 0,
                     sub1: `${globalStats?.todayJobs || 0} added today`,
-                    sub2: `${jobs.filter(j => j.isFeatured).length} featured`,
+                    sub2: `${(Array.isArray(jobs) ? jobs : []).filter(j => j.isFeatured).length} featured`,
                     icon: Briefcase,
                     iconColor: 'text-emerald-400',
                     bg: 'bg-emerald-500/8',
@@ -1294,7 +1516,7 @@ const AdminDashboard = () => {
                   {
                     label: 'Partner Companies',
                     value: globalStats?.totalCompanies || 0,
-                    sub1: `${companies.filter(c => c.companyType).length} typed`,
+                    sub1: `${(Array.isArray(companies) ? companies : []).filter(c => c.companyType).length} typed`,
                     sub2: 'Verified network',
                     icon: Building2,
                     iconColor: 'text-purple-400',
@@ -1306,8 +1528,8 @@ const AdminDashboard = () => {
                   {
                     label: 'Active Admins',
                     value: globalStats?.totalAdmins || 0,
-                    sub1: `${admins.filter(a => a.isactive).length} online`,
-                    sub2: `${(globalStats?.totalAdmins || 0) - admins.filter(a => a.isactive).length} inactive`,
+                    sub1: `${(Array.isArray(admins) ? admins : []).filter(a => a.isactive).length} online`,
+                    sub2: `${(globalStats?.totalAdmins || 0) - (Array.isArray(admins) ? admins : []).filter(a => a.isactive).length} inactive`,
                     icon: ShieldCheck,
                     iconColor: 'text-amber-400',
                     bg: 'bg-amber-500/8',
@@ -1351,13 +1573,13 @@ const AdminDashboard = () => {
                     <div className="text-center">
                       <p className="text-[10px] font-black uppercase text-slate-500">Team Today</p>
                       <p className="text-lg font-black text-emerald-500">
-                        {(globalStats?.adminProductivity?.reduce((acc, p) => acc + (parseInt(p.jobCountToday) || 0) + (parseInt(p.prepCountToday) || 0), 0)) || 0}
+                        {((Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).reduce((acc, p) => acc + (parseInt(p.jobCountToday) || 0) + (parseInt(p.prepCountToday) || 0), 0)) || 0}
                       </p>
                     </div>
                     <div className="text-center border-l dark:border-slate-800 pl-10">
                       <p className="text-[10px] font-black uppercase text-slate-500">Team Lifetime</p>
                       <p className="text-lg font-black text-blue-500">
-                        {globalStats?.adminProductivity?.reduce((acc, p) => acc + (parseInt(p.lifetimeTotal) || 0), 0) || 0}
+                        {(Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).reduce((acc, p) => acc + (parseInt(p.lifetimeTotal) || 0), 0) || 0}
                       </p>
                     </div>
                   </div>
@@ -1374,7 +1596,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
-                      {globalStats?.adminProductivity?.map((p, idx) => (
+                      {(Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).map((p, idx) => (
                         <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all group">
                           <td className="px-10 py-8">
                             <div className="flex items-center gap-4">
@@ -1423,7 +1645,7 @@ const AdminDashboard = () => {
                       14-Day Performance Audit
                     </h3>
                     <div className="grid grid-cols-1 gap-6">
-                      {globalStats?.adminProductivity?.map(admin => (
+                      {(Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).map(admin => (
                         <div key={admin.id} className="bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem]">
                           <div className="flex justify-between items-center mb-4">
                             <span className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">{admin.adminName}'s Daily Output (Jobs)</span>

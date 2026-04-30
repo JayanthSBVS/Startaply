@@ -45,11 +45,14 @@ init();
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
+const normalizeRole = (r) => (!r || r === 'admin') ? 'executive' : r;
+
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Token missing' });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    decoded.role = normalizeRole(decoded.role);
     req.user = decoded;
     next();
   } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
@@ -69,7 +72,8 @@ function mapRow(r) {
 
 app.get('/api/prep-data/admin/list', authMiddleware, async (req, res) => {
   try {
-    const isManager = req.user.role === 'manager';
+    const role    = req.user.role;
+    const isManager = role === 'manager' || role === 'operational_manager';
     let query = 'SELECT * FROM prep_data';
     let params = [];
     if (!isManager) {
@@ -78,7 +82,7 @@ app.get('/api/prep-data/admin/list', authMiddleware, async (req, res) => {
     }
     query += ' ORDER BY createdAt DESC';
     const { rows } = await pool.query(query, params);
-    res.json(rows.map(mapRow));
+    res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
@@ -125,7 +129,8 @@ app.post('/api/prep-data', authMiddleware, async (req, res) => {
 app.delete('/api/prep-data/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const isManager = req.user.role === 'manager';
+    const role    = req.user.role;
+    const isManager = role === 'manager' || role === 'operational_manager';
     const { rows: ex } = await pool.query('SELECT createdByAdminId FROM prep_data WHERE id=$1', [id]);
     if (ex.length && !isManager && ex[0].createdbyadminid !== req.user.id) {
        return res.status(403).json({ error: 'Forbidden' });

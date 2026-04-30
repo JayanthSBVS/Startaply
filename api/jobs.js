@@ -13,6 +13,31 @@ app.use(express.json({ limit: '50mb' }));
 // ── JWT Secret guard ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
+// ── ROLE HELPERS ────────────────────────────────────────────────────────────
+// 'admin' is legacy for 'executive' — normalize everywhere
+const normalizeRole = (role) => {
+  if (!role) return 'executive';
+  if (role === 'admin') return 'executive';
+  return role;
+};
+
+// ── PERMISSION HELPER ────────────────────────────────────────────────────────
+// Fetches the role_permissions row for a given role from DB (cached 60s)
+async function getPermissions(role) {
+  const normalized = normalizeRole(role);
+  if (normalized === 'manager') {
+    // Managers always have full access — no DB lookup needed
+    return { can_post_job: true, can_edit_job: true, can_delete_job: true, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true };
+  }
+  try {
+    const { rows } = await pool.query('SELECT * FROM role_permissions WHERE role = $1', [normalized]);
+    return rows.length ? rows[0] : { can_post_job: true, can_edit_job: true, can_delete_job: false, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true };
+  } catch (e) {
+    // Fail-safe: if permissions table isn't queryable, allow common ops
+    return { can_post_job: true, can_edit_job: true, can_delete_job: false, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true };
+  }
+}
+
 // ── DB INIT ──────────────────────────────────────────────────────────────────
 // Runs once per cold start. CREATE TABLE IF NOT EXISTS is idempotent.
 let dbInitialized = false;
@@ -158,6 +183,7 @@ const authMiddleware = (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'Token missing' });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    decoded.role = normalizeRole(decoded.role); // Always normalize
     req.user = decoded;
     next();
   } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
@@ -259,21 +285,36 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
 });
 
 // GET jobs for admin (no expiry filtering)
+// Managers + Op-Managers see ALL jobs. Executives see ALL jobs but get canEdit/canDelete flags.
 app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   try {
-    const isManager = req.user.role === 'manager';
-    let query  = `SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount FROM jobs j`;
-    let params = [];
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
+    const userId    = req.user.id;
 
-    if (!isManager) {
-      query += ` WHERE j.createdByAdminId = $1`;
-      params.push(req.user.id);
-    }
-    query += ` ORDER BY j.createdat DESC`;
+    // Everyone sees all jobs — ownership is enforced via flags, not filtering
+    const { rows } = await pool.query(
+      `SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount FROM jobs j ORDER BY j.createdat DESC`
+    );
 
-    const { rows } = await pool.query(query, params);
-    res.json(rows.map(mapRow));
+    const perms = await getPermissions(role);
+
+    const mapped = rows.map(row => {
+      const job = mapRow(row);
+      const isOwner = job.createdByAdminId === userId;
+
+      // canEdit: manager/op-manager always; executive only if owner AND permission granted
+      const canEdit   = isManager || isOpMgr || (isOwner && perms.can_edit_job);
+      // canDelete: manager always; op-manager always; executive only if owner AND delete permission
+      const canDelete = isManager || isOpMgr || (isOwner && perms.can_delete_job);
+
+      return { ...job, canEdit, canDelete, isOwner };
+    });
+
+    res.json(mapped);
   } catch (err) {
+    console.error('[admin/list]', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -347,6 +388,12 @@ app.post('/api/jobs/:id/view', async (req, res) => {
 // POST create job
 app.post('/api/jobs', authMiddleware, async (req, res) => {
   try {
+    // Permission check: can this role post jobs?
+    const perms = await getPermissions(req.user.role);
+    if (!perms.can_post_job) {
+      return res.status(403).json({ error: 'Your role does not have permission to post jobs' });
+    }
+
     const j = normalizeJob(req.body, null, req.user.id);
     const { rows } = await pool.query(`
       INSERT INTO jobs (
@@ -381,12 +428,22 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
 app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const isManager = req.user.role === 'manager';
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
+
+    // Permission check
+    const perms = await getPermissions(role);
+    if (!perms.can_edit_job && !isManager) {
+      return res.status(403).json({ error: 'Your role does not have permission to edit jobs' });
+    }
+
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ message: 'Not found' });
 
     const existingJob = mapRow(ex[0]);
-    if (!isManager && existingJob.createdByAdminId !== req.user.id) {
+    // Executives can only edit their own; Op-Managers and Managers can edit all
+    if (!isManager && !isOpMgr && existingJob.createdByAdminId !== req.user.id) {
       return res.status(403).json({ error: 'You can only edit your own jobs' });
     }
 
@@ -426,9 +483,19 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
 app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const isManager = req.user.role === 'manager';
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
+
+    // Permission check
+    const perms = await getPermissions(role);
+    if (!perms.can_delete_job && !isManager) {
+      return res.status(403).json({ error: 'Your role does not have permission to delete jobs' });
+    }
+
     const { rows: ex } = await pool.query('SELECT createdByAdminId FROM jobs WHERE id=$1', [id]);
-    if (ex.length && !isManager && ex[0].createdbyadminid !== req.user.id) {
+    // Executives can only delete their own; Op-Managers and Managers can delete all
+    if (ex.length && !isManager && !isOpMgr && ex[0].createdbyadminid !== req.user.id) {
       return res.status(403).json({ error: 'You can only delete your own jobs' });
     }
     await pool.query('DELETE FROM jobs WHERE id=$1', [id]);
@@ -446,11 +513,21 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
 // GET all applications
 app.get('/api/jobs/applications/all', authMiddleware, async (req, res) => {
   try {
-    const isManager = req.user.role === 'manager';
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
+
+    // Check if role has permission to view applicants
+    const perms = await getPermissions(role);
+    if (!perms.can_view_applicants && !isManager) {
+      return res.status(403).json({ error: 'Your role does not have permission to view applicants' });
+    }
+
+    // Managers and Op-Managers see all; Executives see only their jobs' applicants
     let query  = `SELECT a.* FROM applications a JOIN jobs j ON a.jobId = j.id`;
     let params = [];
 
-    if (!isManager) {
+    if (!isManager && !isOpMgr) {
       query += ` WHERE j.createdByAdminId = $1`;
       params.push(req.user.id);
     }

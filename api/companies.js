@@ -53,11 +53,14 @@ init();
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
 
+const normalizeRole = (r) => (!r || r === 'admin') ? 'executive' : r;
+
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Token missing' });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    decoded.role = normalizeRole(decoded.role);
     req.user = decoded;
     next();
   } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
@@ -79,19 +82,21 @@ function mapRow(r) {
 
 // ── ROUTES ────────────────────────────────────────────────────
 
-// Admin list (filtered by ownership for non-managers)
+// Admin list (filtered by ownership for executives; managers + op-managers see all)
 app.get('/api/companies/admin/list', authMiddleware, async (req, res) => {
   try {
-    const isManager = req.user.role === 'manager';
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
     let query = 'SELECT * FROM companies';
     let params = [];
-    if (!isManager) {
+    if (!isManager && !isOpMgr) {
       query += ' WHERE createdByAdminId = $1';
       params.push(req.user.id);
     }
     query += ' ORDER BY createdat DESC';
     const { rows } = await pool.query(query, params);
-    res.json(rows.map(mapRow));
+    res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) {
     console.error('GET /api/companies/admin/list:', err.message);
     res.status(500).json({ message: 'Server error' });
@@ -149,10 +154,12 @@ app.post('/api/companies', authMiddleware, async (req, res) => {
 app.put('/api/companies/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const isManager = req.user.role === 'manager';
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
     const { rows: ex } = await pool.query('SELECT * FROM companies WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Not found' });
-    if (!isManager && ex[0].createdbyadminid !== req.user.id) {
+    if (!isManager && !isOpMgr && ex[0].createdbyadminid !== req.user.id) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -174,9 +181,11 @@ app.put('/api/companies/:id', authMiddleware, async (req, res) => {
 app.delete('/api/companies/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const isManager = req.user.role === 'manager';
+    const role      = req.user.role;
+    const isManager = role === 'manager';
+    const isOpMgr   = role === 'operational_manager';
     const { rows: ex } = await pool.query('SELECT * FROM companies WHERE id=$1', [id]);
-    if (ex.length && !isManager && ex[0].createdbyadminid !== req.user.id) {
+    if (ex.length && !isManager && !isOpMgr && ex[0].createdbyadminid !== req.user.id) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     await pool.query('DELETE FROM companies WHERE id=$1', [id]);
