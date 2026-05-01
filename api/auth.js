@@ -129,29 +129,13 @@ async function initAuthDb() {
     await pool.query(
       `INSERT INTO users (id, name, email, password, role, department, createdAt)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
-       ON CONFLICT (email) DO UPDATE SET password=$4, role='manager', name='System Manager', id=$1`,
+       ON CONFLICT (email) DO NOTHING`,
       ['admin_strataply', 'System Manager', adminEmail, adminPass, 'manager', 'Management', Date.now()]
     );
 
-    // 5. Keep legacy manager@strataply.com working (backward compat — never break existing login)
-    const legacyManagerEmail = 'manager@strataply.com';
-    const legacyManagerPass  = await bcrypt.hash('manager123', 10);
-    await pool.query(
-      `INSERT INTO users (id, name, email, password, role, createdAt)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (email) DO UPDATE SET password=$4, role='manager', id=$1, name='Operations Manager'`,
-      ['manager_principal', 'Operations Manager', legacyManagerEmail, legacyManagerPass, 'manager', Date.now()]
-    );
-
-    // 6. Keep Jayanth's account — map old 'admin' role to 'executive'
-    const jayanthEmail = 'Jayanth@gmail.com';
-    const jayanthPass  = await bcrypt.hash('jayanth123', 10);
-    await pool.query(
-      `INSERT INTO users (id, name, email, password, role, createdAt)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (email) DO UPDATE SET id=$1, name='Jayanth', password=$4, role='executive'`,
-      ['admin_jayanth', 'Jayanth', jayanthEmail, jayanthPass, 'executive', Date.now()]
-    );
+    // Optional: Allow the "Operations Manager" (manager_principal) to be deleted by changing its role
+    // to operational_manager if it currently is manager. That way the UI delete button will appear.
+    await pool.query(`UPDATE users SET role = 'operational_manager' WHERE email = 'manager@strataply.com' AND role = 'manager'`).catch(() => {});
 
     // 7. Normalize any remaining 'admin' roles → 'executive' (safe, backward-compat migration)
     await pool.query(`UPDATE users SET role = 'executive' WHERE role = 'admin'`).catch(() => {});
