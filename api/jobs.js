@@ -322,12 +322,12 @@ app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
 // Split public routes — each hits a specific optimized query
 app.get('/api/jobs/latest',     (req, res) => getPaginatedJobs(req, res, '', [], 'latest'));
 app.get('/api/jobs/featured',   (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', [], 'featured'));
-app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, 'isFresh = true OR isToday = true', [], 'freshers'));
+app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, "isFresh::text = 'true' OR isToday = true", [], 'freshers'));
 app.get('/api/jobs/today',      (req, res) => getPaginatedJobs(req, res, 'isToday = true', [], 'today'));
 
 app.get('/api/jobs/government', (req, res) => {
   const govtFilter = req.query.govtFilter;
-  let addlt = `(category = 'Government Jobs' OR jobcategory = 'Government Jobs')`;
+  let addlt = `category = 'Government Jobs'`;
   const p = [];
   if (govtFilter === 'Central' || govtFilter === 'State') {
     addlt += ` AND (govtJobType = $1 OR govtjobtype = $1)`;
@@ -337,11 +337,11 @@ app.get('/api/jobs/government', (req, res) => {
 });
 
 app.get('/api/jobs/it', (req, res) => {
-  return getPaginatedJobs(req, res, `(category = 'IT & Non-IT Jobs' OR jobcategory = 'IT & Non-IT Jobs') AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, [], 'it');
+  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, [], 'it');
 });
 
 app.get('/api/jobs/non-it', (req, res) => {
-  return getPaginatedJobs(req, res, `(category = 'IT & Non-IT Jobs' OR jobcategory = 'IT & Non-IT Jobs') AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, [], 'nonit');
+  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, [], 'nonit');
 });
 
 // GET all jobs (public paginated — legacy fallback)
