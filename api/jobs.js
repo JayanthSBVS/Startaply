@@ -220,10 +220,10 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
   try {
     const page   = Math.max(1, parseInt(req.query.page) || 1);
     const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
-    const search = (req.query.search || '').trim();
+    const search = (req.query.search || '');
     const offset = (page - 1) * limit;
 
-    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${search}_${req.url.replace(/\W/g, '_')}`;
+    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${search.trim()}_${req.url.replace(/\W/g, '_')}`;
     const cached   = getMemCache(cacheKey, 60);
     if (cached) {
       setEdgeCache(res, 60, 300);
@@ -233,13 +233,12 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
     let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
 
-    if (search) {
+    if (search.trim()) {
       const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles'];
       let cleanSearch = search.toLowerCase().replace(/goverment/g, 'government');
       const terms = cleanSearch.split(/\s+/).filter(t => t && !stopWords.includes(t));
       
-      // If they only searched for stop words (e.g. "jobs"), fallback to matching them
-      const finalTerms = terms.length > 0 ? terms : search.split(/\s+/).filter(Boolean);
+      const finalTerms = terms.length > 0 ? terms : search.trim().split(/\s+/).filter(Boolean);
 
       const searchConditions = finalTerms.map(term => {
         queryParams.push(`%${term}%`);
@@ -247,7 +246,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
         return `(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR category ILIKE $${idx})`;
       });
       if (searchConditions.length > 0) {
-        whereClause += ` AND (${searchConditions.join(' AND ')})`;
+        whereClause += ` AND (${searchConditions.join(' OR ')})`;
       }
     }
 
