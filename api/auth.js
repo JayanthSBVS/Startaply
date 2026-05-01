@@ -480,4 +480,41 @@ app.get('/api/auth/stats', authMiddleware, managerMiddleware, async (req, res) =
   }
 });
 
+// GET dashboard summary (all admins)
+app.get('/api/auth/dashboard-summary', authMiddleware, async (req, res) => {
+  try {
+    const cacheKey = 'dashboard_summary_all';
+    const cached = getMemCache(cacheKey, 30);
+    if (cached) return res.json(cached);
+
+    const [jobsCount, appsCount, compsCount, melasCount] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM jobs'),
+      pool.query('SELECT COUNT(*) FROM applications'),
+      pool.query('SELECT COUNT(*) FROM companies'),
+      pool.query('SELECT COUNT(*) FROM job_mela')
+    ]);
+
+    const JOBS_SELECT_LIGHT = `id, createdAt, title, company, location, type, isVisible`;
+    const [recentJobs, recentApps] = await Promise.all([
+      pool.query(`SELECT ${JOBS_SELECT_LIGHT} FROM jobs ORDER BY createdAt DESC LIMIT 5`),
+      pool.query(`SELECT id, name, jobTitle, companyName, appliedAt FROM applications ORDER BY appliedAt DESC LIMIT 5`)
+    ]);
+
+    const result = {
+      totalJobs: parseInt(jobsCount.rows[0].count),
+      totalApplications: parseInt(appsCount.rows[0].count),
+      totalCompanies: parseInt(compsCount.rows[0].count),
+      totalMelas: parseInt(melasCount.rows[0].count),
+      recentJobs: recentJobs.rows,
+      recentApplications: recentApps.rows
+    };
+
+    setMemCache(cacheKey, result);
+    res.json(result);
+  } catch (err) {
+    console.error('[Summary fetch err]', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = app;

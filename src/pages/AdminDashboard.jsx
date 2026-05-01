@@ -74,6 +74,7 @@ const AdminDashboard = () => {
   const [admins, setAdmins] = useState([]);
   const [logs, setLogs] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
+  const [dashboardSummary, setDashboardSummary] = useState(null);
 
   const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '' });
   const [editingJobId, setEditingJobId] = useState(null);
@@ -90,19 +91,17 @@ const AdminDashboard = () => {
   const [permForm, setPermForm] = useState({});
   const [permSaving, setPermSaving] = useState({});
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const token = localStorage.getItem('strataply_token');
     if (!token || token === 'null' || token === 'undefined') {
       navigate('/admin-login');
       return;
     }
     
-    // Determine role directly from storage to prevent context flicker
     const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
     const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@strataply.com';
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
-    // Helper: catches 401/403 and redirects; otherwise returns fallback
     const safeGet = async (url, cfg, fallback = []) => {
       try {
         const res = await axios.get(url, cfg);
@@ -112,65 +111,68 @@ const AdminDashboard = () => {
           toast.error('Session expired. Please log in again.');
           logout();
           navigate('/admin-login');
-          throw err; // Abort the rest of fetchData
+          throw err;
         }
         return { data: fallback };
       }
     };
     
     try {
-      // 1. Fetch Core Data in parallel
-      const [jobsRes, appsRes, compRes, melaRes, fbRes, testRes, prepRes, heroBannersRes] = await Promise.all([
-        safeGet(`${API}/jobs/admin/list`, config),
-        safeGet(`${API}/jobs/applications/all`, config),
-        safeGet(`${API}/companies/admin/list`, config),
-        safeGet(`${API}/job-mela/admin/list`, config),
-        safeGet(`${API}/feedback`, config),
-        safeGet(`${API}/testimonials/admin/list`, config),
-        safeGet(`${API}/prep-data/admin/list`, config),
-        safeGet(`${API}/hero-banners`, {}).catch(() => ({ data: [] })),
-      ]);
-
-      setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
-      setApplications(Array.isArray(appsRes.data) ? appsRes.data : []);
-      setCompanies(Array.isArray(compRes.data) ? compRes.data : []);
-      setMelas(Array.isArray(melaRes.data) ? melaRes.data : []);
-      setFeedbacks(Array.isArray(fbRes.data) ? fbRes.data : []);
-      setTestimonials(Array.isArray(testRes.data) ? testRes.data : []);
-      setPrepData(Array.isArray(prepRes.data) ? prepRes.data : []);
-      setHeroBanners(Array.isArray(heroBannersRes?.data) ? heroBannersRes.data : []);
-
-      // 2. Fetch Manager Data (decoupled)
-      if (currentIsManager) {
-        const [statsRes, logsRes, adminsRes] = await Promise.all([
-          safeGet(`${API}/auth/stats`, config, null),
-          safeGet(`${API}/auth/logs`, config),
-          safeGet(`${API}/auth/users`, config),
-        ]);
-
-        if (statsRes?.data) {
-          setGlobalStats(prev => ({
-            ...prev,
-            ...statsRes.data,
-            totalToday: statsRes.data.totalToday || (
-              parseInt(statsRes.data.todayJobs || 0) +
-              parseInt(statsRes.data.todayPrep || 0) +
-              parseInt(statsRes.data.todayMela || 0)
-            )
-          }));
+      if (activeTab === 'dashboard') {
+        const summaryRes = await safeGet(`${API}/auth/dashboard-summary`, config, null);
+        if (summaryRes?.data) setDashboardSummary(summaryRes.data);
+        
+        if (currentIsManager) {
+          const [statsRes, logsRes, adminsRes] = await Promise.all([
+            safeGet(`${API}/auth/stats`, config, null),
+            safeGet(`${API}/auth/logs`, config),
+            safeGet(`${API}/auth/users`, config),
+          ]);
+          if (statsRes?.data) setGlobalStats(prev => ({...prev, ...statsRes.data, totalToday: statsRes.data.totalToday || (parseInt(statsRes.data.todayJobs || 0) + parseInt(statsRes.data.todayPrep || 0) + parseInt(statsRes.data.todayMela || 0))}));
+          if (logsRes?.data) setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
+          if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
         }
-        if (logsRes?.data) {
-          setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
+      } else if (activeTab === 'manage' || activeTab === 'add') {
+        const res = await safeGet(`${API}/jobs/admin/list`, config);
+        setJobs(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'applications') {
+        const res = await safeGet(`${API}/jobs/applications/all`, config);
+        setApplications(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'companies') {
+        const res = await safeGet(`${API}/companies/admin/list`, config);
+        setCompanies(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'jobmela') {
+        const res = await safeGet(`${API}/job-mela/admin/list`, config);
+        setMelas(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'prep') {
+        const res = await safeGet(`${API}/prep-data/admin/list`, config);
+        setPrepData(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'testimonials') {
+        const res = await safeGet(`${API}/testimonials/admin/list`, config);
+        setTestimonials(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'feedback') {
+        const res = await safeGet(`${API}/feedback`, config);
+        setFeedbacks(Array.isArray(res.data) ? res.data : []);
+      } else if (['team', 'permissions', 'logs', 'global_stats', 'herobanners'].includes(activeTab)) {
+        if (currentIsManager) {
+          const [statsRes, logsRes, adminsRes, heroRes] = await Promise.all([
+            safeGet(`${API}/auth/stats`, config, null),
+            safeGet(`${API}/auth/logs`, config),
+            safeGet(`${API}/auth/users`, config),
+            activeTab === 'herobanners' ? safeGet(`${API}/hero-banners`, config).catch(() => ({ data: [] })) : Promise.resolve(null)
+          ]);
+          if (statsRes?.data) setGlobalStats(prev => ({...prev, ...statsRes.data, totalToday: statsRes.data.totalToday || (parseInt(statsRes.data.todayJobs || 0) + parseInt(statsRes.data.todayPrep || 0) + parseInt(statsRes.data.todayMela || 0))}));
+          if (logsRes?.data) setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
+          if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
+          if (heroRes?.data) setHeroBanners(Array.isArray(heroRes.data) ? heroRes.data : []);
         }
-        if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
       }
     } catch (err) {
-      // 401/403 already handled inside safeGet — this catches unexpected errors only
       if (err.response?.status !== 401 && err.response?.status !== 403) {
         console.error('[Dashboard fetch error]', err.message);
       }
     }
-  };
+  }, [activeTab, navigate, logout]);
 
   useEffect(() => {
     const token = localStorage.getItem('strataply_token');
@@ -180,14 +182,13 @@ const AdminDashboard = () => {
     }
     fetchData();
 
-    // Fallback polling every 45s — handles Vercel serverless WebSocket limitations
-    // Uses a stable interval; fetchData() has its own token guard
+    // Fallback polling every 45s — optimized for activeTab targeted fetching
     const pollInterval = setInterval(() => {
       fetchData();
     }, 45000);
 
     return () => clearInterval(pollInterval);
-  }, [navigate]); // ← removed activeTab dep: tab switching should NOT re-fetch all data
+  }, [fetchData, navigate]);
 
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
@@ -469,10 +470,10 @@ const AdminDashboard = () => {
               {/* Primary Performance Multipliers */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { label: 'Active Jobs', val: jobs.length, icon: Briefcase, col: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                  { label: 'Total Applicants', val: applications.length, icon: Users, col: 'text-blue-400', bg: 'bg-blue-500/10' },
-                  { label: 'Partner Network', val: companies.length, icon: Building2, col: 'text-purple-400', bg: 'bg-purple-500/10' },
-                  { label: 'Job Melas', val: melas.length, icon: Megaphone, col: 'text-amber-400', bg: 'bg-amber-500/10' }
+                  { label: 'Active Jobs', val: dashboardSummary ? dashboardSummary.totalJobs : jobs.length, icon: Briefcase, col: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                  { label: 'Total Applicants', val: dashboardSummary ? dashboardSummary.totalApplications : applications.length, icon: Users, col: 'text-blue-400', bg: 'bg-blue-500/10' },
+                  { label: 'Partner Network', val: dashboardSummary ? dashboardSummary.totalCompanies : companies.length, icon: Building2, col: 'text-purple-400', bg: 'bg-purple-500/10' },
+                  { label: 'Job Melas', val: dashboardSummary ? dashboardSummary.totalMelas : melas.length, icon: Megaphone, col: 'text-amber-400', bg: 'bg-amber-500/10' }
                 ].map((stat, i) => (
                   <div key={i} className="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-slate-800/60 p-6 rounded-[2rem] shadow-xl hover:border-slate-300 dark:hover:border-slate-700/80 transition-all group overflow-hidden relative">
                     <div className="flex justify-between items-start relative z-10">
@@ -1038,6 +1039,25 @@ const AdminDashboard = () => {
                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Full Name</label><input className={inputCls} value={testimonialForm.name} onChange={e => setTestimonialForm({ ...testimonialForm, name: e.target.value })} placeholder="John Doe" /></div>
                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Tagline / Role</label><input className={inputCls} value={testimonialForm.tagline} onChange={e => setTestimonialForm({ ...testimonialForm, tagline: e.target.value })} placeholder="Senior Developer" /></div>
                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Review</label><textarea rows="4" className={textareaCls} value={testimonialForm.description} onChange={e => setTestimonialForm({ ...testimonialForm, description: e.target.value })} placeholder="Their success story..."></textarea></div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Candidate Photo</label>
+                      <div className="flex gap-2">
+                        <label className="flex-1 cursor-pointer bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-center text-slate-600 dark:text-slate-300 font-bold transition-all shadow-sm">
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setTestimonialForm(f => ({ ...f, photo: reader.result }));
+                              reader.readAsDataURL(file);
+                            }
+                          }} />
+                          {testimonialForm.photo ? 'Photo Selected ✓' : 'Upload Image'}
+                        </label>
+                        {testimonialForm.photo && (
+                          <button onClick={() => setTestimonialForm(f => ({ ...f, photo: '' }))} className="px-4 py-3.5 rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 font-black transition-all"><Trash2 size={16}/></button>
+                        )}
+                      </div>
+                    </div>
                     <button onClick={async () => { await axios.post(`${API}/testimonials`, testimonialForm, getConfig()); setTestimonialForm({ name: '', tagline: '', description: '', photo: '' }); fetchData(); showMsg('Testimonial added'); }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full mt-4 transition-all shadow-lg shadow-emerald-500/20">Publish Review</button>
                   </div>
                 </div>
@@ -1046,7 +1066,13 @@ const AdminDashboard = () => {
                 {testimonials.map(t => (
                   <div key={t.id} className="bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60 group relative overflow-hidden flex justify-between items-center shadow-sm">
                     <div className="flex items-center gap-4 flex-1">
-                      <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center font-black text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 shrink-0">{t.name.charAt(0)}</div>
+                      {t.photo ? (
+                        <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-emerald-500/20">
+                          <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center font-black text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 shrink-0">{t.name.charAt(0)}</div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline gap-2">
                           <span className="font-bold text-sm text-slate-900 dark:text-slate-200">{t.name}</span>
