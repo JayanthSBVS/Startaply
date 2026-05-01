@@ -246,7 +246,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
         return `(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR category ILIKE $${idx})`;
       });
       if (searchConditions.length > 0) {
-        whereClause += ` AND (${searchConditions.join(' OR ')})`;
+        whereClause += ` AND (${searchConditions.join(' AND ')})`;
       }
     }
 

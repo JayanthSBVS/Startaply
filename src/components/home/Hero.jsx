@@ -169,7 +169,7 @@ const Hero = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onFocus={() => query.length >= 2 && setShowSuggestions(true)}
+                onFocus={() => query.length >= 1 && setShowSuggestions(true)}
                 placeholder="Job title, skills, or company..."
                 autoComplete="off"
                 spellCheck="false"
