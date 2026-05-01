@@ -223,12 +223,15 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
     const search = (req.query.search || '');
     const offset = (page - 1) * limit;
 
+    // CACHING DISABLED FOR PUBLIC SEARCH TO ENSURE LIVE DATA
+    /*
     const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${search.trim()}_${req.url.replace(/\W/g, '_')}`;
     const cached   = getMemCache(cacheKey, 60);
     if (cached) {
       setEdgeCache(res, 60, 300);
       return res.json(cached);
     }
+    */
 
     let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
@@ -246,6 +249,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
         return `(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR category ILIKE $${idx})`;
       });
       if (searchConditions.length > 0) {
+        // USING OR TO BE TYPO TOLERANT
         whereClause += ` AND (${searchConditions.join(' OR ')})`;
       }
     }
@@ -259,8 +263,8 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
     `, [...queryParams, limit, offset]);
 
     const cleaned = processPublicJobs(rows);
-    setMemCache(cacheKey, cleaned);
-    // setEdgeCache(res, 60, 300); // TEMPORARILY DISABLED TO PREVENT STALE DATA
+    // setMemCache(cacheKey, cleaned);
+    // res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); // FORCE NO CACHE
     res.json(cleaned);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);
