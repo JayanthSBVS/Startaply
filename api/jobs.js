@@ -246,7 +246,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
         return `(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR category ILIKE $${idx})`;
       });
       if (searchConditions.length > 0) {
-        whereClause += ` AND (${searchConditions.join(' AND ')})`;
+        whereClause += ` AND (${searchConditions.join(' OR ')})`;
       }
     }
 
@@ -260,7 +260,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
 
     const cleaned = processPublicJobs(rows);
     setMemCache(cacheKey, cleaned);
-    setEdgeCache(res, 60, 300);
+    // setEdgeCache(res, 60, 300); // TEMPORARILY DISABLED TO PREVENT STALE DATA
     res.json(cleaned);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);
