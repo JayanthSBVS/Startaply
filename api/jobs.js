@@ -220,24 +220,31 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
   try {
     const page   = Math.max(1, parseInt(req.query.page) || 1);
     const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const search = (req.query.search || '').trim();
     const offset = (page - 1) * limit;
 
-    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${req.url.replace(/\W/g, '_')}`;
+    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${search}_${req.url.replace(/\W/g, '_')}`;
     const cached   = getMemCache(cacheKey, 60);
     if (cached) {
       setEdgeCache(res, 60, 300);
       return res.json(cached);
     }
 
-    const whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
+    let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
+    const queryParams = [...params];
+
+    if (search) {
+      queryParams.push(`%${search}%`);
+      whereClause += ` AND (title ILIKE $${queryParams.length} OR company ILIKE $${queryParams.length} OR location ILIKE $${queryParams.length})`;
+    }
 
     const { rows } = await pool.query(`
       SELECT ${JOBS_SELECT_LIGHT}
       FROM jobs
       ${whereClause}
       ORDER BY createdAt DESC
-      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-    `, [...params, limit, offset]);
+      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+    `, [...queryParams, limit, offset]);
 
     const cleaned = processPublicJobs(rows);
     setMemCache(cacheKey, cleaned);

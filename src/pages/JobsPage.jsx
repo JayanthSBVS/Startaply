@@ -69,20 +69,20 @@ const JobsPage = () => {
   const [hasMore, setHasMore]     = useState(true);
   const [failed, setFailed]       = useState(false);
 
+  const debouncedSearch = useDebounce(search, 500);
+
   // Sync when URL params change (section only — not search, which is client-side)
   useEffect(() => {
     setActiveSection(getInitialSection(searchParams));
     setSearch(searchParams.get('company') || '');
   }, [searchParams]);
 
-  // ─── CRITICAL FIX: Only server-side filters reset the job list ─────────
-  // search is client-side filtering only — removing it from reset deps
-  // prevents the loading flicker on every keystroke.
+  // ─── CRITICAL FIX: Reset the job list on server-side filter change ─────────
   useEffect(() => {
     setPage(1);
     setLocalJobs([]);
     setHasMore(true);
-  }, [activeSection, govtFilter]);
+  }, [activeSection, govtFilter, debouncedSearch]);
 
   // ─── Server fetch effect ───────────────────────────────────────────────
   useEffect(() => {
@@ -107,6 +107,9 @@ const JobsPage = () => {
         if (activeSection === 'government' && govtFilter !== 'All') {
           queryParams += `&govtFilter=${govtFilter}`;
         }
+        if (debouncedSearch) {
+          queryParams += `&search=${encodeURIComponent(debouncedSearch)}`;
+        }
 
         const res = await axios.get(`${endpoint}${queryParams}`);
         if (!isCancelled) {
@@ -122,20 +125,15 @@ const JobsPage = () => {
     };
     fetchJobs();
     return () => { isCancelled = true; };
-  }, [activeSection, govtFilter, page]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeSection, govtFilter, debouncedSearch, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Client-side filter (search + workMode) ────────────────────────────
-  // search changes do NOT trigger a server refetch — just filter what's loaded
+  // ─── Client-side filter (workMode) ────────────────────────────
   const filtered = useMemo(() => {
     return localJobs.filter(job => {
       const modeMatch = workMode === 'All' || (job.workMode || job.mode) === workMode;
-      const searchMatch = !search ||
-        (job.title    || '').toLowerCase().includes(search.toLowerCase()) ||
-        (job.company  || '').toLowerCase().includes(search.toLowerCase()) ||
-        (job.location || '').toLowerCase().includes(search.toLowerCase());
-      return modeMatch && searchMatch;
+      return modeMatch;
     });
-  }, [localJobs, search, workMode]);
+  }, [localJobs, workMode]);
 
   const activeConfig = SECTIONS.find(s => s.id === activeSection) || SECTIONS[0];
   const colors       = colorMap[activeConfig.color];
