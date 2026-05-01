@@ -131,14 +131,14 @@ const AdminDashboard = () => {
         safeGet(`${API}/hero-banners`, {}).catch(() => ({ data: [] })),
       ]);
 
-      setJobs(jobsRes.data || []);
-      setApplications(appsRes.data || []);
-      setCompanies(compRes.data || []);
-      setMelas(melaRes.data || []);
-      setFeedbacks(fbRes.data || []);
-      setTestimonials(testRes.data || []);
-      setPrepData(prepRes.data || []);
-      setHeroBanners(heroBannersRes?.data || []);
+      setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
+      setApplications(Array.isArray(appsRes.data) ? appsRes.data : []);
+      setCompanies(Array.isArray(compRes.data) ? compRes.data : []);
+      setMelas(Array.isArray(melaRes.data) ? melaRes.data : []);
+      setFeedbacks(Array.isArray(fbRes.data) ? fbRes.data : []);
+      setTestimonials(Array.isArray(testRes.data) ? testRes.data : []);
+      setPrepData(Array.isArray(prepRes.data) ? prepRes.data : []);
+      setHeroBanners(Array.isArray(heroBannersRes?.data) ? heroBannersRes.data : []);
 
       // 2. Fetch Manager Data (decoupled)
       if (currentIsManager) {
@@ -160,9 +160,9 @@ const AdminDashboard = () => {
           }));
         }
         if (logsRes?.data) {
-          setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : logsRes.data);
+          setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
         }
-        if (adminsRes?.data) setAdmins(adminsRes.data);
+        if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
       }
     } catch (err) {
       // 401/403 already handled inside safeGet — this catches unexpected errors only
@@ -296,6 +296,23 @@ const AdminDashboard = () => {
                     Company {jobForm.jobCategory === 'Government Jobs' ? '(Optional)' : '*'}
                   </label>
                   <input className={inputCls} value={jobForm.company || ''} onChange={e => setJobForm({ ...jobForm, company: e.target.value })} placeholder="Amazon" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Company Logo (Optional)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    className="w-full border border-slate-700/50 rounded-xl px-4 py-3 font-medium text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer" 
+                    onChange={e => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setJobForm({ ...jobForm, companyLogo: ev.target.result });
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                  />
+                  {jobForm.companyLogo && <img src={jobForm.companyLogo} alt="Preview" className="w-16 h-16 object-contain mt-2 bg-white/5 rounded-xl border border-slate-700 p-2" />}
                 </div>
 
                 {/* CRITICAL: EXACT CATEGORY MAPPING */}
@@ -1315,7 +1332,15 @@ const AdminDashboard = () => {
                                     {member.isactive ? 'Deactivate' : 'Activate'}
                                   </button>
                                   <button
-                                    onClick={() => confirmAction(`Remove ${member.name} from team?`, async () => { await axios.delete(`${API}/auth/users/${member.id}`, getConfig()); fetchData(); toast.success('Member removed'); })}
+                                    onClick={() => confirmAction(`Remove ${member.name} from team?`, async () => {
+                                      try {
+                                        await axios.delete(`${API}/auth/users/${member.id}`, getConfig());
+                                        fetchData();
+                                        toast.success('Member removed');
+                                      } catch (err) {
+                                        toast.error(err.response?.data?.error || 'Failed to remove member');
+                                      }
+                                    })}
                                     className="p-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg text-rose-500 transition-colors"
                                   >
                                     <Trash2 size={14} />
