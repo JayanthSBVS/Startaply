@@ -234,8 +234,21 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
     const queryParams = [...params];
 
     if (search) {
-      queryParams.push(`%${search}%`);
-      whereClause += ` AND (title ILIKE $${queryParams.length} OR company ILIKE $${queryParams.length} OR location ILIKE $${queryParams.length})`;
+      const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles'];
+      let cleanSearch = search.toLowerCase().replace(/goverment/g, 'government');
+      const terms = cleanSearch.split(/\s+/).filter(t => t && !stopWords.includes(t));
+      
+      // If they only searched for stop words (e.g. "jobs"), fallback to matching them
+      const finalTerms = terms.length > 0 ? terms : search.split(/\s+/).filter(Boolean);
+
+      const searchConditions = finalTerms.map(term => {
+        queryParams.push(`%${term}%`);
+        const idx = queryParams.length;
+        return `(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR category ILIKE $${idx})`;
+      });
+      if (searchConditions.length > 0) {
+        whereClause += ` AND (${searchConditions.join(' AND ')})`;
+      }
     }
 
     const { rows } = await pool.query(`
