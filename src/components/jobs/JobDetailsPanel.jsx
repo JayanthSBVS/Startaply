@@ -49,6 +49,9 @@ const JobDetailsPanel = ({ job, onClose }) => {
         .then(res => setFullJob(res.data))
         .catch(err => console.error("Failed to fetch full job view", err))
         .finally(() => setLoadingDetails(false));
+      
+      // Increment view counter in the background
+      axios.post(`${API}/jobs/${job.id}/view`).catch(() => {});
         
     } else {
       setIsVisible(false);
