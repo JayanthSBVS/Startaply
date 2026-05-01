@@ -9,7 +9,9 @@ export const useJobs = () => useContext(JobsContext);
 const API = '/api';
 
 // ── Cache helpers ────────────────────────────────────────────────────────────
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes stale threshold
+// IMPORTANT: We use a SHORT TTL (30s) so that admin changes to isFeatured/isToday
+// reflect quickly on the public site after a page refresh.
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds — was 5 minutes (caused stale featured/today)
 
 function readCache(key, fallback = []) {
   try {

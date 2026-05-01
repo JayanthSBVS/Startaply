@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/common/Navbar';
 import Hero from '../components/home/Hero';
 import StatsStrip from '../components/home/StatsStrip';
@@ -14,8 +14,14 @@ import Testimonials from '../components/home/Testimonials';
 import Footer from '../components/common/Footer';
 import JobMelaPopup from '../components/home/JobMelaPopup';
 import FeedbackForm from '../components/home/FeedbackForm';
+import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 
+// Home.jsx owns the single shared JobDetailsPanel so that
+// FeaturedJobsSection and TodaysJobsSection don't each render
+// their own panel, which caused dual-panel stacking conflicts.
 const Home = () => {
+  const [selectedJob, setSelectedJob] = useState(null);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/40 transition-colors duration-300">
       <JobMelaPopup />
@@ -23,8 +29,8 @@ const Home = () => {
       <Hero />
       <StatsStrip />
       <div className="space-y-0">
-        <TodaysJobsSection />
-        <FeaturedJobsSection />
+        <TodaysJobsSection onViewDetails={setSelectedJob} />
+        <FeaturedJobsSection onViewDetails={setSelectedJob} />
       </div>
 
       <div className="py-8">
@@ -37,6 +43,9 @@ const Home = () => {
         <FeedbackForm />
       </div>
       <Footer />
+
+      {/* Single shared JobDetailsPanel — avoids dual-panel conflicts */}
+      <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 };

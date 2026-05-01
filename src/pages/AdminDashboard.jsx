@@ -90,6 +90,8 @@ const AdminDashboard = () => {
   // Role Permissions state — keyed by role name
   const [permForm, setPermForm] = useState({});
   const [permSaving, setPermSaving] = useState({});
+  // Track if permForm has been seeded from server data for each role
+  const [permSeeded, setPermSeeded] = useState({});
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem('strataply_token');
@@ -1451,17 +1453,47 @@ const AdminDashboard = () => {
                 {['operational_manager', 'executive'].map(role => {
                   const rc = getRoleConfig(role);
                   const RoleIcon = rc.icon;
+                  // Get the authoritative server row for this role
                   const serverRow = (Array.isArray(permissions) ? permissions : []).find(p => p.role === role) || {};
-                  const local = permForm[role] || serverRow;
+
+                  // ── CRITICAL FIX: Seed permForm from server data the first time we see it ──
+                  // This ensures ALL keys are defined before any toggle is clicked,
+                  // preventing the "undefined spread" bug.
+                  if (!permSeeded[role] && serverRow && Object.keys(serverRow).length > 0) {
+                    setPermSeeded(s => ({ ...s, [role]: true }));
+                    setPermForm(prev => ({
+                      ...prev,
+                      [role]: {
+                        can_post_job:        serverRow.can_post_job        !== undefined ? !!serverRow.can_post_job        : true,
+                        can_edit_job:        serverRow.can_edit_job        !== undefined ? !!serverRow.can_edit_job        : true,
+                        can_delete_job:      serverRow.can_delete_job      !== undefined ? !!serverRow.can_delete_job      : false,
+                        can_view_applicants: serverRow.can_view_applicants !== undefined ? !!serverRow.can_view_applicants : true,
+                        can_manage_companies:serverRow.can_manage_companies!== undefined ? !!serverRow.can_manage_companies: true,
+                        can_manage_mela:     serverRow.can_manage_mela     !== undefined ? !!serverRow.can_manage_mela     : true,
+                        can_manage_prep:     serverRow.can_manage_prep     !== undefined ? !!serverRow.can_manage_prep     : true,
+                      }
+                    }));
+                  }
+
+                  // Use local form state (fully seeded) or fall back to server row
+                  const local = permForm[role] || {
+                    can_post_job:        serverRow.can_post_job        !== undefined ? !!serverRow.can_post_job        : true,
+                    can_edit_job:        serverRow.can_edit_job        !== undefined ? !!serverRow.can_edit_job        : true,
+                    can_delete_job:      serverRow.can_delete_job      !== undefined ? !!serverRow.can_delete_job      : false,
+                    can_view_applicants: serverRow.can_view_applicants !== undefined ? !!serverRow.can_view_applicants : true,
+                    can_manage_companies:serverRow.can_manage_companies!== undefined ? !!serverRow.can_manage_companies: true,
+                    can_manage_mela:     serverRow.can_manage_mela     !== undefined ? !!serverRow.can_manage_mela     : true,
+                    can_manage_prep:     serverRow.can_manage_prep     !== undefined ? !!serverRow.can_manage_prep     : true,
+                  };
 
                   const PERMS = [
-                    { key: 'can_post_job',          label: 'Post Jobs',          desc: 'Create new job listings' },
-                    { key: 'can_edit_job',           label: 'Edit Jobs',          desc: 'Modify existing job listings' },
-                    { key: 'can_delete_job',         label: 'Delete Jobs',        desc: 'Permanently remove job listings' },
-                    { key: 'can_view_applicants',    label: 'View Applicants',    desc: 'Access applications dashboard' },
-                    { key: 'can_manage_companies',   label: 'Manage Companies',   desc: 'Add / edit / delete companies' },
-                    { key: 'can_manage_mela',        label: 'Manage Job Mela',    desc: 'Create and manage job fairs' },
-                    { key: 'can_manage_prep',        label: 'Manage Prep Content','desc': 'Add preparation materials' },
+                    { key: 'can_post_job',           label: 'Post Jobs',           desc: 'Create new job listings' },
+                    { key: 'can_edit_job',            label: 'Edit Jobs',           desc: 'Modify existing job listings' },
+                    { key: 'can_delete_job',          label: 'Delete Jobs',         desc: 'Permanently remove job listings' },
+                    { key: 'can_view_applicants',     label: 'View Applicants',     desc: 'Access applications dashboard' },
+                    { key: 'can_manage_companies',    label: 'Manage Companies',    desc: 'Add / edit / delete companies' },
+                    { key: 'can_manage_mela',         label: 'Manage Job Mela',     desc: 'Create and manage job fairs' },
+                    { key: 'can_manage_prep',         label: 'Manage Prep Content', desc: 'Add preparation materials' },
                   ];
 
                   return (
@@ -1482,8 +1514,11 @@ const AdminDashboard = () => {
                             setPermSaving(s => ({ ...s, [role]: true }));
                             try {
                               await axios.put(`${API}/auth/permissions`, payload, getConfig());
+                              // Reset seed flag so next load re-syncs from server
+                              setPermSeeded(s => ({ ...s, [role]: false }));
+                              setPermForm(prev => { const n = { ...prev }; delete n[role]; return n; });
                               refreshPermissions();
-                              toast.success(`${rc.label} permissions saved!`);
+                              toast.success(`${rc.label === 'Exec.' ? 'Executive' : 'Op. Manager'} permissions saved!`);
                             } catch(e) { toast.error(e.response?.data?.error || 'Save failed'); }
                             finally { setPermSaving(s => ({ ...s, [role]: false })); }
                           }}
@@ -1496,7 +1531,8 @@ const AdminDashboard = () => {
                       {/* Permission toggles */}
                       <div className="p-6 space-y-3">
                         {PERMS.map(({ key, label, desc }) => {
-                          const isOn = local[key] !== false && local[key] !== undefined ? (local[key] === true || local[key] === 'true') : key !== 'can_delete_job';
+                          // isOn always reads from fully-seeded local object — guaranteed boolean
+                          const isOn = local[key] === true;
                           return (
                             <div key={key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200/50 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
                               <div className="flex items-center gap-3">
@@ -1510,7 +1546,10 @@ const AdminDashboard = () => {
                               </div>
                               {/* Toggle switch */}
                               <button
-                                onClick={() => setPermForm(prev => ({ ...prev, [role]: { ...local, [key]: !isOn } }))}
+                                onClick={() => setPermForm(prev => ({
+                                  ...prev,
+                                  [role]: { ...local, [key]: !isOn }
+                                }))}
                                 className={`relative w-12 h-6 rounded-full transition-colors ${isOn ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                               >
                                 <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all ${isOn ? 'left-7' : 'left-1'}`} />

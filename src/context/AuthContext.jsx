@@ -108,11 +108,18 @@ export const AuthProvider = ({ children }) => {
     if (!user) return false;
     if (isManager()) return true; // Manager bypasses all
     const perms = getMyPermissions();
-    return perms[action] !== false; // Default allow if key missing
+    // Strict boolean check: if the key is explicitly false (from DB), deny.
+    // If undefined (not yet loaded), default-allow to avoid blocking UI prematurely.
+    if (perms[action] === false) return false;
+    return true;
   }, [user, permissions]);
 
   // Refresh permissions from server (call after manager updates them)
-  const refreshPermissions = () => fetchPermissions().catch(() => {});
+  // Explicitly passes the current token to avoid stale closure
+  const refreshPermissions = () => {
+    const token = localStorage.getItem('strataply_token');
+    fetchPermissions(token).catch(() => {});
+  };
 
   return (
     <AuthContext.Provider value={{

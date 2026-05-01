@@ -1,20 +1,20 @@
 import React, { useState, memo } from 'react';
 import { useJobs } from '../../context/JobsContext';
 import JobCard from './JobCard';
-import JobDetailsPanel from './JobDetailsPanel';
 import SkeletonCard from '../common/SkeletonCard';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORIES = ["All", "IT & Non-IT Jobs", "Government Jobs"];
 
-const FeaturedJobsSection = memo(() => {
+// Accept onViewDetails from parent (Home.jsx) so the panel is shared at page level,
+// preventing dual-panel conflicts with TodaysJobsSection.
+const FeaturedJobsSection = memo(({ onViewDetails }) => {
   const { jobs, loading } = useJobs();
-  const [activeTab, setActiveTab]   = useState("All");
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [activeTab, setActiveTab] = useState("All");
 
   // Defensive programming: ensure arrays are used
-  const safeJobs    = Array.isArray(jobs) ? jobs : [];
+  const safeJobs     = Array.isArray(jobs) ? jobs : [];
   const featuredJobs = safeJobs.filter(j => j.isFeatured);
   const filtered     = activeTab === "All"
     ? featuredJobs
@@ -76,14 +76,13 @@ const FeaturedJobsSection = memo(() => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <JobCard job={job} onViewDetails={setSelectedJob} />
+                  <JobCard job={job} onViewDetails={onViewDetails} />
                 </motion.div>
               ))}
             </AnimatePresence>
           </motion.div>
         )}
       </div>
-      <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
     </section>
   );
 });
