@@ -238,33 +238,49 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
 
     if (search.trim()) {
       const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles'];
-      let cleanSearch = search.toLowerCase().replace(/goverment/g, 'government');
-      const terms = cleanSearch.split(/\s+/).filter(t => t && !stopWords.includes(t));
-      
-      const finalTerms = terms.length > 0 ? terms : search.trim().split(/\s+/).filter(Boolean);
+      let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
+      if (rawTerms.length === 0) rawTerms = search.trim().split(/\s+/).filter(Boolean);
+
+      // Typo tolerance: search for both 'goverment' and 'government'
+      const finalTerms = [];
+      rawTerms.forEach(t => {
+        finalTerms.push(t);
+        if (t === 'goverment') finalTerms.push('government');
+        if (t === 'government') finalTerms.push('goverment');
+      });
 
       const searchConditions = finalTerms.map(term => {
         queryParams.push(`%${term}%`);
         const idx = queryParams.length;
-        return `(title ILIKE $${idx} OR company ILIKE $${idx} OR location ILIKE $${idx} OR category ILIKE $${idx})`;
+        // Search across ALL relevant fields for maximum inclusivity (Lazy Friendly)
+        return `(
+          title ILIKE $${idx} OR 
+          company ILIKE $${idx} OR 
+          location ILIKE $${idx} OR 
+          category ILIKE $${idx} OR 
+          govtJobType ILIKE $${idx} OR
+          stateName ILIKE $${idx} OR
+          jobCategoryType ILIKE $${idx}
+        )`;
       });
+
       if (searchConditions.length > 0) {
-        // USING OR TO BE TYPO TOLERANT
+        // USING OR TO BE TYPO TOLERANT AND INCLUSIVE (Lazy Friendly)
         whereClause += ` AND (${searchConditions.join(' OR ')})`;
       }
     }
 
-    const { rows } = await pool.query(`
+    const query = `
       SELECT ${JOBS_SELECT_LIGHT}
       FROM jobs
       ${whereClause}
       ORDER BY createdAt DESC
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
-    `, [...queryParams, limit, offset]);
+    `;
+
+    const { rows } = await pool.query(query, [...queryParams, limit, offset]);
 
     const cleaned = processPublicJobs(rows);
-    // setMemCache(cacheKey, cleaned);
-    // res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate'); // FORCE NO CACHE
     res.json(cleaned);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);

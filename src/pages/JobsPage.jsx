@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Search, Briefcase, Building2, Monitor, GraduationCap,
-  Star, Zap, Filter, X, ChevronDown
+  Star, Zap, X
 } from 'lucide-react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
@@ -32,15 +32,13 @@ const colorMap = {
   orange:  { pill: 'bg-orange-600 text-white shadow-orange-600/20',    idle: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',     dot: 'bg-orange-500',  iconBg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
 };
 
-// ─── Derive initial section from URL params ────────────────────────────────
-function getInitialSection(searchParams) {
-  if (searchParams.get('fresh') === 'true') return 'freshers';
-  if (searchParams.get('featured') === 'true') return 'featured';
-  if (searchParams.get('section')) return searchParams.get('section');
-  const cat = searchParams.get('category') || '';
-  if (cat === 'Government Jobs') return 'government';
-  if (cat === 'IT & Non-IT Jobs') return 'it';
-  return 'all';
+// ─── Derive initial state from URL ─────────────────────────────────────────
+function getInitialState(searchParams) {
+  const section = searchParams.get('section') || 'all';
+  const search = searchParams.get('search') || searchParams.get('company') || searchParams.get('q') || '';
+  const govtFilter = searchParams.get('govtFilter') || 'All';
+  const workMode = searchParams.get('workMode') || 'All';
+  return { section, search, govtFilter, workMode };
 }
 
 // ─── Debounce hook ─────────────────────────────────────────────────────────
@@ -54,15 +52,17 @@ function useDebounce(value, delay) {
 }
 
 const JobsPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Use a ref to track if we've initialized to avoid re-syncing on every render
+  const [init] = useState(() => getInitialState(searchParams));
 
-  const [search, setSearch]             = useState(searchParams.get('company') || '');
-  const [activeSection, setActiveSection] = useState(() => getInitialSection(searchParams));
-  const [govtFilter, setGovtFilter]     = useState('All');
-  const [workMode, setWorkMode]         = useState('All');
+  const [search, setSearch]             = useState(init.search);
+  const [activeSection, setActiveSection] = useState(init.section);
+  const [govtFilter, setGovtFilter]     = useState(init.govtFilter);
+  const [workMode, setWorkMode]         = useState(init.workMode);
   const [selectedJob, setSelectedJob]   = useState(null);
 
-  // Server-fetch state
   const [localJobs, setLocalJobs] = useState([]);
   const [page, setPage]           = useState(1);
   const [loading, setLoading]     = useState(true);
@@ -71,24 +71,43 @@ const JobsPage = () => {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  // Sync when URL params change (section only — not search, which is client-side)
+  // Sync URL params when state changes
   useEffect(() => {
-    setActiveSection(getInitialSection(searchParams));
-    setSearch(searchParams.get('company') || '');
-  }, [searchParams]);
+    const newParams = new URLSearchParams(searchParams); // Preserve existing params
+    
+    // Update our specific params
+    if (activeSection !== 'all') newParams.set('section', activeSection);
+    else newParams.delete('section');
 
-  // ─── CRITICAL FIX: Reset the job list on server-side filter change ─────────
+    if (debouncedSearch)         newParams.set('search', debouncedSearch);
+    else newParams.delete('search');
+
+    if (govtFilter !== 'All')    newParams.set('govtFilter', govtFilter);
+    else newParams.delete('govtFilter');
+
+    if (workMode !== 'All')      newParams.set('workMode', workMode);
+    else newParams.delete('workMode');
+
+    // Clean up old legacy params if they exist
+    newParams.delete('company');
+    newParams.delete('q');
+    newParams.delete('category');
+    
+    setSearchParams(newParams, { replace: true });
+  }, [activeSection, debouncedSearch, govtFilter, workMode, setSearchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset list when filters change
   useEffect(() => {
     setPage(1);
     setLocalJobs([]);
     setHasMore(true);
   }, [activeSection, govtFilter, debouncedSearch]);
 
-  // ─── Server fetch effect ───────────────────────────────────────────────
+  // Server fetch effect
   useEffect(() => {
     let isCancelled = false;
     const fetchJobs = async () => {
-      if (!hasMore) return;
+      if (!hasMore && page > 1) return;
       setLoading(true);
       setFailed(false);
       try {
@@ -102,7 +121,6 @@ const JobsPage = () => {
           'featured':   '/api/jobs/featured',
         };
         const endpoint = routeMap[activeSection] || '/api/jobs';
-
         let queryParams = `?page=${page}&limit=20`;
         if (activeSection === 'government' && govtFilter !== 'All') {
           queryParams += `&govtFilter=${govtFilter}`;
@@ -127,7 +145,6 @@ const JobsPage = () => {
     return () => { isCancelled = true; };
   }, [activeSection, govtFilter, debouncedSearch, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Client-side filter (workMode) ────────────────────────────
   const filtered = useMemo(() => {
     return localJobs.filter(job => {
       const modeMatch = workMode === 'All' || (job.workMode || job.mode) === workMode;
@@ -138,6 +155,13 @@ const JobsPage = () => {
   const activeConfig = SECTIONS.find(s => s.id === activeSection) || SECTIONS[0];
   const colors       = colorMap[activeConfig.color];
   const IconComp     = activeConfig.icon;
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setActiveSection('all');
+    setGovtFilter('All');
+    setWorkMode('All');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-white transition-colors duration-300">
@@ -292,7 +316,7 @@ const JobsPage = () => {
               {search ? `No results for "${search}" in ${activeConfig.label}` : `No ${activeConfig.label} available right now`}
             </p>
             <button
-              onClick={() => { setSearch(''); setActiveSection('all'); setGovtFilter('All'); setWorkMode('All'); }}
+              onClick={handleClearFilters}
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-full shadow-lg transition-all"
             >
               Clear all filters
