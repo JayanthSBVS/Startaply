@@ -160,7 +160,7 @@ const Hero = () => {
             India's fastest-growing job platform. Government, IT, Non-IT &amp; Freshers jobs — all in one place. 100% free. No login required.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8 relative" ref={dropdownRef}>
+          <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8 relative z-50" ref={dropdownRef}>
             <div className="flex bg-white/30 dark:bg-white/10 backdrop-blur-xl border border-white/50 dark:border-white/20 rounded-[2rem] overflow-hidden shadow-2xl focus-within:ring-2 focus-within:ring-emerald-500/60 transition-all pl-2">
               <div className="flex items-center pl-4 shrink-0">
                 <Search size={18} className="text-emerald-500 dark:text-emerald-400" />
