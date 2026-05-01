@@ -101,7 +101,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative bg-slate-950 border-b border-slate-800 transition-colors duration-300 overflow-hidden" style={{ minHeight: 'min(85vh, 700px)' }}>
+    <section className="relative bg-slate-950 border-b border-slate-800 transition-colors duration-300 z-20" style={{ minHeight: 'min(85vh, 700px)' }}>
       <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 shadow-2xl">
         <AnimatePresence mode="popLayout">
           {images.length > 0 && (
