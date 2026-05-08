@@ -151,6 +151,15 @@ export const JobsProvider = ({ children }) => {
     fetchPublicData();
     fetchHeroBanners();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const addFeedback = async (data) => {
+    try {
+      await axios.post(`${API}/feedback`, data);
+    } catch (err) {
+      console.error('Feedback Error:', err);
+      throw err;
+    }
+  };
+
   const fetchCompanyById = async (id) => {
     try {
       const res = await axios.get(`${API}/companies/${id}`);
