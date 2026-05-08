@@ -130,6 +130,69 @@ app.get('/api/companies', async (req, res) => {
   }
 });
 
+// Get single company profile
+app.get('/api/companies/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cacheKey = `comp_prof_${id}`;
+    const cached = getMemCache(cacheKey, 300);
+    if (cached) {
+      setEdgeCache(res, 300, 600);
+      return res.json(cached);
+    }
+    const { rows } = await pool.query('SELECT * FROM companies WHERE id = $1', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'Company not found' });
+    const result = mapRow(rows[0]);
+    setMemCache(cacheKey, result);
+    setEdgeCache(res, 300, 600);
+    res.json(result);
+  } catch (err) {
+    console.error('GET /api/companies/:id:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get jobs for a specific company
+app.get('/api/companies/:id/jobs', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cacheKey = `comp_jobs_${id}`;
+    const cached = getMemCache(cacheKey, 30); // Short cache for job listings
+    if (cached) {
+      setEdgeCache(res, 30, 60);
+      return res.json(cached);
+    }
+    // Match by companyId OR by company name (legacy)
+    const { rows: companyRows } = await pool.query('SELECT name FROM companies WHERE id = $1', [id]);
+    const companyName = companyRows.length ? companyRows[0].name : '';
+    
+    const { rows } = await pool.query(
+      `SELECT id, createdAt, updatedAt, title, subtitle, description, company, companyLogo, location, workMode, salary, type, category, isVisible, companyId 
+       FROM jobs 
+       WHERE (companyId = $1 OR company = $2) AND isVisible = true
+       ORDER BY createdAt DESC`,
+      [id, companyName]
+    );
+    
+    // Use the existing mapRow logic if available via require, or just return as is
+    // Since this is api/companies.js, we don't have easy access to jobs.js mapRow without restructuring
+    // But we can do basic mapping here
+    const result = rows.map(r => ({
+      ...r,
+      createdAt: Number(r.createdat || r.createdAt),
+      updatedAt: Number(r.updatedat || r.updatedAt),
+      isVisible: r.isvisible === true || r.isvisible === 'true'
+    }));
+    
+    setMemCache(cacheKey, result);
+    setEdgeCache(res, 30, 60);
+    res.json(result);
+  } catch (err) {
+    console.error('GET /api/companies/:id/jobs:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Create company
 app.post('/api/companies', authMiddleware, async (req, res) => {
   try {

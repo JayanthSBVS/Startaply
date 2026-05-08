@@ -60,12 +60,13 @@ async function initDb() {
         isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
         govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
         mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard',
-        createdByAdminId TEXT
+        createdByAdminId TEXT,
+        companyId VARCHAR(50)
       )
     `);
 
     // Migrations (idempotent)
-    const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId'];
+    const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyId'];
     for (const col of cols) {
       await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col} TEXT`);
     }
@@ -88,6 +89,20 @@ async function initDb() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_jobcategorytype ON jobs(jobcategorytype)`);
     // Composite for the most common public query pattern
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_visible_created ON jobs(isvisible, createdat DESC)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyId)`);
+
+    // ONE-TIME MIGRATION: Auto-link existing jobs to companies
+    try {
+      const { rows: allCompanies } = await pool.query('SELECT id, name FROM companies');
+      for (const company of allCompanies) {
+        await pool.query(
+          'UPDATE jobs SET companyId = $1 WHERE (company ILIKE $2) AND (companyId IS NULL OR companyId = \'\')',
+          [company.id, company.name]
+        );
+      }
+    } catch (migErr) {
+      console.error('Auto-linking migration error (API Jobs):', migErr.message);
+    }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS applications (
@@ -146,7 +161,8 @@ function normalizeJob(body, existing = null, adminId = null) {
     jobCategoryType: body.jobCategoryType || body.jobcategorytype || '',
     mapLocationUrl: body.mapLocationUrl || body.maplocationurl || '',
     processType: body.processType || body.processtype || 'Standard',
-    createdByAdminId: adminId || body.createdByAdminId || existing?.createdByAdminId || 'admin_jayanth'
+    createdByAdminId: adminId || body.createdByAdminId || existing?.createdByAdminId || 'admin_jayanth',
+    companyId: body.companyId || existing?.companyId || null
   };
 }
 
@@ -171,6 +187,7 @@ function mapRow(r) {
     mapLocationUrl: r.maplocationurl || r.mapLocationUrl || '',
     processType: r.processtype || r.processType || 'Standard',
     createdByAdminId: r.createdbyadminid || r.createdByAdminId || '',
+    companyId: r.companyid || r.companyId || null,
     jobCategory: r.category || r.jobcategory || r.jobCategory || ''
   };
 }
@@ -195,7 +212,7 @@ const setCache = (res, sMaxAge = 60, stale = 300) => {
 };
 
 // ── JOBS SELECT (light — excludes heavy text blobs) ───────────────────────────
-const JOBS_SELECT_LIGHT = `id, createdAt, updatedAt, title, subtitle, description, requiredSkills, company, companyLogo, location, workMode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId`;
+const JOBS_SELECT_LIGHT = `id, createdAt, updatedAt, title, subtitle, description, requiredSkills, company, companyLogo, location, workMode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId, companyId`;
 
 function processPublicJobs(rows) {
   const now = Date.now();
@@ -440,15 +457,17 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
         requiredSkills,techStack,aboutCompany,benefits,company,companyLogo,
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible,
-        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType,createdByAdminId
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35)
+        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType,createdByAdminId,
+        companyId
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company, j.companyLogo,
       j.location, j.workMode, j.qualification, j.experience, j.salary, j.type, j.category,
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType, j.createdByAdminId
+      j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType, j.createdByAdminId,
+      j.companyId
     ]);
     clearMemCachePrefix('jobs_list');
     clearMemCachePrefix('latest');
@@ -495,8 +514,8 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
         govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32,
-        createdByAdminId=$33
-      WHERE id=$34 RETURNING *
+        createdByAdminId=$33, companyId=$34
+      WHERE id=$35 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
@@ -504,7 +523,7 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
       j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType,
-      j.createdByAdminId, id
+      j.createdByAdminId, j.companyId, id
     ]);
     clearMemCachePrefix('jobs_list');
     clearMemCachePrefix('latest');

@@ -151,10 +151,6 @@ export const JobsProvider = ({ children }) => {
     fetchPublicData();
     fetchHeroBanners();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-    }
-  };
-
   const fetchCompanyById = async (id) => {
     try {
       const res = await axios.get(`${API}/companies/${id}`);
