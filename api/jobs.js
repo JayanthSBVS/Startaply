@@ -61,12 +61,12 @@ async function initDb() {
         govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
         mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard',
         createdByAdminId TEXT,
-        companyId VARCHAR(50)
+        companyid VARCHAR(50)
       )
     `);
 
     // Migrations (idempotent)
-    const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyId'];
+    const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyid'];
     for (const col of cols) {
       await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col} TEXT`);
     }
@@ -89,14 +89,14 @@ async function initDb() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_jobcategorytype ON jobs(jobcategorytype)`);
     // Composite for the most common public query pattern
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_visible_created ON jobs(isvisible, createdat DESC)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyId)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyid)`);
 
     // ONE-TIME MIGRATION: Auto-link existing jobs to companies
     try {
       const { rows: allCompanies } = await pool.query('SELECT id, name FROM companies');
       for (const company of allCompanies) {
         await pool.query(
-          'UPDATE jobs SET companyId = $1 WHERE (company ILIKE $2) AND (companyId IS NULL OR companyId = \'\')',
+          'UPDATE jobs SET companyid = $1 WHERE (company ILIKE $2) AND (companyid IS NULL OR companyid = \'\')',
           [company.id, company.name]
         );
       }
@@ -212,7 +212,7 @@ const setCache = (res, sMaxAge = 60, stale = 300) => {
 };
 
 // ── JOBS SELECT (light — excludes heavy text blobs) ───────────────────────────
-const JOBS_SELECT_LIGHT = `id, createdAt, updatedAt, title, subtitle, description, requiredSkills, company, companyLogo, location, workMode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId, companyId`;
+const JOBS_SELECT_LIGHT = `id, createdat, updatedat, title, subtitle, description, requiredSkills, company, companylogo, location, workmode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId, companyid`;
 
 function processPublicJobs(rows) {
   const now = Date.now();
@@ -291,7 +291,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
       SELECT ${JOBS_SELECT_LIGHT}
       FROM jobs
       ${whereClause}
-      ORDER BY createdAt DESC
+      ORDER BY createdat DESC
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `;
 
@@ -458,7 +458,7 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible,
         govtJobType,stateName,jobCategoryType,mapLocationUrl,processType,createdByAdminId,
-        companyId
+        companyid
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
       RETURNING *
     `, [
@@ -514,7 +514,7 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
         govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32,
-        createdByAdminId=$33, companyId=$34
+        createdByAdminId=$33, companyid=$34
       WHERE id=$35 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,

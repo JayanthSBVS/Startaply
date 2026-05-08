@@ -42,6 +42,10 @@ async function init() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_createdat ON companies(createdat DESC)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_adminid ON companies(createdbyadminid)`);
 
+    // Ensure JOBS table has companyid for the company-jobs relationship endpoints
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS companyid TEXT`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyid)`);
+
   } catch (err) {
     console.error('Companies init error:', err.message);
     companiesInitialized = false; // Allow retry
@@ -162,15 +166,15 @@ app.get('/api/companies/:id/jobs', async (req, res) => {
       setEdgeCache(res, 30, 60);
       return res.json(cached);
     }
-    // Match by companyId OR by company name (legacy)
+    // Match by companyid OR by company name (legacy)
     const { rows: companyRows } = await pool.query('SELECT name FROM companies WHERE id = $1', [id]);
     const companyName = companyRows.length ? companyRows[0].name : '';
     
     const { rows } = await pool.query(
-      `SELECT id, createdAt, updatedAt, title, subtitle, description, company, companyLogo, location, workMode, salary, type, category, isVisible, companyId 
+      `SELECT id, createdat, updatedat, title, subtitle, description, company, companylogo, location, workmode, salary, type, category, isvisible, companyid 
        FROM jobs 
-       WHERE (companyId = $1 OR company = $2) AND isVisible = true
-       ORDER BY createdAt DESC`,
+       WHERE (companyid = $1 OR company = $2) AND isvisible = true
+       ORDER BY createdat DESC`,
       [id, companyName]
     );
     
