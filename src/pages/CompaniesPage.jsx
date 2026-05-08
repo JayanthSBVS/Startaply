@@ -51,7 +51,7 @@ const CompaniesPage = () => {
       })
       .map(c => ({
         ...c,
-        liveOpenings: jobs.filter(j => j.company === c.name).length
+        liveOpenings: jobs.filter(j => j.companyId === c.id || j.company === c.name).length
       }));
   }, [companies, search, industry, companyType, jobs]);
 
@@ -170,7 +170,7 @@ const CompaniesPage = () => {
               return (
                 <Link
                   key={company.id || company.name}
-                  to={`/jobs?company=${encodeURIComponent(company.name)}`}
+                  to={`/companies/${company.id}`}
                   className="group premium-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-7 flex flex-col h-full hover:border-emerald-500/50 dark:hover:border-emerald-500/40 hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.15)] dark:hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-500"
                 >
                   {/* Top: Badges & Pulse */}

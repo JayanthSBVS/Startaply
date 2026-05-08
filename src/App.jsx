@@ -13,6 +13,7 @@ import JobsPage from './pages/JobsPage';
 
 // ── Lazy-load everything else – saves ~200KB+ from initial bundle ──────────
 const CompaniesPage     = lazy(() => import('./pages/CompaniesPage'));
+const CompanyProfilePage = lazy(() => import('./pages/CompanyProfilePage'));
 const CategoryJobsPage  = lazy(() => import('./pages/CategoryJobsPage'));
 const JobMelaPage       = lazy(() => import('./pages/JobMelaPage'));
 const JobMelaDetailPage = lazy(() => import('./pages/JobMelaDetailPage'));
@@ -42,6 +43,7 @@ function App() {
             <Route path="/"               element={<Home />} />
             <Route path="/jobs"           element={<JobsPage />} />
             <Route path="/companies"      element={<CompaniesPage />} />
+            <Route path="/companies/:companyId" element={<CompanyProfilePage />} />
             <Route path="/job-melas"      element={<JobMelaPage />} />
             <Route path="/job-mela/:id"   element={<JobMelaDetailPage />} />
             <Route path="/category/:categoryName" element={<CategoryJobsPage />} />

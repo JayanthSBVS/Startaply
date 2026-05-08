@@ -92,6 +92,9 @@ const AdminDashboard = () => {
   const [permSaving, setPermSaving] = useState({});
   // Track if permForm has been seeded from server data for each role
   const [permSeeded, setPermSeeded] = useState({});
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [companySearch, setCompanySearch] = useState('');
+  const [showCompanyList, setShowCompanyList] = useState(false);
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem('strataply_token');
@@ -203,6 +206,13 @@ const AdminDashboard = () => {
 
   const handleJobSubmit = async () => {
     try {
+      // Validation
+      if (!jobForm.title) return toast.error('Job Title is required');
+      if (!jobForm.jobCategory) return toast.error('Category is required');
+      if (jobForm.jobCategory !== 'Government Jobs' && !jobForm.companyId) {
+        return toast.error('Please select or create a company');
+      }
+
       // Ensure category maps perfectly to DB schema
       const payload = { ...jobForm, category: jobForm.jobCategory };
       if (editingJobId) {
@@ -212,7 +222,10 @@ const AdminDashboard = () => {
         await axios.post(`${API}/jobs`, payload, getConfig());
         showMsg('Job Published');
       }
-      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '' }); setEditingJobId(null); setActiveTab('manage'); fetchData();
+      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null }); 
+      setEditingJobId(null); 
+      setActiveTab('manage'); 
+      fetchData();
     } catch (err) { toast.error('Error saving job data'); }
   };
 
@@ -294,28 +307,64 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Job Title *</label><input className={inputCls} value={jobForm.title || ''} onChange={e => setJobForm({ ...jobForm, title: e.target.value })} placeholder="Software Engineer" /></div>
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">
                     Company {jobForm.jobCategory === 'Government Jobs' ? '(Optional)' : '*'}
                   </label>
-                  <input className={inputCls} value={jobForm.company || ''} onChange={e => setJobForm({ ...jobForm, company: e.target.value })} placeholder="Amazon" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Company Logo (Optional)</label>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    className="w-full border border-slate-700/50 rounded-xl px-4 py-3 font-medium text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer" 
-                    onChange={e => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => setJobForm({ ...jobForm, companyLogo: ev.target.result });
-                        reader.readAsDataURL(file);
-                      }
-                    }} 
-                  />
-                  {jobForm.companyLogo && <img src={jobForm.companyLogo} alt="Preview" className="w-16 h-16 object-contain mt-2 bg-white/5 rounded-xl border border-slate-700 p-2" />}
+                  <div className="relative group/search">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                        <input 
+                          className={inputCls + " pl-12"} 
+                          value={companySearch || jobForm.company || ''} 
+                          onChange={e => {
+                            setCompanySearch(e.target.value);
+                            setShowCompanyList(true);
+                            if (!e.target.value) setJobForm({...jobForm, company: '', companyId: null, companyLogo: ''});
+                          }} 
+                          onFocus={() => setShowCompanyList(true)}
+                          placeholder="Search or Select Company..." 
+                        />
+                        {showCompanyList && companySearch && (
+                          <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-[110] overflow-hidden animate-in fade-in slide-in-from-top-2">
+                            <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                              {companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).map(c => (
+                                <button
+                                  key={c.id}
+                                  onClick={() => {
+                                    setJobForm({ ...jobForm, company: c.name, companyId: c.id, companyLogo: c.logo });
+                                    setCompanySearch(c.name);
+                                    setShowCompanyList(false);
+                                  }}
+                                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-500/10 text-left transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
+                                >
+                                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                    {c.logo ? <img src={c.logo} alt="" className="w-full h-full object-contain" /> : <Building2 size={14} className="text-slate-400" />}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-bold">{c.name}</div>
+                                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-tighter">{c.industry || 'General Partner'}</div>
+                                  </div>
+                                </button>
+                              ))}
+                              {companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).length === 0 && (
+                                <div className="p-4 text-center text-xs text-slate-500 font-bold">No partners found matching "{companySearch}"</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <button 
+                        onClick={() => setIsCompanyModalOpen(true)}
+                        type="button"
+                        className="p-3 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20 transition-all shadow-sm"
+                        title="Create New Company"
+                      >
+                        <PlusCircle size={24} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* CRITICAL: EXACT CATEGORY MAPPING */}
@@ -652,7 +701,12 @@ const AdminDashboard = () => {
 
                       <div className="flex gap-2 border-l border-slate-200 dark:border-slate-800/80 pl-6">
                         {job.canEdit !== false && (
-                          <button onClick={() => { setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '' }); setEditingJobId(job.id); setActiveTab('add'); }} className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-colors"><Edit2 size={18} /></button>
+                          <button onClick={() => { 
+                            setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '', companyId: job.companyId }); 
+                            setCompanySearch(job.company || '');
+                            setEditingJobId(job.id); 
+                            setActiveTab('add'); 
+                          }} className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-colors"><Edit2 size={18} /></button>
                         )}
                         {job.canDelete !== false && (
                           <button onClick={() => handleJobDelete(job.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors"><Trash2 size={18} /></button>
@@ -1760,6 +1814,63 @@ const AdminDashboard = () => {
 
         </main>
       </div>
+      {/* Inline Company Creation Modal */}
+      {isCompanyModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsCompanyModalOpen(false)} />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-8 md:p-10 w-full max-w-2xl relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button onClick={() => setIsCompanyModalOpen(false)} className="absolute top-8 right-8 p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-rose-500 transition-colors"><X size={20} /></button>
+            
+            <h3 className="text-3xl font-black mb-8 flex items-center gap-4">
+              <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400"><Building2 size={24} /></div>
+              Onboard New Partner
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Name *</label><input className={inputCls} placeholder="e.g. Google India" value={companyForm.name} onChange={e => setCompanyForm({ ...companyForm, name: e.target.value })} /></div>
+              <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Industry</label><input className={inputCls} placeholder="e.g. Technology" value={companyForm.industry} onChange={e => setCompanyForm({ ...companyForm, industry: e.target.value })} /></div>
+              <div className="space-y-2 relative"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Company Type</label><select className={selectCls} value={companyForm.companyType} onChange={e => setCompanyForm({ ...companyForm, companyType: e.target.value })}><option value="">Select Type</option><option>MNC</option><option>Startup</option><option>Product Based</option><option>Service Based</option><option>Govt PSU</option><option>Remote First</option></select><div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div></div>
+              <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">HQ Location</label><input className={inputCls} placeholder="e.g. Hyderabad, India" value={companyForm.location} onChange={e => setCompanyForm({ ...companyForm, location: e.target.value })} /></div>
+              <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Website URL</label><input className={inputCls} placeholder="https://..." value={companyForm.website} onChange={e => setCompanyForm({ ...companyForm, website: e.target.value })} /></div>
+              
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Partner Logo</label>
+                <div className="flex gap-4 items-center">
+                  <input type="file" accept="image/*" className="hidden" id="modal-logo" onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => setCompanyForm({ ...companyForm, logo: ev.target.result });
+                      reader.readAsDataURL(file);
+                    }
+                  }} />
+                  <label htmlFor="modal-logo" className="flex-1 cursor-pointer bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center text-sm font-bold text-slate-500 hover:border-emerald-500 transition-all">
+                    {companyForm.logo ? 'Change Identity Logo' : 'Click to Upload Identity Logo'}
+                  </label>
+                  {companyForm.logo && <img src={companyForm.logo} alt="Preview" className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-2" />}
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={async () => { 
+                if (!companyForm.name) return toast.error('Company Name is required');
+                const res = await axios.post(`${API}/companies`, companyForm, getConfig()); 
+                const newCompany = res.data;
+                setJobForm({ ...jobForm, company: newCompany.name, companyId: newCompany.id, companyLogo: newCompany.logo });
+                setCompanySearch(newCompany.name);
+                setCompanyForm({ name: '', industry: '', logo: '', companyType: '', location: '', website: '', description: '' }); 
+                fetchData(); 
+                setIsCompanyModalOpen(false);
+                showMsg('New Partner Onboarded'); 
+              }} 
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-5 rounded-full mt-10 transition-all active:scale-95 shadow-2xl shadow-emerald-500/30 text-lg"
+            >
+              Verify & Authorize Partner
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

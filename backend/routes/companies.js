@@ -10,9 +10,16 @@ pool.query(`
     industry TEXT,
     logo TEXT,
     color TEXT,
-    iconName TEXT
+    iconName TEXT,
+    companyType TEXT,
+    location TEXT,
+    website TEXT,
+    description TEXT
   )
 `).catch(console.error);
+
+// Add index for faster searching
+pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_name ON companies (name)`).catch(console.error);
 
 const { authMiddleware, checkOwnership } = require('../middleware/authMiddleware');
 const { logActivity } = require('../utils/logger');
@@ -23,6 +30,10 @@ async function updateCompaniesSchema() {
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS createdByAdminName TEXT DEFAULT 'System'`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS createdAt BIGINT`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS updatedAt BIGINT`);
+    await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS companyType TEXT`);
+    await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS location TEXT`);
+    await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS website TEXT`);
+    await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT`);
     
     // BACKFILL: If createdAt is null, set it to updatedAt or now
     await pool.query(`UPDATE companies SET createdAt = updatedAt WHERE createdAt IS NULL AND updatedAt IS NOT NULL`);
@@ -43,9 +54,58 @@ router.get('/', async (req, res) => {
       logo: r.logo,
       color: r.color,
       iconName: r.iconname,
+      companyType: r.companytype,
+      location: r.location,
+      website: r.website,
+      description: r.description,
       createdByAdminId: r.createdbyadminid,
       createdByAdminName: r.createdbyadminname
     })));
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get single company by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query('SELECT * FROM companies WHERE id = $1', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'Company not found' });
+    const r = rows[0];
+    res.json({
+      id: r.id,
+      name: r.name,
+      industry: r.industry,
+      logo: r.logo,
+      color: r.color,
+      iconName: r.iconname,
+      companyType: r.companytype,
+      location: r.location,
+      website: r.website,
+      description: r.description,
+      createdByAdminId: r.createdbyadminid,
+      createdByAdminName: r.createdbyadminname,
+      createdAt: Number(r.createdat),
+      updatedAt: Number(r.updatedat)
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get jobs for a specific company
+router.get('/:id/jobs', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(`
+      SELECT id, title, company, location, category, type, salary, createdat, 
+             isFeatured, isToday, isTrending, isVisible, workmode, companylogo
+      FROM jobs 
+      WHERE companyId = $1 AND isVisible = true
+      ORDER BY createdAt DESC
+    `, [id]);
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -69,13 +129,13 @@ router.get('/admin/list', authMiddleware, async (req, res) => {
 
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { name, logo, industry, color, iconName } = req.body;
+    const { name, logo, industry, color, iconName, companyType, location, website, description } = req.body;
     const id = String(Date.now());
     const now = Date.now();
     const { rows } = await pool.query(
-      `INSERT INTO companies (id, name, logo, industry, color, iconName, createdByAdminId, createdByAdminName, createdAt, updatedAt) 
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [id, name, logo || '', industry || '', color || '', iconName || 'Building2', req.user.id, req.user.name, now, now]
+      `INSERT INTO companies (id, name, logo, industry, color, iconName, createdByAdminId, createdByAdminName, createdAt, updatedAt, companyType, location, website, description) 
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      [id, name, logo || '', industry || '', color || '', iconName || 'Building2', req.user.id, req.user.name, now, now, companyType || '', location || '', website || '', description || '']
     );
 
     await logActivity(req.user.id, req.user.name, req.user.role, 'Companies', `Added Company: ${name}`, id);

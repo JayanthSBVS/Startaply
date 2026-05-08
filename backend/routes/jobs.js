@@ -34,9 +34,27 @@ async function initDb() {
         isFresh BOOLEAN DEFAULT FALSE,
         govtJobType TEXT, stateName TEXT, jobCategoryType TEXT, govtDept TEXT,
         createdByAdminId TEXT DEFAULT 'system',
-        createdByAdminName TEXT DEFAULT 'System'
+        createdByAdminName TEXT DEFAULT 'System',
+        companyId VARCHAR(50)
       )
     `);
+
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS companyId VARCHAR(50)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs (companyId)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_adminid ON jobs (createdByAdminId)`);
+
+    // ONE-TIME MIGRATION: Auto-link existing jobs to companies
+    try {
+      const { rows: allCompanies } = await pool.query('SELECT id, name FROM companies');
+      for (const company of allCompanies) {
+        await pool.query(
+          'UPDATE jobs SET companyId = $1 WHERE company ILIKE $2 AND companyId IS NULL',
+          [company.id, company.name]
+        );
+      }
+    } catch (migErr) {
+      console.error('Auto-linking migration error (Jobs):', migErr.message);
+    }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS applications (
@@ -68,7 +86,7 @@ function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 const JOBS_SELECT_LIGHT = `
   id, title, company, location, category, type, salary, createdat, 
   isFeatured, isToday, isTrending, isVisible, workmode, companylogo, 
-  govtjobtype, statename, jobcategorytype, updatedat
+  govtjobtype, statename, jobcategorytype, updatedat, companyId
 `;
 
 function mapRow(row) {
@@ -112,7 +130,8 @@ function mapRow(row) {
     views: Number(row.views || 0),
     applicationCount: Number(row.applicationcount || 0),
     createdByAdminId: row.createdbyadminid,
-    createdByAdminName: row.createdbyadminname
+    createdByAdminName: row.createdbyadminname,
+    companyId: row.companyid
   };
 }
 
@@ -157,7 +176,8 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
           category ILIKE $${idx} OR 
           govtJobType ILIKE $${idx} OR
           stateName ILIKE $${idx} OR
-          jobCategoryType ILIKE $${idx}
+          jobCategoryType ILIKE $${idx} OR
+          companyId ILIKE $${idx}
         )`;
       });
 
@@ -265,8 +285,8 @@ router.post('/', authMiddleware, async (req, res) => {
         monthTag,applyUrl,applyType,expiryDays,processType,mapLocationUrl,
         isFeatured,isFresh,isTrending,isToday,isVisible,
         govtJobType,govtDept,stateName,jobCategoryType,
-        createdByAdminId, createdByAdminName
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37)
+        createdByAdminId, createdByAdminName, companyId
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
@@ -275,7 +295,7 @@ router.post('/', authMiddleware, async (req, res) => {
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.processType, j.mapLocationUrl,
       j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
       j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType,
-      j.createdByAdminId, j.createdByAdminName
+      j.createdByAdminId, j.createdByAdminName, j.companyId
     ]);
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
@@ -299,8 +319,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,processType=$23,mapLocationUrl=$24,isFeatured=$25,isFresh=$26,
         isTrending=$27,isToday=$28,isVisible=$29,
-        govtJobType=$30,govtDept=$31,stateName=$32,jobCategoryType=$33
-      WHERE id=$34 RETURNING *
+        govtJobType=$30,govtDept=$31,stateName=$32,jobCategoryType=$33, companyId=$34
+      WHERE id=$35 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
@@ -308,7 +328,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.processType, j.mapLocationUrl, j.isFeatured, j.isFresh,
       j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, id
+      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, j.companyId, id
     ]);
     res.json(mapRow(rows[0]));
   } catch (err) {
@@ -415,6 +435,7 @@ function normalizeJob(body, existing = null) {
     jobCategoryType: body.jobCategoryType || '',
     createdByAdminId: body.createdByAdminId || existing?.createdByAdminId || 'system',
     createdByAdminName: body.createdByAdminName || existing?.createdByAdminName || 'System',
+    companyId: body.companyId || existing?.companyId || null,
   };
 }
 

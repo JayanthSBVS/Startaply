@@ -152,13 +152,36 @@ export const JobsProvider = ({ children }) => {
     fetchHeroBanners();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const addFeedback = async (form) => {
+    }
+  };
+
+  const fetchCompanyById = async (id) => {
     try {
-      await axios.post(`${API}/feedback`, form);
+      const res = await axios.get(`${API}/companies/${id}`);
+      return res.data;
     } catch (err) {
-      console.error('Feedback Submission Error:', err);
+      console.error('Fetch Company Error:', err);
       throw err;
     }
+  };
+
+  const fetchJobsByCompanyId = async (id) => {
+    try {
+      const res = await axios.get(`${API}/companies/${id}/jobs`);
+      return res.data;
+    } catch (err) {
+      console.error('Fetch Company Jobs Error:', err);
+      throw err;
+    }
+  };
+
+  const refreshPublicData = async () => {
+    // Clear cache timestamps to force refetch
+    localStorage.removeItem('cache_jobs');
+    localStorage.removeItem('cache_companies');
+    localStorage.removeItem('cache_melas');
+    localStorage.removeItem('cache_prep');
+    window.location.reload(); // Simplest way to ensure all providers and components sync
   };
 
   return (
@@ -166,6 +189,9 @@ export const JobsProvider = ({ children }) => {
       jobs, companies, heroImages, melas, prepData,
       loading, error,
       addFeedback,
+      fetchCompanyById,
+      fetchJobsByCompanyId,
+      refreshPublicData,
     }}>
       {children}
     </JobsContext.Provider>
