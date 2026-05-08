@@ -11,19 +11,32 @@ import MobileBottomNav from './components/common/MobileBottomNav';
 import Home from './pages/Home';
 import JobsPage from './pages/JobsPage';
 
+// Helper to handle ChunkLoadError by reloading the page
+const lazyRetry = (componentImport) => {
+  return lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      console.error("Chunk load failed, reloading...", error);
+      window.location.reload();
+      return { default: () => null }; // Return dummy while reloading
+    }
+  });
+};
+
 // ── Lazy-load everything else – saves ~200KB+ from initial bundle ──────────
-const CompaniesPage     = lazy(() => import('./pages/CompaniesPage'));
-const CompanyProfilePage = lazy(() => import('./pages/CompanyProfilePage'));
-const CategoryJobsPage  = lazy(() => import('./pages/CategoryJobsPage'));
-const JobMelaPage       = lazy(() => import('./pages/JobMelaPage'));
-const JobMelaDetailPage = lazy(() => import('./pages/JobMelaDetailPage'));
-const PreparationPage   = lazy(() => import('./pages/PreparationPage'));
-const AboutUs           = lazy(() => import('./pages/AboutUs'));
-const PrivacyPolicy     = lazy(() => import('./pages/PrivacyPolicy'));
-const TermsOfService    = lazy(() => import('./pages/TermsOfService'));
+const CompaniesPage     = lazyRetry(() => import('./pages/CompaniesPage'));
+const CompanyProfilePage = lazyRetry(() => import('./pages/CompanyProfilePage'));
+const CategoryJobsPage  = lazyRetry(() => import('./pages/CategoryJobsPage'));
+const JobMelaPage       = lazyRetry(() => import('./pages/JobMelaPage'));
+const JobMelaDetailPage = lazyRetry(() => import('./pages/JobMelaDetailPage'));
+const PreparationPage   = lazyRetry(() => import('./pages/PreparationPage'));
+const AboutUs           = lazyRetry(() => import('./pages/AboutUs'));
+const PrivacyPolicy     = lazyRetry(() => import('./pages/PrivacyPolicy'));
+const TermsOfService    = lazyRetry(() => import('./pages/TermsOfService'));
 // Admin is the biggest win – 110KB kept out of every user's bundle
-const AdminDashboard    = lazy(() => import('./pages/AdminDashboard'));
-const AdminLogin        = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard    = lazyRetry(() => import('./pages/AdminDashboard'));
+const AdminLogin        = lazyRetry(() => import('./pages/AdminLogin'));
 
 // ── Simple full-screen spinner used by Suspense ────────────────────────────
 const PageLoader = () => (
