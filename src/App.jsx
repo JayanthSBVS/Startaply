@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
+import MobileBottomNav from './components/common/MobileBottomNav';
 
 // ── Eager-load high-priority pages (above the fold, visited most) ──────────
 import Home from './pages/Home';
@@ -54,6 +55,8 @@ function App() {
           </Routes>
         </Suspense>
         <ScrollToTopButton />
+        {/* Mobile-only bottom navigation — hidden on desktop via CSS/Tailwind */}
+        <MobileBottomNav />
       </Router>
     </JobsProvider>
   );
