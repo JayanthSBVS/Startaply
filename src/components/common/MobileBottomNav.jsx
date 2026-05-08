@@ -11,6 +11,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   X,
+  Search,
 } from 'lucide-react';
 
 /* ─── Routes where the bottom nav should NOT appear ─────────────────────── */
@@ -25,11 +26,12 @@ const PRIMARY_TABS = [
 
 /* ─── More sheet links ───────────────────────────────────────────────────── */
 const MORE_ITEMS = [
-  { label: 'Companies',   path: '/companies',  icon: Users },
-  { label: 'Job Melas',   path: '/job-melas',  icon: PartyPopper },
-  { label: 'Preparation', path: '/preparation',icon: BookOpen },
-  { label: 'About Us',    path: '/about',      icon: Info },
-  { label: 'Feedback',    path: '/#feedback',  icon: MessageSquare },
+  { label: 'Browse Jobs', path: '/jobs',        icon: Search,        isPrimary: true },
+  { label: 'Companies',   path: '/companies',   icon: Users },
+  { label: 'Job Melas',   path: '/job-melas',   icon: PartyPopper },
+  { label: 'Preparation', path: '/preparation', icon: BookOpen },
+  { label: 'About Us',    path: '/about',       icon: Info },
+  { label: 'Feedback',    path: '/#feedback',   icon: MessageSquare, isHash: true },
 ];
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -113,19 +115,38 @@ const MobileBottomNav = () => {
 
         {/* Sheet grid */}
         <div className="mobile-nav-sheet__grid">
-          {MORE_ITEMS.map(({ label, path, icon: Icon }) => {
+          {MORE_ITEMS.map(({ label, path, icon: Icon, isPrimary, isHash }) => {
             const active = isRouteActive(path, location.pathname);
+            const content = (
+              <>
+                <div className={`mobile-nav-sheet__item-icon ${active ? 'mobile-nav-sheet__item-icon--active' : ''} ${isPrimary ? 'mobile-nav-sheet__item-icon--primary' : ''}`}>
+                  <Icon size={isPrimary ? 24 : 22} strokeWidth={isPrimary ? 2.5 : 2} />
+                </div>
+                <span className={`mobile-nav-sheet__item-label ${isPrimary ? 'mobile-nav-sheet__item-label--primary' : ''}`}>{label}</span>
+              </>
+            );
+
+            if (isHash) {
+              return (
+                <a
+                  key={label}
+                  href={path}
+                  onClick={closeMore}
+                  className={`mobile-nav-sheet__item ${isPrimary ? 'mobile-nav-sheet__item--primary' : ''}`}
+                >
+                  {content}
+                </a>
+              );
+            }
+
             return (
               <Link
                 key={label}
                 to={path}
                 onClick={closeMore}
-                className={`mobile-nav-sheet__item ${active ? 'mobile-nav-sheet__item--active' : ''}`}
+                className={`mobile-nav-sheet__item ${active ? 'mobile-nav-sheet__item--active' : ''} ${isPrimary ? 'mobile-nav-sheet__item--primary' : ''}`}
               >
-                <div className={`mobile-nav-sheet__item-icon ${active ? 'mobile-nav-sheet__item-icon--active' : ''}`}>
-                  <Icon size={22} />
-                </div>
-                <span className="mobile-nav-sheet__item-label">{label}</span>
+                {content}
               </Link>
             );
           })}

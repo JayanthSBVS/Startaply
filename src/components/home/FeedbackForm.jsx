@@ -27,7 +27,7 @@ const FeedbackForm = () => {
 
   return (
     <>
-      <section className="py-20 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
+      <section id="feedback" className="py-20 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 border border-emerald-100 dark:border-emerald-800">
             <MessageSquare className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />

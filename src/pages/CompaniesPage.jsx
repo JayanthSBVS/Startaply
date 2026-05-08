@@ -164,48 +164,71 @@ const CompaniesPage = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((company) => {
-              const IconComp = iconMap[company.iconName] || Building2;
               const typeBadge = TYPE_BADGE[company.companyType];
+              const isHiring = company.liveOpenings > 0;
+              
               return (
                 <Link
                   key={company.id || company.name}
                   to={`/jobs?company=${encodeURIComponent(company.name)}`}
-                  className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)] hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all duration-300 flex flex-col h-full"
+                  className="group premium-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-7 flex flex-col h-full hover:border-emerald-500/50 dark:hover:border-emerald-500/40 hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.15)] dark:hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-500"
                 >
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
-                      {company.logo
-                        ? <img src={company.logo} alt={company.name} className="w-full h-full object-contain p-1.5" onError={e => { e.target.style.display = 'none'; }} />
-                        : <Building2 size={22} className="text-slate-400" />
-                      }
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5">
+                  {/* Top: Badges & Pulse */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex flex-wrap gap-2">
                       {typeBadge && company.companyType && (
-                        <span className={`text-[9px] uppercase tracking-wider font-black px-2.5 py-1 rounded-lg border ${typeBadge.bg}`}>
+                        <span className={`text-[10px] uppercase tracking-widest font-black px-2.5 py-1 rounded-lg border ${typeBadge.bg}`}>
                           {company.companyType}
                         </span>
                       )}
-                      {company.industry && (
-                        <span className="text-[9px] uppercase tracking-wider font-black px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-                          {company.industry}
-                        </span>
-                      )}
                     </div>
+                    {isHiring && (
+                      <div className="flex items-center gap-2 px-2.5 py-1 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full border border-emerald-500/20">
+                        <div className="hiring-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Hiring</span>
+                      </div>
+                    )}
                   </div>
 
-                  <h3 className="font-black text-slate-900 dark:text-white text-lg mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
-                    {company.name}
-                  </h3>
-
-                  <div className="mt-auto pt-5 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-lg">
-                      <Briefcase size={13} className="text-emerald-600 dark:text-emerald-400" />
-                      <span>
-                        <span className="text-slate-900 dark:text-white font-black">{company.liveOpenings}</span> {company.liveOpenings === 1 ? 'Opening' : 'Openings'}
-                      </span>
+                  {/* Center: Logo & Name */}
+                  <div className="flex flex-col items-center text-center mb-6">
+                    <div className="w-20 h-20 rounded-3xl glass-logo-container flex items-center justify-center overflow-hidden mb-4 group-hover:scale-110 transition-transform duration-500">
+                      {company.logo ? (
+                        <img 
+                          src={company.logo} 
+                          alt={company.name} 
+                          className="w-full h-full object-contain p-3" 
+                          onError={e => { e.target.style.display = 'none'; }} 
+                        />
+                      ) : (
+                        <Building2 size={32} className="text-slate-400" />
+                      )}
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/40 transition-colors">
-                      <ChevronRight size={16} className="text-slate-400 dark:text-slate-600 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
+                    <h3 className="font-black text-slate-900 dark:text-white text-xl group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight mb-2">
+                      {company.name}
+                    </h3>
+                    {company.industry && (
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
+                        <Tag size={12} className="text-emerald-500" />
+                        {company.industry}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom: Openings & Action */}
+                  <div className="mt-auto pt-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400 dark:text-slate-500 mb-1">Opportunities</span>
+                      <div className="flex items-center gap-2">
+                        <Briefcase size={14} className="text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-sm font-black text-slate-900 dark:text-white">
+                          {company.liveOpenings} <span className="text-slate-500 dark:text-slate-400 font-bold">{company.liveOpenings === 1 ? 'Job' : 'Jobs'}</span>
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-950 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 group-hover:rotate-45">
+                      <ChevronRight size={20} className="text-slate-400 dark:text-slate-600 group-hover:text-white" />
                     </div>
                   </div>
                 </Link>

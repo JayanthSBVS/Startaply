@@ -348,6 +348,17 @@ body.has-mobile-nav {
   100% { opacity: 1; width: 44px; }
 }
 
+@keyframes pulse-emerald {
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes shine {
+  from { transform: translateX(-100%) skewX(-15deg); }
+  to   { transform: translateX(200%) skewX(-15deg); }
+}
+
 /* ── Bottom Bar ──────────────────────────────────────────────────── */
 .mobile-bottom-nav {
   position: fixed;
@@ -643,3 +654,72 @@ body.has-mobile-nav {
 .mobile-nav-sheet__item--active .mobile-nav-sheet__item-label { color: #15803d; }
 .dark .mobile-nav-sheet__item-label                            { color: #64748b; }
 .dark .mobile-nav-sheet__item--active .mobile-nav-sheet__item-label { color: #4ade80; }
+
+/* Browse Jobs Primary Styling */
+.mobile-nav-sheet__item--primary {
+  grid-column: span 3;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  gap: 16px !important;
+  padding: 16px 20px !important;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: none !important;
+  margin-bottom: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4) !important;
+}
+
+.mobile-nav-sheet__item--primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 50%; height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shine 3s infinite;
+}
+
+.mobile-nav-sheet__item-icon--primary {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-nav-sheet__item-label--primary {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Premium Company Cards */
+.premium-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  isolation: isolate;
+}
+
+.premium-card:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.hiring-pulse {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse-emerald 2s infinite;
+}
+
+.glass-logo-container {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.dark .glass-logo-container {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
