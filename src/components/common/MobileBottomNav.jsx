@@ -34,8 +34,10 @@ const MORE_ITEMS = [
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 const isRouteActive = (path, pathname) => {
+  // Hash-anchor links (e.g. /#feedback) must never be marked active
+  if (path.includes('#')) return false;
   const current = decodeURIComponent(pathname);
-  const target  = decodeURIComponent(path.split('?')[0].split('#')[0]);
+  const target  = decodeURIComponent(path.split('?')[0]);
   if (target === '/') return current === '/';
   return current === target || current.startsWith(target);
 };

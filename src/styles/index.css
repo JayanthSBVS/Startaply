@@ -326,8 +326,9 @@ html {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
 
 /* ===================================================================
-   MOBILE BOTTOM NAV — production-safe, mobile-only styles
-   All rules scoped to < lg (1024px) via @media or .lg:hidden in JSX
+   MOBILE BOTTOM NAV — stabilised v2
+   Key fix: backdrop-filter lives on ::before pseudo-element only.
+   Child transforms (tab press scale) can no longer corrupt the blur.
    =================================================================== */
 
 /* ── Body padding so content never hides behind the bar ──────────── */
@@ -337,19 +338,14 @@ body.has-mobile-nav {
 
 /* ── Keyframes ───────────────────────────────────────────────────── */
 @keyframes mobileNavSlideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-@keyframes mobileNavSlideDown {
-  from { transform: translateY(0);    opacity: 1; }
-  to   { transform: translateY(100%); opacity: 0; }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 
 @keyframes mobileNavPillPop {
-  0%   { transform: scale(0.6); opacity: 0; }
-  60%  { transform: scale(1.15); }
-  100% { transform: scale(1);    opacity: 1; }
+  0%   { opacity: 0; width: 28px; }
+  60%  { opacity: 1; width: 50px; }
+  100% { opacity: 1; width: 44px; }
 }
 
 /* ── Bottom Bar ──────────────────────────────────────────────────── */
@@ -359,26 +355,42 @@ body.has-mobile-nav {
   left: 0;
   right: 0;
   z-index: 200;
-  /* Safe-area padding for iPhone home bar */
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  /* Glassmorphism */
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid rgba(226, 232, 240, 0.8);
+
+  /* Solid-ish background on the element itself — no blur here */
+  background: rgba(255, 255, 255, 0.97);
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 20px 20px 0 0;
   box-shadow:
     0 -4px 24px rgba(0, 0, 0, 0.08),
     0 -1px 6px  rgba(0, 0, 0, 0.04);
-  animation: mobileNavSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  /* Isolate stacking context so child transforms cannot bleed into
+     any backdrop-filter layers above or below */
+  isolation: isolate;
+  /* Promote to its own GPU layer once, preventing per-frame recalc */
+  will-change: transform;
+  animation: mobileNavSlideUp 0.3s ease both;
+}
+
+/* Blur lives only on the pseudo-element — never gets transformed */
+.mobile-bottom-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .dark .mobile-bottom-nav {
-  background: rgba(2, 6, 23, 0.88);
-  border-top: 1px solid rgba(30, 41, 59, 0.8);
+  background: rgba(2, 6, 23, 0.97);
+  border-top: 1px solid rgba(30, 41, 59, 0.9);
   box-shadow:
-    0 -4px 24px rgba(0, 0, 0, 0.4),
-    0 -1px 6px  rgba(0, 0, 0, 0.2);
+    0 -4px 24px rgba(0, 0, 0, 0.45),
+    0 -1px 6px  rgba(0, 0, 0, 0.25);
 }
 
 .mobile-bottom-nav__inner {
@@ -402,11 +414,13 @@ body.has-mobile-nav {
   text-decoration: none;
   padding: 6px 4px 4px;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease;
+  /* Use opacity for press feedback — avoids creating a new stacking
+     context that would interfere with the ::before backdrop-filter */
+  transition: opacity 0.12s ease;
 }
 
 .mobile-bottom-nav__tab--pressing {
-  transform: scale(0.88);
+  opacity: 0.6;
 }
 
 /* ── Active pill indicator ───────────────────────────────────────── */
@@ -420,12 +434,13 @@ body.has-mobile-nav {
   border-radius: 10px;
   background: linear-gradient(135deg, #dcfce7, #bbf7d0);
   z-index: 0;
-  animation: mobileNavPillPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  /* Width-only animation avoids nested transform conflicts */
+  animation: mobileNavPillPop 0.28s ease both;
 }
 
 .dark .mobile-bottom-nav__pill {
   background: linear-gradient(135deg, #064e3b, #065f46);
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.25);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 
 /* ── Icon ────────────────────────────────────────────────────────── */
@@ -442,13 +457,8 @@ body.has-mobile-nav {
   transform: translateY(-1px);
 }
 
-.dark .mobile-bottom-nav__icon {
-  color: #475569;
-}
-
-.dark .mobile-bottom-nav__icon--active {
-  color: #4ade80;
-}
+.dark .mobile-bottom-nav__icon        { color: #475569; }
+.dark .mobile-bottom-nav__icon--active { color: #4ade80; }
 
 /* ── Label ───────────────────────────────────────────────────────── */
 .mobile-bottom-nav__label {
@@ -462,26 +472,16 @@ body.has-mobile-nav {
   white-space: nowrap;
 }
 
-.mobile-bottom-nav__label--active {
-  color: #16a34a;
-}
-
-.dark .mobile-bottom-nav__label {
-  color: #475569;
-}
-
-.dark .mobile-bottom-nav__label--active {
-  color: #4ade80;
-}
+.mobile-bottom-nav__label--active { color: #16a34a; }
+.dark .mobile-bottom-nav__label        { color: #475569; }
+.dark .mobile-bottom-nav__label--active { color: #4ade80; }
 
 /* ── More Sheet Backdrop ─────────────────────────────────────────── */
 .mobile-nav-backdrop {
   position: fixed;
   inset: 0;
   z-index: 195;
-  background: rgba(2, 6, 23, 0.45);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba(2, 6, 23, 0.4);
   animation: fadeIn 0.2s ease both;
 }
 
@@ -492,27 +492,23 @@ body.has-mobile-nav {
   right: 0;
   bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
   z-index: 196;
-  /* Glassmorphism */
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(226, 232, 240, 0.7);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 24px 24px 0 0;
   box-shadow:
     0 -8px 40px rgba(0, 0, 0, 0.12),
     0 -2px 8px  rgba(0, 0, 0, 0.06);
-  /* Hidden by default — animated in when open */
   transform: translateY(100%);
   opacity: 0;
   pointer-events: none;
   transition:
-    transform 0.38s cubic-bezier(0.34, 1.4, 0.64, 1),
-    opacity   0.28s ease;
+    transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity   0.25s ease;
 }
 
 .dark .mobile-nav-sheet {
-  background: rgba(10, 15, 35, 0.96);
-  border: 1px solid rgba(30, 41, 59, 0.7);
+  background: rgba(10, 15, 35, 0.98);
+  border: 1px solid rgba(30, 41, 59, 0.8);
   box-shadow:
     0 -8px 40px rgba(0, 0, 0, 0.5),
     0 -2px 8px  rgba(0, 0, 0, 0.3);
@@ -545,9 +541,7 @@ body.has-mobile-nav {
   color: #64748b;
 }
 
-.dark .mobile-nav-sheet__title {
-  color: #475569;
-}
+.dark .mobile-nav-sheet__title { color: #475569; }
 
 .mobile-nav-sheet__close {
   display: flex;
@@ -561,15 +555,11 @@ body.has-mobile-nav {
   color: #64748b;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.mobile-nav-sheet__close:active { transform: scale(0.9); }
-
-.dark .mobile-nav-sheet__close {
-  background: #1e293b;
-  color: #94a3b8;
-}
+.mobile-nav-sheet__close:active { opacity: 0.7; }
+.dark .mobile-nav-sheet__close  { background: #1e293b; color: #94a3b8; }
 
 /* Sheet grid */
 .mobile-nav-sheet__grid {
@@ -590,22 +580,14 @@ body.has-mobile-nav {
   background: #f8fafc;
   border: 1px solid rgba(226, 232, 240, 0.5);
   -webkit-tap-highlight-color: transparent;
-  transition:
-    background  0.2s ease,
-    border-color 0.2s ease,
-    transform   0.15s ease,
-    box-shadow  0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.12s ease;
 }
 
-.mobile-nav-sheet__item:active {
-  transform: scale(0.93);
-}
+.mobile-nav-sheet__item:active { opacity: 0.7; }
 
-.mobile-nav-sheet__item:hover,
-.mobile-nav-sheet__item:active {
+.mobile-nav-sheet__item:hover {
   background: #ecfdf5;
   border-color: #bbf7d0;
-  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.1);
 }
 
 .mobile-nav-sheet__item--active {
@@ -618,11 +600,9 @@ body.has-mobile-nav {
   border-color: rgba(30, 41, 59, 0.6);
 }
 
-.dark .mobile-nav-sheet__item:hover,
-.dark .mobile-nav-sheet__item:active {
+.dark .mobile-nav-sheet__item:hover {
   background: #064e3b;
   border-color: #065f46;
-  box-shadow: 0 4px 14px rgba(52, 211, 153, 0.12);
 }
 
 .dark .mobile-nav-sheet__item--active {
@@ -646,18 +626,11 @@ body.has-mobile-nav {
 .mobile-nav-sheet__item-icon--active {
   background: #16a34a;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
 }
 
-.dark .mobile-nav-sheet__item-icon {
-  background: #1e293b;
-  color: #94a3b8;
-}
-
-.dark .mobile-nav-sheet__item-icon--active {
-  background: #22c55e;
-  color: #022c22;
-}
+.dark .mobile-nav-sheet__item-icon         { background: #1e293b; color: #94a3b8; }
+.dark .mobile-nav-sheet__item-icon--active  { background: #22c55e; color: #022c22; }
 
 .mobile-nav-sheet__item-label {
   font-size: 11px;
@@ -667,14 +640,6 @@ body.has-mobile-nav {
   transition: color 0.2s ease;
 }
 
-.mobile-nav-sheet__item--active .mobile-nav-sheet__item-label {
-  color: #15803d;
-}
-
-.dark .mobile-nav-sheet__item-label {
-  color: #64748b;
-}
-
-.dark .mobile-nav-sheet__item--active .mobile-nav-sheet__item-label {
-  color: #4ade80;
-}
+.mobile-nav-sheet__item--active .mobile-nav-sheet__item-label { color: #15803d; }
+.dark .mobile-nav-sheet__item-label                            { color: #64748b; }
+.dark .mobile-nav-sheet__item--active .mobile-nav-sheet__item-label { color: #4ade80; }

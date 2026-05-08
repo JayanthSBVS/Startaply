@@ -25,7 +25,8 @@ const ScrollToTopButton = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    /* z-[210] > bottom-nav z-index(200). On mobile shift up above the nav bar. */
+    <div className="fixed bottom-[5.5rem] lg:bottom-6 right-4 lg:right-6 z-[210]">
       <button
         onClick={scrollToTop}
         className={`p-3 rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-emerald-500/50 transition-all duration-300 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'}`}

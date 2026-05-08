@@ -105,10 +105,9 @@ const Footer = () => {
           <h4 className="text-white font-semibold mb-6 tracking-wide uppercase text-sm">Job Categories</h4>
           <ul className="space-y-3 text-sm">
             <li><Link to="/category/Government%20Jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Government Jobs</Link></li>
-            <li><Link to="/jobs?section=it" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">IT Jobs</Link></li>
-            <li><Link to="/jobs?section=nonit" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Non-IT Jobs</Link></li>
+            <li><Link to="/category/IT%20%26%20Non-IT%20Jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">IT Jobs</Link></li>
+            <li><Link to="/jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Non-IT Jobs</Link></li>
             <li><Link to="/jobs?fresh=true" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Freshers Jobs</Link></li>
-            <li><Link to="/category/IT%20%26%20Non-IT%20Jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">IT &amp; Non-IT</Link></li>
           </ul>
         </div>
 
