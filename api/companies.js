@@ -139,22 +139,22 @@ app.get('/api/companies/admin/list', authMiddleware, async (req, res) => {
 app.get('/api/companies', async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
 
     const cacheKey = `comp_${page}_${limit}`;
-    const cached = getMemCache(cacheKey, 60);
+    const cached = getMemCache(cacheKey, 10); // 10s memory cache
     if (cached) {
-      setEdgeCache(res, 60, 300);
+      setEdgeCache(res, 1, 30); // 1s max-age, 30s stale-while-revalidate
       return res.json(cached);
     }
 
-    // Only select required fields (omit full description to save bandwidth if paginating, though here we just do all for simplicity)
+    // Only select required fields
     const { rows } = await pool.query('SELECT id, name, logo, website, location, industry, companyType, createdAt FROM companies ORDER BY createdat DESC LIMIT $1 OFFSET $2', [limit, offset]);
     
     const result = rows.map(mapRow);
     setMemCache(cacheKey, result);
-    setEdgeCache(res, 60, 300);
+    setEdgeCache(res, 1, 30);
     res.json(result);
   } catch (err) {
     console.error('GET /api/companies:', err.message);

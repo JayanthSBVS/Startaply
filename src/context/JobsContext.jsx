@@ -91,7 +91,7 @@ export const JobsProvider = ({ children }) => {
         // Fetch core data in parallel — use limit=100 to cap data volume
         const [jobsRes, compRes, melasRes, prepRes] = await Promise.all([
           axios.get(`${API}/jobs?limit=100`).catch(err => ({ error: true, err })),
-          axios.get(`${API}/companies?limit=50`).catch(err => ({ error: true, err })),
+          axios.get(`${API}/companies?limit=100`).catch(err => ({ error: true, err })),
           axios.get(`${API}/job-mela`).catch(err => ({ error: true, err })),
           axios.get(`${API}/prep-data`).catch(err => ({ error: true, err })),
         ]);
