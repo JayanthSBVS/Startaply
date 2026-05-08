@@ -10,48 +10,76 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Init tables (guarded to prevent re-run on warm invocations)
-let companiesInitialized = false;
+// Init tables (blocking middleware to prevent race conditions on cold starts)
+let initPromise = null;
 async function init() {
-  if (companiesInitialized) return;
-  companiesInitialized = true;
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS companies (
-        id VARCHAR(50) PRIMARY KEY,
-        name TEXT NOT NULL,
-        logo TEXT,
-        website TEXT,
-        location TEXT,
-        industry TEXT,
-        companyType TEXT,
-        description TEXT,
-        createdAt BIGINT,
-        createdByAdminId TEXT
-      )
-    `);
+  if (initPromise) return initPromise;
+  
+  initPromise = (async () => {
+    try {
+      // 1. Ensure companies table exists
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS companies (
+          id VARCHAR(50) PRIMARY KEY,
+          name TEXT NOT NULL,
+          logo TEXT,
+          website TEXT,
+          location TEXT,
+          industry TEXT,
+          companyType TEXT,
+          description TEXT,
+          createdAt BIGINT,
+          createdByAdminId TEXT
+        )
+      `);
 
-    // Safe migrations — idempotent
-    const cols = ['createdByAdminId', 'industry', 'companyType', 'website', 'location', 'description'];
-    for (const col of cols) {
-      await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS ${col} TEXT`);
+      // 2. Safely ensure all columns exist (idempotent)
+      const compCols = ['createdByAdminId', 'industry', 'companyType', 'website', 'location', 'description'];
+      for (const col of compCols) {
+        await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS ${col.toLowerCase()} TEXT`);
+      }
+
+      // 3. Performance indexes for companies
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_createdat ON companies(createdat DESC)`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_adminid ON companies(createdbyadminid)`);
+
+      // 4. CRITICAL: Ensure jobs table exists (minimal schema) so relational queries don't crash
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS jobs (
+          id VARCHAR(50) PRIMARY KEY,
+          title TEXT NOT NULL,
+          company TEXT,
+          isVisible BOOLEAN DEFAULT true
+        )
+      `);
+
+      // 5. Ensure companyid column exists in jobs
+      await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS companyid TEXT`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyid)`);
+      
+      console.log('Companies API Initialized Successfully');
+      return true;
+    } catch (err) {
+      console.error('CRITICAL: Companies init failure:', err.message);
+      initPromise = null; // Allow retry on next request
+      throw err;
     }
-    await pool.query(`UPDATE companies SET createdByAdminId = 'admin_jayanth' WHERE createdByAdminId IS NULL OR createdByAdminId = ''`);
-
-    // Performance index
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_createdat ON companies(createdat DESC)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_companies_adminid ON companies(createdbyadminid)`);
-
-    // Ensure JOBS table has companyid for the company-jobs relationship endpoints
-    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS companyid TEXT`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyid)`);
-
-  } catch (err) {
-    console.error('Companies init error:', err.message);
-    companiesInitialized = false; // Allow retry
-  }
+  })();
+  
+  return initPromise;
 }
-init();
+
+// Middleware to block until DB is ready
+const ensureInit = async (req, res, next) => {
+  try {
+    await init();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Database initialization failed', details: err.message });
+  }
+};
+
+app.use(ensureInit);
 
 // ── AUTH MIDDLEWARE ───────────────────────────────────────────
 const jwt = require('jsonwebtoken');

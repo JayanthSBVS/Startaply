@@ -38,85 +38,119 @@ async function getPermissions(role) {
   }
 }
 
-// ── DB INIT ──────────────────────────────────────────────────────────────────
-// Runs once per cold start. CREATE TABLE IF NOT EXISTS is idempotent.
-let dbInitialized = false;
+// ── DB INIT (blocking middleware to prevent race conditions on cold starts)
+let initPromise = null;
 async function initDb() {
-  if (dbInitialized) return;
-  dbInitialized = true;
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS jobs (
-        id VARCHAR(50) PRIMARY KEY,
-        createdAt BIGINT, updatedAt BIGINT,
-        title TEXT, subtitle TEXT, description TEXT,
-        fullDescription TEXT, requiredSkills TEXT, techStack TEXT,
-        aboutCompany TEXT, benefits TEXT, company TEXT,
-        companyLogo TEXT, companyColor TEXT, location TEXT,
-        workMode TEXT, qualification TEXT, experience TEXT,
-        salary TEXT, type TEXT, category TEXT, monthTag TEXT,
-        applyUrl TEXT, applyType TEXT DEFAULT 'external',
-        expiryDays INTEGER, isFeatured BOOLEAN, isTrending BOOLEAN,
-        isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
-        govtJobType TEXT, stateName TEXT, jobCategoryType TEXT,
-        mapLocationUrl TEXT, processType TEXT DEFAULT 'Standard',
-        createdByAdminId TEXT,
-        companyid VARCHAR(50)
-      )
-    `);
-
-    // Migrations (idempotent)
-    const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyid'];
-    for (const col of cols) {
-      await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col} TEXT`);
-    }
-    await pool.query(`ALTER TABLE jobs ALTER COLUMN applyType SET DEFAULT 'external'`);
-    await pool.query(`ALTER TABLE jobs ALTER COLUMN views SET DEFAULT 0`);
-    await pool.query(`ALTER TABLE jobs ALTER COLUMN isVisible SET DEFAULT true`);
-
-    // Ownership backfill
-    await pool.query(`UPDATE jobs SET createdByAdminId = 'admin_jayanth' WHERE createdByAdminId IS NULL OR createdByAdminId = ''`);
-
-    // ── PERFORMANCE INDEXES ─────────────────────────────────────────────────
-    // These turn full-table-scans into fast index scans for every filter query.
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_createdat ON jobs(createdat DESC)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isvisible ON jobs(isvisible)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isfeatured ON jobs(isfeatured)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_istoday ON jobs(istoday)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isfresh ON jobs(isfresh)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_govtjobtype ON jobs(govtjobtype)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_jobcategorytype ON jobs(jobcategorytype)`);
-    // Composite for the most common public query pattern
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_visible_created ON jobs(isvisible, createdat DESC)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyid)`);
-
-    // ONE-TIME MIGRATION: Auto-link existing jobs to companies
+  if (initPromise) return initPromise;
+  
+  initPromise = (async () => {
     try {
-      const { rows: allCompanies } = await pool.query('SELECT id, name FROM companies');
-      for (const company of allCompanies) {
-        await pool.query(
-          'UPDATE jobs SET companyid = $1 WHERE (company ILIKE $2) AND (companyid IS NULL OR companyid = \'\')',
-          [company.id, company.name]
-        );
-      }
-    } catch (migErr) {
-      console.error('Auto-linking migration error (API Jobs):', migErr.message);
-    }
+      // 1. Create Jobs Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS jobs (
+          id VARCHAR(50) PRIMARY KEY,
+          createdAt BIGINT,
+          updatedAt BIGINT,
+          title TEXT NOT NULL,
+          subtitle TEXT,
+          description TEXT,
+          fullDescription TEXT,
+          requiredSkills TEXT,
+          techStack TEXT,
+          aboutCompany TEXT,
+          benefits TEXT,
+          company TEXT,
+          companyLogo TEXT,
+          location TEXT,
+          workMode TEXT,
+          qualification TEXT,
+          experience TEXT,
+          salary TEXT,
+          type TEXT,
+          category TEXT,
+          monthTag TEXT,
+          applyUrl TEXT,
+          applyType TEXT DEFAULT 'external',
+          expiryDays INTEGER DEFAULT 30,
+          isFeatured BOOLEAN,
+          isFresh BOOLEAN,
+          isTrending BOOLEAN,
+          isToday BOOLEAN,
+          isVisible BOOLEAN DEFAULT true,
+          views INTEGER DEFAULT 0,
+          govtJobType TEXT,
+          stateName TEXT,
+          jobCategoryType TEXT,
+          mapLocationUrl TEXT,
+          processType TEXT DEFAULT 'Standard',
+          createdByAdminId TEXT,
+          companyid VARCHAR(50)
+        )
+      `);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS applications (
-        id VARCHAR(50) PRIMARY KEY, jobId VARCHAR(50),
-        name TEXT, email TEXT, phone TEXT, resume TEXT, appliedAt BIGINT,
-        jobTitle TEXT, companyName TEXT
-      )
-    `);
-  } catch (err) {
-    console.error('DB init error:', err.message);
-    dbInitialized = false; // Allow retry on next request if init failed
-  }
+      // 2. Safely ensure all columns exist (idempotent)
+      const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyid'];
+      for (const col of cols) {
+        await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col.toLowerCase()} TEXT`);
+      }
+
+      // 3. Performance indexes
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category)`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isfeatured ON jobs(isfeatured)`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_istoday ON jobs(istoday)`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_jobcategorytype ON jobs(jobcategorytype)`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_visible_created ON jobs(isvisible, createdat DESC)`);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs(companyid)`);
+
+      // 4. One-time Migration: Link jobs to companies
+      try {
+        const { rows: allCompanies } = await pool.query('SELECT id, name FROM companies').catch(() => ({ rows: [] }));
+        for (const company of allCompanies) {
+          await pool.query(
+            'UPDATE jobs SET companyid = $1 WHERE (company ILIKE $2) AND (companyid IS NULL OR companyid = \'\')',
+            [company.id, company.name]
+          );
+        }
+      } catch (migErr) {
+        console.error('Migration Warning:', migErr.message);
+      }
+
+      // 5. Applications Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS applications (
+          id VARCHAR(50) PRIMARY KEY,
+          jobId VARCHAR(50) NOT NULL,
+          fullName TEXT,
+          email TEXT,
+          phone TEXT,
+          resumeUrl TEXT,
+          appliedAt BIGINT
+        )
+      `);
+      
+      console.log('Jobs API Initialized Successfully');
+      return true;
+    } catch (err) {
+      console.error('CRITICAL: Jobs init failure:', err.message);
+      initPromise = null;
+      throw err;
+    }
+  })();
+  
+  return initPromise;
 }
-initDb();
+
+// Middleware to block until DB is ready
+const ensureInit = async (req, res, next) => {
+  try {
+    await initDb();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Database initialization failed', details: err.message });
+  }
+};
+
+app.use(ensureInit);
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
