@@ -64,20 +64,20 @@ const TrendingCompanies = () => {
                 <div className="relative h-64 md:h-72 bg-white dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-[3rem] overflow-hidden transition-all duration-500 group-hover:border-emerald-500/40 group-hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] dark:group-hover:shadow-[0_0_60px_rgba(16,185,129,0.1)] group-hover:-translate-y-4 flex flex-col shadow-sm">
                   
                   {/* Premium Logo Showcase Area */}
-                  <div className="flex-1 relative flex items-center justify-center p-12 overflow-hidden bg-slate-50/50 dark:bg-slate-900/20">
-                    {/* Subtle Radial Glow */}
-                    <div className="absolute inset-0 bg-radial-gradient from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="flex-1 relative overflow-hidden bg-slate-50 dark:bg-slate-900/50">
+                    {/* Subtle Radial Glow overlay */}
+                    <div className="absolute inset-0 bg-radial-gradient from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10" />
                     
-                    <div className="relative z-10 w-full h-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                    <div className="w-full h-full transition-transform duration-700 group-hover:scale-110">
                       {c.logo ? (
                         <img 
                           src={c.logo} 
                           alt={c.name} 
-                          className="max-w-full max-h-full object-contain filter drop-shadow-lg"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                          <Building2 size={40} />
+                        <div className="w-full h-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                          <Building2 size={48} />
                         </div>
                       )}
                     </div>

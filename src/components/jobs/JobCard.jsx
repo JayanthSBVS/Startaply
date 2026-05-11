@@ -80,9 +80,9 @@ const JobCard = memo(({ job, onViewDetails }) => {
       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
       <div className="flex justify-between items-start mb-5 relative z-10">
-        <div className="w-16 h-16 rounded-[1.25rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm p-3 flex items-center justify-center relative group-hover:shadow-md group-hover:border-emerald-200 transition-all duration-200 overflow-hidden">
+        <div className="w-16 h-16 rounded-[1.25rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-center relative group-hover:shadow-md group-hover:border-emerald-200 transition-all duration-200 overflow-hidden">
           {companyLogo ? (
-            <img src={companyLogo} alt={job.company} className="w-full h-full object-contain relative z-10" loading="lazy" />
+            <img src={companyLogo} alt={job.company} className="w-full h-full object-cover relative z-10" loading="lazy" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-black text-2xl uppercase relative z-10">
               {job.company?.charAt(0) || <Building2 size={28} />}
