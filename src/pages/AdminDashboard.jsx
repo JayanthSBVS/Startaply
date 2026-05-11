@@ -7,7 +7,7 @@ import {
   MessageSquareQuote, BookOpen, Search, Eye, Image as ImageIcon,
   BarChart3, ShieldCheck, Activity, TrendingUp, PieChart, Users2,
   Bell, History, Settings, CheckCircle2, AlertCircle, FileText, RefreshCw,
-  Lock, Unlock, UserPlus, Phone, Mail, Sliders, Crown, BadgeCheck, UserCheck
+  Lock, Unlock, UserPlus, Phone, Mail, Sliders, Crown, BadgeCheck, UserCheck, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
