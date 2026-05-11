@@ -139,8 +139,12 @@ const AdminDashboard = () => {
           if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
         }
       } else if (activeTab === 'manage' || activeTab === 'add') {
-        const res = await safeGet(`${API}/jobs/admin/list`, config);
-        setJobs(Array.isArray(res.data) ? res.data : []);
+        const [jobsRes, compsRes] = await Promise.all([
+          safeGet(`${API}/jobs/admin/list`, config),
+          safeGet(`${API}/companies/admin/list`, config)
+        ]);
+        setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
+        setCompanies(Array.isArray(compsRes.data) ? compsRes.data : []);
       } else if (activeTab === 'applications') {
         const res = await safeGet(`${API}/jobs/applications/all`, config);
         setApplications(Array.isArray(res.data) ? res.data : []);
@@ -1850,20 +1854,20 @@ const AdminDashboard = () => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }} 
             animate={{ opacity: 1, scale: 1, y: 0 }} 
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3.5rem] p-10 md:p-12 w-full max-w-2xl relative z-10 shadow-[0_50px_100px_rgba(0,0,0,0.3)] overflow-hidden"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] md:rounded-[3.5rem] p-6 md:p-10 w-full max-w-2xl relative z-10 shadow-[0_50px_100px_rgba(0,0,0,0.3)] overflow-y-auto max-h-[95vh] custom-scrollbar"
           >
             {/* Background Decorations */}
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <button onClick={() => setIsCompanyModalOpen(false)} className="absolute top-10 right-10 p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-rose-500 hover:rotate-90 transition-all duration-300"><X size={20} /></button>
+            <button onClick={() => setIsCompanyModalOpen(false)} className="absolute top-6 right-6 md:top-10 md:right-10 p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-rose-500 hover:rotate-90 transition-all duration-300 z-20"><X size={20} /></button>
             
-            <div className="mb-10">
-              <h3 className="text-4xl font-black mb-2 flex items-center gap-4 text-slate-900 dark:text-white">
-                <div className="p-4 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl text-white shadow-lg shadow-emerald-500/20"><Building2 size={28} /></div>
+            <div className="mb-8 relative z-10">
+              <h3 className="text-2xl md:text-4xl font-black mb-2 flex items-center gap-4 text-slate-900 dark:text-white">
+                <div className="p-3 md:p-4 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl text-white shadow-lg shadow-emerald-500/20"><Building2 size={24} /></div>
                 Partner Identity
               </h3>
-              <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] ml-20">Onboard a new organization to the platform</p>
+              <p className="text-slate-500 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.3em] ml-16 md:ml-20">Onboard organization</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
