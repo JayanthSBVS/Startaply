@@ -211,8 +211,10 @@ function normalizeJob(body, existing = null, adminId = null) {
     jobCategoryType: body.jobCategoryType || body.jobcategorytype || '',
     mapLocationUrl: body.mapLocationUrl || body.maplocationurl || '',
     processType: body.processType || body.processtype || 'Standard',
-    createdByAdminId: adminId || body.createdByAdminId || existing?.createdByAdminId || 'admin_jayanth',
+    createdByAdminId: adminId || body.createdByAdminId || existing?.createdByAdminId || existing?.createdbyadminid || 'admin_jayanth',
     companyId: body.companyId || body.companyid || existing?.companyId || existing?.companyid || null,
+    companyLogo: body.companyLogo || body.companylogo || existing?.companyLogo || existing?.companylogo || '',
+    company: body.company || body.companyname || existing?.company || existing?.companyname || '',
     // Detect if company changed to force logo update
     _companyChanged: (body.companyId || body.companyid) && (body.companyId || body.companyid) !== (existing?.companyId || existing?.companyid)
   };
@@ -503,6 +505,18 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
     }
 
     const j = normalizeJob(req.body, null, req.user.id);
+
+    // Sync from company table if ID is provided
+    if (j.companyId) {
+      try {
+        const { rows: comp } = await pool.query('SELECT logo, name FROM companies WHERE id = $1', [j.companyId]);
+        if (comp.length) {
+          j.companyLogo = comp[0].logo || j.companyLogo;
+          j.company = comp[0].name || j.company;
+        }
+      } catch (err) {}
+    }
+
     if (j.companyLogo && j.companyLogo.startsWith('data:')) {
       j.companyLogo = await uploadToCloudinary(j.companyLogo, 'jobs');
     }

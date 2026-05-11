@@ -2,10 +2,26 @@ import React, { memo, useMemo } from 'react';
 import { MapPin, IndianRupee, Clock, Building2, ChevronRight, Share2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { useJobs } from '../../context/JobsContext';
 
 // ── Pure component — only re-renders when the job object reference changes ─
 const JobCard = memo(({ job, onViewDetails }) => {
+  const { companies } = useJobs();
+  
   if (!job) return <div className="animate-pulse bg-white border border-slate-100 rounded-[2rem] h-[22rem] w-full shadow-sm" />;
+
+  // ── LOGO PRIORITY: job.companyLogo -> company.logo -> initials fallback ──
+  const companyLogo = useMemo(() => {
+    if (job.companyLogo) return job.companyLogo;
+    if (job.companyid || job.companyId) {
+      const id = job.companyid || job.companyId;
+      const found = (companies || []).find(c => c.id === id);
+      if (found?.logo) return found.logo;
+    }
+    // Fallback search by name if ID missing
+    const foundByName = (companies || []).find(c => c.name?.toLowerCase() === job.company?.toLowerCase());
+    return foundByName?.logo || null;
+  }, [job, companies]);
 
   const createdAt = job.createdAt || Date.now();
 
@@ -65,8 +81,8 @@ const JobCard = memo(({ job, onViewDetails }) => {
 
       <div className="flex justify-between items-start mb-5 relative z-10">
         <div className="w-16 h-16 rounded-[1.25rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm p-3 flex items-center justify-center relative group-hover:shadow-md group-hover:border-emerald-200 transition-all duration-200 overflow-hidden">
-          {job.companyLogo ? (
-            <img src={job.companyLogo} alt={job.company} className="w-full h-full object-contain relative z-10" loading="lazy" />
+          {companyLogo ? (
+            <img src={companyLogo} alt={job.company} className="w-full h-full object-contain relative z-10" loading="lazy" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-black text-2xl uppercase relative z-10">
               {job.company?.charAt(0) || <Building2 size={28} />}

@@ -735,7 +735,7 @@ const AdminDashboard = () => {
                       <div className="flex gap-2 border-l border-slate-200 dark:border-slate-800/80 pl-6">
                         {job.canEdit !== false && (
                           <button onClick={() => { 
-                            setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '', companyId: job.companyId }); 
+                            setJobForm({ ...job, jobCategory: job.category, govtDept: job.govtDept || '', companyId: job.companyid || job.companyId, companyLogo: job.companylogo || job.companyLogo }); 
                             setCompanySearch(job.company || '');
                             setEditingJobId(job.id); 
                             setActiveTab('add'); 
