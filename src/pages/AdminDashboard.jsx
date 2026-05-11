@@ -340,30 +340,44 @@ const AdminDashboard = () => {
                           onFocus={() => setShowCompanyList(true)}
                           placeholder="Search or Select Company..." 
                         />
-                        {showCompanyList && companySearch && (
-                          <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-[110] overflow-hidden animate-in fade-in slide-in-from-top-2">
-                            <div className="max-h-60 overflow-y-auto custom-scrollbar">
-                              {companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).map(c => (
-                                <button
-                                  key={c.id}
-                                  onClick={() => {
-                                    setJobForm({ ...jobForm, company: c.name, companyId: c.id, companyLogo: c.logo });
-                                    setCompanySearch(c.name);
-                                    setShowCompanyList(false);
-                                  }}
-                                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-500/10 text-left transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
-                                >
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                    {c.logo ? <img src={c.logo} alt="" className="w-full h-full object-contain" /> : <Building2 size={14} className="text-slate-400" />}
+                        {showCompanyList && (companySearch || jobs.length > 0) && (
+                          <div className="absolute top-full left-0 w-full mt-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[110] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                            <div className="max-h-72 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                              {companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).length > 0 ? (
+                                companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).map(c => (
+                                  <button
+                                    key={c.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setJobForm({ ...jobForm, company: c.name, companyId: c.id, companyLogo: c.logo });
+                                      setCompanySearch(c.name);
+                                      setShowCompanyList(false);
+                                    }}
+                                    className="w-full flex items-center gap-4 px-4 py-3 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-left transition-all rounded-2xl group/item"
+                                  >
+                                    <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center shrink-0 group-hover/item:border-emerald-300 transition-colors">
+                                      {c.logo ? <img src={c.logo} alt="" className="w-full h-full object-contain p-1" /> : <Building2 size={18} className="text-slate-400" />}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-black text-slate-900 dark:text-slate-200 truncate">{c.name}</div>
+                                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{c.industry || 'General Partner'} • {c.location || 'Remote'}</div>
+                                    </div>
+                                    <ChevronRight size={14} className="ml-auto text-slate-300 opacity-0 group-hover/item:opacity-100 transition-all" />
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="p-8 text-center">
+                                  <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <Building2 size={24} className="text-slate-300" />
                                   </div>
-                                  <div>
-                                    <div className="text-sm font-bold">{c.name}</div>
-                                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-tighter">{c.industry || 'General Partner'}</div>
-                                  </div>
-                                </button>
-                              ))}
-                              {companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).length === 0 && (
-                                <div className="p-4 text-center text-xs text-slate-500 font-bold">No partners found matching "{companySearch}"</div>
+                                  <div className="text-sm font-bold text-slate-500 mb-1">No partners found</div>
+                                  <button 
+                                    onClick={() => { setIsCompanyModalOpen(true); setShowCompanyList(false); }}
+                                    className="text-xs font-black text-emerald-500 uppercase tracking-widest hover:underline"
+                                  >
+                                    Create "{companySearch}"?
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1831,25 +1845,36 @@ const AdminDashboard = () => {
       {/* Inline Company Creation Modal */}
       {isCompanyModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsCompanyModalOpen(false)} />
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-8 md:p-10 w-full max-w-2xl relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
-            <button onClick={() => setIsCompanyModalOpen(false)} className="absolute top-8 right-8 p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-rose-500 transition-colors"><X size={20} /></button>
-            
-            <h3 className="text-3xl font-black mb-8 flex items-center gap-4">
-              <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400"><Building2 size={24} /></div>
-              Onboard New Partner
-            </h3>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setIsCompanyModalOpen(false)} />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3.5rem] p-10 md:p-12 w-full max-w-2xl relative z-10 shadow-[0_50px_100px_rgba(0,0,0,0.3)] overflow-hidden"
+          >
+            {/* Background Decorations */}
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Name *</label><input className={inputCls} placeholder="e.g. Google India" value={companyForm.name} onChange={e => setCompanyForm({ ...companyForm, name: e.target.value })} /></div>
-              <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Industry</label><input className={inputCls} placeholder="e.g. Technology" value={companyForm.industry} onChange={e => setCompanyForm({ ...companyForm, industry: e.target.value })} /></div>
-              <div className="space-y-2 relative"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Company Type</label><select className={selectCls} value={companyForm.companyType} onChange={e => setCompanyForm({ ...companyForm, companyType: e.target.value })}><option value="">Select Type</option><option>MNC</option><option>Startup</option><option>Product Based</option><option>Service Based</option><option>Govt PSU</option><option>Remote First</option></select><div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div></div>
-              <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">HQ Location</label><input className={inputCls} placeholder="e.g. Hyderabad, India" value={companyForm.location} onChange={e => setCompanyForm({ ...companyForm, location: e.target.value })} /></div>
-              <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Website URL</label><input className={inputCls} placeholder="https://..." value={companyForm.website} onChange={e => setCompanyForm({ ...companyForm, website: e.target.value })} /></div>
+            <button onClick={() => setIsCompanyModalOpen(false)} className="absolute top-10 right-10 p-3 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-rose-500 hover:rotate-90 transition-all duration-300"><X size={20} /></button>
+            
+            <div className="mb-10">
+              <h3 className="text-4xl font-black mb-2 flex items-center gap-4 text-slate-900 dark:text-white">
+                <div className="p-4 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl text-white shadow-lg shadow-emerald-500/20"><Building2 size={28} /></div>
+                Partner Identity
+              </h3>
+              <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] ml-20">Onboard a new organization to the platform</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <div className="space-y-2.5"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-5">Corporate Name *</label><input className={inputCls} placeholder="e.g. Google India" value={companyForm.name} onChange={e => setCompanyForm({ ...companyForm, name: e.target.value })} /></div>
+              <div className="space-y-2.5"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-5">Industry Sector</label><input className={inputCls} placeholder="e.g. Technology" value={companyForm.industry} onChange={e => setCompanyForm({ ...companyForm, industry: e.target.value })} /></div>
+              <div className="space-y-2.5 relative"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-5">Company Type</label><select className={selectCls} value={companyForm.companyType} onChange={e => setCompanyForm({ ...companyForm, companyType: e.target.value })}><option value="">Select Type</option><option>MNC</option><option>Startup</option><option>Product Based</option><option>Service Based</option><option>Govt PSU</option><option>Remote First</option><option>Unicorn</option></select><div className="absolute right-6 top-[44px] pointer-events-none text-slate-500">▼</div></div>
+              <div className="space-y-2.5"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-5">HQ Location</label><input className={inputCls} placeholder="e.g. Hyderabad, India" value={companyForm.location} onChange={e => setCompanyForm({ ...companyForm, location: e.target.value })} /></div>
+              <div className="md:col-span-2 space-y-2.5"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-5">Corporate Website</label><input className={inputCls} placeholder="https://www.company.com" value={companyForm.website} onChange={e => setCompanyForm({ ...companyForm, website: e.target.value })} /></div>
               
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Partner Logo</label>
-                <div className="flex gap-4 items-center">
+              <div className="md:col-span-2 space-y-3 mt-2">
+                <label className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest pl-5">Brand Visual Identity (Logo)</label>
+                <div className="flex gap-6 items-center bg-slate-50 dark:bg-slate-950/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-800">
                   <input type="file" accept="image/*" className="hidden" id="modal-logo" onChange={e => {
                     const file = e.target.files[0];
                     if (file) {
@@ -1858,10 +1883,17 @@ const AdminDashboard = () => {
                       reader.readAsDataURL(file);
                     }
                   }} />
-                  <label htmlFor="modal-logo" className="flex-1 cursor-pointer bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center text-sm font-bold text-slate-500 hover:border-emerald-500 transition-all">
-                    {companyForm.logo ? 'Change Identity Logo' : 'Click to Upload Identity Logo'}
+                  <label htmlFor="modal-logo" className="flex-1 cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center text-xs font-black text-slate-500 hover:border-emerald-500 hover:text-emerald-500 transition-all uppercase tracking-widest">
+                    {companyForm.logo ? 'Change Identity' : 'Upload Identity Logo'}
                   </label>
-                  {companyForm.logo && <img src={companyForm.logo} alt="Preview" className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-2" />}
+                  {companyForm.logo ? (
+                    <div className="relative group">
+                      <img src={companyForm.logo} alt="Preview" className="w-20 h-20 object-contain rounded-2xl bg-white border border-slate-200 p-3 shadow-md" />
+                      <button onClick={() => setCompanyForm({...companyForm, logo: ''})} className="absolute -top-2 -right-2 bg-rose-500 text-white p-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><X size={12} /></button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400"><ImageIcon size={32} /></div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1869,20 +1901,25 @@ const AdminDashboard = () => {
             <button 
               onClick={async () => { 
                 if (!companyForm.name) return toast.error('Company Name is required');
-                const res = await axios.post(`${API}/companies`, companyForm, getConfig()); 
-                const newCompany = res.data;
-                setJobForm({ ...jobForm, company: newCompany.name, companyId: newCompany.id, companyLogo: newCompany.logo });
-                setCompanySearch(newCompany.name);
-                setCompanyForm({ name: '', industry: '', logo: '', companyType: '', location: '', website: '', description: '' }); 
-                fetchData(); 
-                setIsCompanyModalOpen(false);
-                showMsg('New Partner Onboarded'); 
+                try {
+                  showMsg('Processing partner identity...');
+                  const res = await axios.post(`${API}/companies`, companyForm, getConfig()); 
+                  const newCompany = res.data;
+                  setJobForm({ ...jobForm, company: newCompany.name, companyId: newCompany.id, companyLogo: newCompany.logo });
+                  setCompanySearch(newCompany.name);
+                  setCompanyForm({ name: '', industry: '', logo: '', companyType: '', location: '', website: '', description: '' }); 
+                  fetchData(); 
+                  setIsCompanyModalOpen(false);
+                  showMsg('Partner Successfully Onboarded'); 
+                } catch (err) {
+                  toast.error('Failed to onboard partner');
+                }
               }} 
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-5 rounded-full mt-10 transition-all active:scale-95 shadow-2xl shadow-emerald-500/30 text-lg"
+              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black py-5 rounded-full mt-10 transition-all active:scale-95 shadow-[0_15px_30px_rgba(16,185,129,0.3)] text-lg flex items-center justify-center gap-3"
             >
-              Verify & Authorize Partner
+              <Zap size={20} /> Verify & Authorize Partner
             </button>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

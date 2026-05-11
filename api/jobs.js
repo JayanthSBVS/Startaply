@@ -3,6 +3,22 @@ const cors    = require('cors');
 const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 
 const { recordActivity } = require('./_shared');
+const cloudinary = require('cloudinary').v2;
+
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({ secure: true });
+}
+
+async function uploadToCloudinary(fileStr, folder = 'jobs') {
+  if (!fileStr || !fileStr.startsWith('data:') || !process.env.CLOUDINARY_URL) return fileStr;
+  try {
+    const res = await cloudinary.uploader.upload(fileStr, { folder: `strataply/${folder}`, resource_type: 'auto' });
+    return res.secure_url;
+  } catch (err) {
+    console.error('[Cloudinary Upload Error]', err.message);
+    return fileStr;
+  }
+}
 
 const pool = getPool();
 
@@ -196,7 +212,7 @@ function normalizeJob(body, existing = null, adminId = null) {
     mapLocationUrl: body.mapLocationUrl || body.maplocationurl || '',
     processType: body.processType || body.processtype || 'Standard',
     createdByAdminId: adminId || body.createdByAdminId || existing?.createdByAdminId || 'admin_jayanth',
-    companyId: body.companyId || existing?.companyId || null
+    companyId: body.companyId || body.companyid || existing?.companyId || existing?.companyid || null
   };
 }
 
@@ -485,6 +501,10 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
     }
 
     const j = normalizeJob(req.body, null, req.user.id);
+    if (j.companyLogo && j.companyLogo.startsWith('data:')) {
+      j.companyLogo = await uploadToCloudinary(j.companyLogo, 'jobs');
+    }
+
     const { rows } = await pool.query(`
       INSERT INTO jobs (
         id,createdAt,updatedAt,title,subtitle,description,fullDescription,
@@ -503,6 +523,17 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
       j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType, j.createdByAdminId,
       j.companyId
     ]);
+
+    // Update job with company logo if linked but logo missing
+    if (j.companyId && !j.companyLogo) {
+      try {
+        const { rows: comp } = await pool.query('SELECT logo FROM companies WHERE id = $1', [j.companyId]);
+        if (comp.length && comp[0].logo) {
+          await pool.query('UPDATE jobs SET companylogo = $1 WHERE id = $2', [comp[0].logo, j.id]);
+        }
+      } catch (err) {}
+    }
+
     clearMemCachePrefix('jobs_list');
     clearMemCachePrefix('latest');
     clearMemCachePrefix('all');
@@ -540,6 +571,10 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
     }
 
     const j = normalizeJob(req.body, existingJob);
+    if (j.companyLogo && j.companyLogo.startsWith('data:')) {
+      j.companyLogo = await uploadToCloudinary(j.companyLogo, 'jobs');
+    }
+
     const { rows } = await pool.query(`
       UPDATE jobs SET
         updatedAt=$1,title=$2,subtitle=$3,description=$4,fullDescription=$5,
@@ -559,6 +594,17 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
       j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType,
       j.createdByAdminId, j.companyId, id
     ]);
+
+    // Sync logo if linked but missing in payload
+    if (j.companyId && !j.companyLogo) {
+      try {
+        const { rows: comp } = await pool.query('SELECT logo FROM companies WHERE id = $1', [j.companyId]);
+        if (comp.length && comp[0].logo) {
+          await pool.query('UPDATE jobs SET companylogo = $1 WHERE id = $2', [comp[0].logo, id]);
+        }
+      } catch (err) {}
+    }
+
     clearMemCachePrefix('jobs_list');
     clearMemCachePrefix('latest');
     clearMemCachePrefix('all');

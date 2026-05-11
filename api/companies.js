@@ -3,6 +3,36 @@ const cors = require('cors');
 const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
 
 const { recordActivity } = require('./_shared');
+const cloudinary = require('cloudinary').v2;
+
+// Configure Cloudinary if URL is provided
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({
+    secure: true
+  });
+}
+
+/**
+ * Uploads an image to Cloudinary if configured, otherwise returns original.
+ * @param {string} fileStr Base64 or URL
+ * @param {string} folder Folder name
+ * @returns {Promise<string>} Uploaded URL or original string
+ */
+async function uploadToCloudinary(fileStr, folder = 'companies') {
+  if (!fileStr || !fileStr.startsWith('data:') || !process.env.CLOUDINARY_URL) {
+    return fileStr;
+  }
+  try {
+    const uploadResponse = await cloudinary.uploader.upload(fileStr, {
+      folder: `strataply/${folder}`,
+      resource_type: 'auto'
+    });
+    return uploadResponse.secure_url;
+  } catch (err) {
+    console.error('[Cloudinary Upload Error]', err.message);
+    return fileStr; // Fallback to original
+  }
+}
 
 const pool = getPool();
 
@@ -231,10 +261,16 @@ app.post('/api/companies', authMiddleware, async (req, res) => {
     const { name, logo, website, location, description, industry, companyType } = req.body;
     if (!name) return res.status(400).json({ message: 'Company name is required' });
     const id = String(Date.now());
+
+    let logoUrl = logo || '';
+    if (logoUrl.startsWith('data:')) {
+      logoUrl = await uploadToCloudinary(logoUrl, 'companies');
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO companies (id, name, logo, website, location, description, industry, companyType, createdAt, createdByAdminId)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [id, name, logo || '', website || '', location || '', description || '', industry || '', companyType || '', Date.now(), req.user.id]
+      [id, name, logoUrl, website || '', location || '', description || '', industry || '', companyType || '', Date.now(), req.user.id]
     );
     clearMemCachePrefix('comp_');
     recordActivity(pool, req.user, 'Companies', `Registered partner company: ${name}`, id).catch(() => {});
@@ -259,11 +295,32 @@ app.put('/api/companies/:id', authMiddleware, async (req, res) => {
     }
 
     const { name, logo, website, location, description, industry, companyType } = req.body;
+    
+    let logoUrl = logo;
+    if (logoUrl && logoUrl.startsWith('data:')) {
+      logoUrl = await uploadToCloudinary(logoUrl, 'companies');
+    }
+
     const { rows } = await pool.query(
       `UPDATE companies SET name=$1, logo=$2, website=$3, location=$4, description=$5, industry=$6, companyType=$7 WHERE id=$8 RETURNING *`,
-      [name || ex[0].name, logo || '', website || '', location || '', description || '', industry || '', companyType || '', id]
+      [name || ex[0].name, logoUrl !== undefined ? logoUrl : ex[0].logo, website || '', location || '', description || '', industry || '', companyType || '', id]
     );
+
+    // ── SYNC: Update all jobs linked to this company ──
+    const updatedCompany = rows[0];
+    try {
+      await pool.query(
+        `UPDATE jobs SET company = $1, companylogo = $2 WHERE companyid = $3`,
+        [updatedCompany.name, updatedCompany.logo, id]
+      );
+    } catch (syncErr) {
+      console.error('[Sync Warning] Failed to update dependent jobs:', syncErr.message);
+    }
+
     clearMemCachePrefix('comp_');
+    clearMemCachePrefix('jobs_');
+    clearMemCachePrefix('latest');
+    clearMemCachePrefix('all');
     recordActivity(pool, req.user, 'Companies', `Updated company: ${name}`, id).catch(() => {});
     res.json(mapRow(rows[0]));
   } catch (err) {
