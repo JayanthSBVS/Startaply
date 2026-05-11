@@ -14,6 +14,7 @@ import { toast } from 'react-hot-toast';
 import ThemeToggle from '../components/common/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
+import { motion } from 'framer-motion';
 
 const API = '/api';
 
