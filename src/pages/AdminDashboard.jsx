@@ -265,7 +265,7 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <div className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-50 dark:bg-slate-950/80 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800/50 flex flex-col z-[100] transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6 border-b border-slate-200 dark:border-slate-800/50 flex justify-between items-center">
-          <h2 className="text-xl font-black tracking-tighter">STARTA<span className="text-emerald-500">ADMIN</span></h2>
+          <h2 className="text-xl font-black tracking-tighter">START<span className="text-emerald-500">ADMIN</span></h2>
           <button className="md:hidden text-slate-500 dark:text-slate-500 dark:text-slate-400" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
         </div>
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">

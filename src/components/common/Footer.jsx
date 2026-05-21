@@ -62,7 +62,7 @@ const Footer = () => {
         {/* Brand Column */}
         <div className="col-span-1 md:col-span-1 border-r border-slate-800/50 pr-6">
           <h2 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
-            STARTA<span className="text-emerald-500">PLY</span>
+            START<span className="text-emerald-500">APLY</span>
           </h2>
           <p className="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-4">
             Find · Apply · Grow
