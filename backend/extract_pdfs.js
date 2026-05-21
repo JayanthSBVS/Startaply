@@ -2,8 +2,8 @@ const fs = require('fs');
 const pdf = require('pdf-parse');
 
 const files = [
-  'c:\\Users\\jayan\\OneDrive\\Documents\\Strataply\\Strataply\\STRATAPLY – COMPANY OVERVIEW.pdf',
-  'c:\\Users\\jayan\\OneDrive\\Documents\\Strataply\\Strataply\\STRATAPLY_doc.pdf'
+  'c:\\Users\\jayan\\OneDrive\\Documents\\Startaply\\Startaply\\STARTAPLY – COMPANY OVERVIEW.pdf',
+  'c:\\Users\\jayan\\OneDrive\\Documents\\Startaply\\Startaply\\STARTAPLY_doc.pdf'
 ];
 
 async function extract() {

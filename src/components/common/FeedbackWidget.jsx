@@ -35,7 +35,7 @@ const FeedbackWidget = () => {
                             <X size={16} />
                         </button>
                         <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Send Feedback</h2>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">Help us improve Strataply by sharing your thoughts or reporting issues.</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">Help us improve Startaply by sharing your thoughts or reporting issues.</p>
 
                         {status === 'success' ? (
                             <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-4 rounded-xl font-bold text-center border border-emerald-100 dark:border-emerald-800">

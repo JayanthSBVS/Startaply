@@ -37,7 +37,7 @@ const AdminLogin = () => {
           <div className="w-14 h-14 bg-emerald-600 rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition-transform">
             <span className="text-white font-black text-3xl tracking-tighter">S</span>
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">STRATA<span className="text-emerald-500">PLY</span></h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">STARTA<span className="text-emerald-500">PLY</span></h2>
         </Link>
 
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -71,7 +71,7 @@ const AdminLogin = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
-                  placeholder="admin@strataply.com"
+                  placeholder="admin@startaply.com"
                 />
               </div>
             </div>

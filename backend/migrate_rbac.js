@@ -36,7 +36,7 @@ async function migrate() {
     console.log('✓ Activity Logs table ready');
 
     // 3. Seed Manager
-    const managerEmail = 'manager@strataply.com';
+    const managerEmail = 'manager@startaply.com';
     const hashedPassword = await bcrypt.hash('manager123', 10);
     
     await pool.query(`
@@ -45,7 +45,7 @@ async function migrate() {
       ON CONFLICT (email) DO UPDATE SET password = $4, role = $5
     `, ['manager_principal', 'Operations Manager', managerEmail, hashedPassword, 'manager', Date.now()]);
     
-    console.log('✓ Operational Manager seeded (manager@strataply.com / manager123)');
+    console.log('✓ Operational Manager seeded (manager@startaply.com / manager123)');
     
     // 4. Migrate existing admins if any
     const adminsTableExists = await pool.query(`

@@ -42,7 +42,7 @@ app.use('/api/testimonials', require('./routes/testimonials'));
 app.use('/api/prep-data', require('./routes/prepData'));
 
 app.get('/', (req, res) => {
-  res.send('Strataply Operational API Running');
+  res.send('Startaply Operational API Running');
 });
 
 io.on('connection', (socket) => {

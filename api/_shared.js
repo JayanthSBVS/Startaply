@@ -1,5 +1,5 @@
 /**
- * Centralized logging utility for Strataply Administrative actions.
+ * Centralized logging utility for Startaply Administrative actions.
  * Since Vercel serverless functions are isolated, this provides a unified
  * database recording mechanism shared across all modules.
  */

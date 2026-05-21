@@ -23,7 +23,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
   const handleShare = async () => {
     const shareData = {
       title: `${displayJob.title} at ${displayJob.company}`,
-      text: `Check out this ${displayJob.title} opportunity at ${displayJob.company} on Strataply!`,
+      text: `Check out this ${displayJob.title} opportunity at ${displayJob.company} on Startaply!`,
       url: window.location.origin + `/jobs?id=${displayJob.id}`,
     };
     if (navigator.share) {

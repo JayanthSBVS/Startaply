@@ -18,10 +18,10 @@ const dummyData = {
     { heading: 'Common HR Interview Tips', content: 'Prepare your introduction and strengths/weaknesses.', jobType: 'Non-IT Jobs' }
   ],
   testimonials: [
-    { name: 'Rahul Sharma', tagline: 'Software Engineer at TCS', description: 'Strataply helped me find my dream job in record time. The interface is amazing!' },
+    { name: 'Rahul Sharma', tagline: 'Software Engineer at TCS', description: 'Startaply helped me find my dream job in record time. The interface is amazing!' },
     { name: 'Priya Verma', tagline: 'Graduate student', description: 'The preparation materials are top-notch. Highly recommend for freshers.' }
   ],
-  mela: { title: 'Strataply Mega Career Fair 2024', date: '2024-12-25', venue: 'Hyderabad International Convention Centre', time: '09:00 AM - 05:00 PM', isActive: true, showPopup: true, registrationLink: 'https://strataply.com/register' },
+  mela: { title: 'Startaply Mega Career Fair 2024', date: '2024-12-25', venue: 'Hyderabad International Convention Centre', time: '09:00 AM - 05:00 PM', isActive: true, showPopup: true, registrationLink: 'https://startaply.com/register' },
   feedback: [
     { name: 'Amit Singh', message: 'Great platform! Found it very easy to navigate.', email: 'amit@example.com' },
     { name: 'Sneha Rao', message: 'Could use more government job listings.', email: 'sneha@example.com' }

@@ -374,7 +374,7 @@ router.post('/:id/apply', async (req, res) => {
     await pool.query(
       `INSERT INTO applications (id, jobId, jobTitle, companyName, name, email, phone, resume, appliedAt, createdByAdminId) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, jobId, jobTitle || 'General', companyName || 'Strataply', name, email, phone || '', resume || '', Date.now(), adminId]
+      [id, jobId, jobTitle || 'General', companyName || 'Startaply', name, email, phone || '', resume || '', Date.now(), adminId]
     );
     res.status(201).json({ success: true });
   } catch (err) {

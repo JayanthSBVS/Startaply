@@ -23,7 +23,7 @@ async function seedTestMela() {
       tickerText,
       true,
       true,
-      'https://strataply.com/register',
+      'https://startaply.com/register',
       createdAt
     ];
 

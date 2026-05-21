@@ -27,7 +27,7 @@ const AboutUs = () => {
             Redefining <span className="text-emerald-600 dark:text-emerald-400">Job Discovery</span>
           </h1>
           <p className="max-w-3xl mx-auto text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-            Strataply is a modern platform designed to help users find and apply for verified job opportunities instantly, with zero friction and zero fees.
+            Startaply is a modern platform designed to help users find and apply for verified job opportunities instantly, with zero friction and zero fees.
           </p>
         </motion.div>
       </div>

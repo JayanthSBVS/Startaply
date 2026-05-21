@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
       <div className="max-w-3xl mx-auto px-4 py-20">
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
           <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-10 font-medium">
-            At Strataply, our mission is to make job searching simple, fast, and accessible. In providing you with reliable and easy-to-understand job information, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
+            At Startaply, our mission is to make job searching simple, fast, and accessible. In providing you with reliable and easy-to-understand job information, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">

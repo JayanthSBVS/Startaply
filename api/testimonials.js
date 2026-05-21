@@ -28,7 +28,7 @@ async function init() {
 init();
 
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || 'startaply_super_secret_key_123';
 
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');

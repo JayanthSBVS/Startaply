@@ -12,7 +12,7 @@ if (process.env.CLOUDINARY_URL) {
 async function uploadToCloudinary(fileStr, folder = 'jobs') {
   if (!fileStr || !fileStr.startsWith('data:') || !process.env.CLOUDINARY_URL) return fileStr;
   try {
-    const res = await cloudinary.uploader.upload(fileStr, { folder: `strataply/${folder}`, resource_type: 'auto' });
+    const res = await cloudinary.uploader.upload(fileStr, { folder: `startaply/${folder}`, resource_type: 'auto' });
     return res.secure_url;
   } catch (err) {
     console.error('[Cloudinary Upload Error]', err.message);
@@ -27,7 +27,7 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // ── JWT Secret guard ────────────────────────────────────────────────────────
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || 'startaply_super_secret_key_123';
 
 // ── ROLE HELPERS ────────────────────────────────────────────────────────────
 // 'admin' is legacy for 'executive' — normalize everywhere
@@ -766,10 +766,10 @@ app.post('/api/jobs/:id/apply', async (req, res) => {
           }
         });
         await transporter.sendMail({
-          from: '"Strataply" <noreply@strataply.com>',
+          from: '"Startaply" <noreply@startaply.com>',
           to: email,
           subject: `Application Received: ${jobTitle || 'Job'} at ${companyName || 'our partner company'}`,
-          text: `Hi ${name},\n\nWe have received your application.\n\nThank you for applying through Strataply!\n\nBest,\nStrataply Team`,
+          text: `Hi ${name},\n\nWe have received your application.\n\nThank you for applying through Startaply!\n\nBest,\nStartaply Team`,
         });
       } catch { /* email failure is non-critical */ }
     })();

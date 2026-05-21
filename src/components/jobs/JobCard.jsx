@@ -60,7 +60,7 @@ const JobCard = memo(({ job, onViewDetails }) => {
 
   const handleShare = async (e) => {
     e.stopPropagation();
-    const shareText = `Explore this opportunity on Strataply!\nTitle: ${job.title}\nCompany: ${job.company}\nView: ${window.location.origin}/jobs?id=${job.id}`;
+    const shareText = `Explore this opportunity on Startaply!\nTitle: ${job.title}\nCompany: ${job.company}\nView: ${window.location.origin}/jobs?id=${job.id}`;
     if (navigator.share) {
       try { await navigator.share({ title: job.title, text: shareText }); } catch { /* user cancelled */ }
     } else {

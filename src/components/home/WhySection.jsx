@@ -33,7 +33,7 @@ const WhySection = () => {
       >
         <div className="text-center mb-14">
           <motion.h2 variants={cardVariants} className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
-            Why Choose <span className="text-emerald-400">Strataply?</span>
+            Why Choose <span className="text-emerald-400">Startaply?</span>
           </motion.h2>
           <motion.p variants={cardVariants} className="text-lg text-slate-400 max-w-2xl mx-auto font-medium">
             Built specifically for speed, clarity, and successful hiring outcomes.

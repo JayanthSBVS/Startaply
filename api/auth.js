@@ -4,7 +4,7 @@ const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } =
 const bcrypt   = require('bcryptjs');
 const jwt      = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || 'startaply_super_secret_key_123';
 
 const { recordActivity } = require('./_shared');
 
@@ -123,19 +123,19 @@ async function initAuthDb() {
       );
     }
 
-    // 4. Seed primary manager — admin@strataply.com / admin123 (new canonical credentials)
-    const adminEmail = 'admin@strataply.com';
+    // 4. Seed primary manager — admin@startaply.com / admin123 (new canonical credentials)
+    const adminEmail = 'admin@startaply.com';
     const adminPass  = await bcrypt.hash('admin123', 10);
     await pool.query(
       `INSERT INTO users (id, name, email, password, role, department, createdAt)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
        ON CONFLICT (email) DO NOTHING`,
-      ['admin_strataply', 'System Manager', adminEmail, adminPass, 'manager', 'Management', Date.now()]
+      ['admin_startaply', 'System Manager', adminEmail, adminPass, 'manager', 'Management', Date.now()]
     );
 
     // Optional: Allow the "Operations Manager" (manager_principal) to be deleted by changing its role
     // to operational_manager if it currently is manager. That way the UI delete button will appear.
-    await pool.query(`UPDATE users SET role = 'operational_manager' WHERE email = 'manager@strataply.com' AND role = 'manager'`).catch(() => {});
+    await pool.query(`UPDATE users SET role = 'operational_manager' WHERE email = 'manager@startaply.com' AND role = 'manager'`).catch(() => {});
 
     // 7. Normalize any remaining 'admin' roles → 'executive' (safe, backward-compat migration)
     await pool.query(`UPDATE users SET role = 'executive' WHERE role = 'admin'`).catch(() => {});

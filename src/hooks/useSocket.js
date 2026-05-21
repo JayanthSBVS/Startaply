@@ -20,7 +20,7 @@ export const useSocket = (onUpdate) => {
 
   useEffect(() => {
     // Only connect if there's a valid token (avoids 401 storms on reconnect)
-    const token = localStorage.getItem('strataply_token');
+    const token = localStorage.getItem('startaply_token');
     if (!token || token === 'null' || token === 'undefined') return;
 
     socket.connect();

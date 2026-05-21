@@ -25,28 +25,28 @@ const socialLinks = [
     hoverText: 'hover:text-white',
   },
   {
-    href: 'https://instagram.com/strataply',
+    href: 'https://instagram.com/startaply',
     icon: <Instagram size={22} />,
     label: 'Instagram',
     hoverBg: 'hover:bg-gradient-to-br hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045]',
     hoverText: 'hover:text-white',
   },
   {
-    href: 'https://t.me/strataply',
+    href: 'https://t.me/startaply',
     icon: <TelegramIcon size={22} />,
     label: 'Telegram',
     hoverBg: 'hover:bg-[#0088cc]',
     hoverText: 'hover:text-white',
   },
   {
-    href: 'https://youtube.com/@strataply',
+    href: 'https://youtube.com/@startaply',
     icon: <Youtube size={22} />,
     label: 'YouTube',
     hoverBg: 'hover:bg-[#FF0000]',
     hoverText: 'hover:text-white',
   },
   {
-    href: 'https://linkedin.com/company/strataply',
+    href: 'https://linkedin.com/company/startaply',
     icon: <Linkedin size={22} />,
     label: 'LinkedIn',
     hoverBg: 'hover:bg-[#0A66C2]',
@@ -62,7 +62,7 @@ const Footer = () => {
         {/* Brand Column */}
         <div className="col-span-1 md:col-span-1 border-r border-slate-800/50 pr-6">
           <h2 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
-            STRATA<span className="text-emerald-500">PLY</span>
+            STARTA<span className="text-emerald-500">PLY</span>
           </h2>
           <p className="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-4">
             Find · Apply · Grow
@@ -127,12 +127,12 @@ const Footer = () => {
         <div>
           <h4 className="text-white font-semibold mb-3 tracking-wide uppercase text-sm">Contact Us</h4>
           <ul className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-sm">
-            <li><a href="mailto:support@strataply.com" className="hover:text-emerald-400 flex items-center gap-2 transition-colors"><Mail size={15} /> support@strataply.com</a></li>
+            <li><a href="mailto:support@startaply.com" className="hover:text-emerald-400 flex items-center gap-2 transition-colors"><Mail size={15} /> support@startaply.com</a></li>
             <li><a href="tel:+919876543210" className="hover:text-emerald-400 flex items-center gap-2 transition-colors"><Phone size={15} /> +91 98765 43210</a></li>
           </ul>
         </div>
         <div className="text-sm mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-800 w-full md:w-auto text-left md:text-right">
-          <p>© {new Date().getFullYear()} Strataply. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Startaply. All rights reserved.</p>
           <p className="text-xs text-slate-600 mt-1">Made with ❤️ for job seekers across India</p>
         </div>
       </div>

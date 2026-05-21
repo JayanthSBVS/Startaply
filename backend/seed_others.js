@@ -9,11 +9,11 @@ const pool = getPool();
     // console.log('Hero done');
 
     // Testimonials
-    // await pool.query('INSERT INTO testimonials (id, name, tagline, description, photo, createdat) VALUES ($1, $2, $3, $4, $5, $6)', ['test_testi_2', 'Jane Doe', 'Software Engineer', 'Strataply helped me get my dream job at an MNC in just 2 weeks!', 'https://randomuser.me/api/portraits/women/44.jpg', Date.now()]);
+    // await pool.query('INSERT INTO testimonials (id, name, tagline, description, photo, createdat) VALUES ($1, $2, $3, $4, $5, $6)', ['test_testi_2', 'Jane Doe', 'Software Engineer', 'Startaply helped me get my dream job at an MNC in just 2 weeks!', 'https://randomuser.me/api/portraits/women/44.jpg', Date.now()]);
     // console.log('Testimonials done');
 
     // Job Mela
-    await pool.query('INSERT INTO job_mela (title, date, venue, time, isactive, showpopup, company, registrationlink, createdbyadminid, createdat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', ['Mega IT Job Fair 2024', '2026-05-15', 'Hyderabad Convention Centre', '10:00 AM - 5:00 PM', true, true, 'Multiple MNCs', 'https://strataply.com', 'admin_jayanth', Date.now()]);
+    await pool.query('INSERT INTO job_mela (title, date, venue, time, isactive, showpopup, company, registrationlink, createdbyadminid, createdat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', ['Mega IT Job Fair 2024', '2026-05-15', 'Hyderabad Convention Centre', '10:00 AM - 5:00 PM', true, true, 'Multiple MNCs', 'https://startaply.com', 'admin_jayanth', Date.now()]);
     console.log('Mela done');
 
     // Prep Data

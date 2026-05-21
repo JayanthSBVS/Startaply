@@ -17,8 +17,8 @@ export const AuthProvider = ({ children }) => {
   const [permissions, setPermissions] = useState([]);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('strataply_token');
-    const storedUser  = localStorage.getItem('strataply_user');
+    const storedToken = localStorage.getItem('startaply_token');
+    const storedUser  = localStorage.getItem('startaply_user');
     if (storedToken && storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   // Fetch role permissions from server
   const fetchPermissions = async (token) => {
     try {
-      const t = token || localStorage.getItem('strataply_token');
+      const t = token || localStorage.getItem('startaply_token');
       if (!t) return;
       const res = await axios.get('/api/auth/permissions', {
         headers: { Authorization: `Bearer ${t}` }
@@ -50,8 +50,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = (token, userData) => {
     const normalizedUser = { ...userData, role: normalizeRole(userData.role) };
-    localStorage.setItem('strataply_token', token);
-    localStorage.setItem('strataply_user', JSON.stringify(normalizedUser));
+    localStorage.setItem('startaply_token', token);
+    localStorage.setItem('startaply_user', JSON.stringify(normalizedUser));
     setUser(normalizedUser);
     // Fetch permissions right after login
     fetchPermissions(token).catch(() => {});
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const token = localStorage.getItem('strataply_token');
+      const token = localStorage.getItem('startaply_token');
       if (token) {
         const apiUrl = window.location.origin + '/api/auth/logout';
         await fetch(apiUrl, {
@@ -70,8 +70,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Session close error:', err);
     }
-    localStorage.removeItem('strataply_token');
-    localStorage.removeItem('strataply_user');
+    localStorage.removeItem('startaply_token');
+    localStorage.removeItem('startaply_user');
     setUser(null);
     setPermissions([]);
   };
@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
   // Refresh permissions from server (call after manager updates them)
   // Explicitly passes the current token to avoid stale closure
   const refreshPermissions = () => {
-    const token = localStorage.getItem('strataply_token');
+    const token = localStorage.getItem('startaply_token');
     fetchPermissions(token).catch(() => {});
   };
 

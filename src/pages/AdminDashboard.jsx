@@ -37,7 +37,7 @@ const AdminDashboard = () => {
   const { user, logout, isManager, isOpManager, isExecutive, canDo, permissions, refreshPermissions } = useAuth();
   
   const getConfig = () => {
-    const token = localStorage.getItem('strataply_token');
+    const token = localStorage.getItem('startaply_token');
     // Guard: never send Authorization header with null/undefined token (avoids 401 spam)
     if (!token || token === 'null' || token === 'undefined') return null;
     return { headers: { Authorization: `Bearer ${token}` } };
@@ -98,14 +98,14 @@ const AdminDashboard = () => {
   const [showCompanyList, setShowCompanyList] = useState(false);
 
   const fetchData = useCallback(async () => {
-    const token = localStorage.getItem('strataply_token');
+    const token = localStorage.getItem('startaply_token');
     if (!token || token === 'null' || token === 'undefined') {
       navigate('/admin-login');
       return;
     }
     
-    const storedUser = JSON.parse(localStorage.getItem('strataply_user') || '{}');
-    const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@strataply.com';
+    const storedUser = JSON.parse(localStorage.getItem('startaply_user') || '{}');
+    const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@startaply.com';
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     const safeGet = async (url, cfg, fallback = []) => {
@@ -185,7 +185,7 @@ const AdminDashboard = () => {
   }, [activeTab, navigate, logout]);
 
   useEffect(() => {
-    const token = localStorage.getItem('strataply_token');
+    const token = localStorage.getItem('startaply_token');
     if (!token || token === 'null' || token === 'undefined') {
       navigate('/admin-login');
       return;
@@ -821,7 +821,7 @@ const AdminDashboard = () => {
                           <td className="px-8 py-6">
                             <div className="font-bold text-emerald-400">{app.jobTitle || 'General Application'}</div>
                             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-black tracking-widest uppercase mt-1">
-                              {app.companyName || 'Strataply Platform'}
+                              {app.companyName || 'Startaply Platform'}
                             </div>
                           </td>
                           <td className="px-8 py-6">
@@ -1487,7 +1487,7 @@ const AdminDashboard = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Full Name *</label><input className={inputCls} placeholder="Full name" value={teamForm.name} onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))} /></div>
-                      <div className="col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Work Email *</label><input type="email" className={inputCls} placeholder="name@strataply.com" value={teamForm.email} onChange={e => setTeamForm(f => ({ ...f, email: e.target.value }))} /></div>
+                      <div className="col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Work Email *</label><input type="email" className={inputCls} placeholder="name@startaply.com" value={teamForm.email} onChange={e => setTeamForm(f => ({ ...f, email: e.target.value }))} /></div>
                       <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mobile</label><input type="tel" className={inputCls} placeholder="+91 XXXXX XXXXX" value={teamForm.mobile} onChange={e => setTeamForm(f => ({ ...f, mobile: e.target.value }))} /></div>
                       <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><input className={inputCls} placeholder="e.g. Recruitment" value={teamForm.department} onChange={e => setTeamForm(f => ({ ...f, department: e.target.value }))} /></div>
                       <div className="space-y-2">

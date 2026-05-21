@@ -19,7 +19,7 @@ const TermsOfService = () => {
       <div className="max-w-3xl mx-auto px-4 py-20">
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
           <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-10 font-medium">
-            Welcome to Strataply. By accessing our centralized job discovery and application platform, you agree to these Terms of Service. Our mission is to provide you with clear, reliable job updates and help you apply easily.
+            Welcome to Startaply. By accessing our centralized job discovery and application platform, you agree to these Terms of Service. Our mission is to provide you with clear, reliable job updates and help you apply easily.
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
@@ -43,7 +43,7 @@ const TermsOfService = () => {
             Intellectual Property
           </h3>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 font-medium">
-            The Site and its original content, features, and functionality are owned by Strataply and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
+            The Site and its original content, features, and functionality are owned by Startaply and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">

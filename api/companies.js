@@ -24,7 +24,7 @@ async function uploadToCloudinary(fileStr, folder = 'companies') {
   }
   try {
     const uploadResponse = await cloudinary.uploader.upload(fileStr, {
-      folder: `strataply/${folder}`,
+      folder: `startaply/${folder}`,
       resource_type: 'auto'
     });
     return uploadResponse.secure_url;
@@ -113,7 +113,7 @@ app.use(ensureInit);
 
 // ── AUTH MIDDLEWARE ───────────────────────────────────────────
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || 'startaply_super_secret_key_123';
 
 const normalizeRole = (r) => (!r || r === 'admin') ? 'executive' : r;
 

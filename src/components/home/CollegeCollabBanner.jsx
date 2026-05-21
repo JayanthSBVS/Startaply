@@ -28,7 +28,7 @@ const CollegeCollabBanner = () => {
                         </h2>
 
                         <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed mb-10">
-                            Strataply exclusively partners with Top Degree & Engineering Colleges across India. We bridge the gap between academia and industry by bringing verified, high-tier recruitment drives directly to campus networks.
+                            Startaply exclusively partners with Top Degree & Engineering Colleges across India. We bridge the gap between academia and industry by bringing verified, high-tier recruitment drives directly to campus networks.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4">

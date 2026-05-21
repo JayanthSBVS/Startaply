@@ -34,7 +34,7 @@ const FeedbackForm = () => {
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">We Value Your Feedback</h2>
           <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xl mx-auto font-medium text-lg">
-            Help us improve Strataply! Let us know what features you love or what we could do better to help you find your dream job faster.
+            Help us improve Startaply! Let us know what features you love or what we could do better to help you find your dream job faster.
           </p>
           <button
             onClick={() => setIsOpen(true)}

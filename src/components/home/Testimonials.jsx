@@ -5,14 +5,14 @@ import { Quote, Star } from 'lucide-react';
 
 const DUMMY_TESTIMONIALS = [
   { id: 1, name: "Rahul K.", tagline: "Warehouse Manager", description: "Got placed in an Amazon warehouse within 2 days of applying. The 'Gig & Services' category made finding blue-collar work super easy!", photo: "" },
-  { id: 2, name: "Priya S.", tagline: "Frontend Developer", description: "As a fresher, finding the first job is hard. Strataply made it seamless. Got multiple offers without paying a single rupee to consultancies.", photo: "" },
+  { id: 2, name: "Priya S.", tagline: "Frontend Developer", description: "As a fresher, finding the first job is hard. Startaply made it seamless. Got multiple offers without paying a single rupee to consultancies.", photo: "" },
   { id: 3, name: "Amit V.", tagline: "Delivery Partner", description: "Found a great gig with Zepto through this platform. Weekly payouts, flexible timings, and the application took 1 minute.", photo: "" },
   { id: 4, name: "Sneha M.", tagline: "Govt Job Aspirant", description: "The updates on govt job melas are incredibly fast and accurate. I secured my position in the state board thanks to their alerts.", photo: "" },
   { id: 5, name: "Ravi T.", tagline: "Professional Plumber", description: "Partnered with Urban Company through the Gig Works section. My earnings have doubled since I started getting direct leads.", photo: "" },
   { id: 6, name: "Anita D.", tagline: "HR Executive", description: "Found my dream corporate role without creating a 10-page profile. This platform respects your time. Highly recommended.", photo: "" }
 ];
 
-const CACHE_KEY   = 'strataply_testimonials';
+const CACHE_KEY   = 'startaply_testimonials';
 const CACHE_TTL   = 5 * 60 * 1000; // 5 minutes
 
 function readTestimonialsCache() {

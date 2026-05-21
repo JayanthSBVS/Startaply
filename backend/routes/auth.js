@@ -6,7 +6,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'strataply_super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET || 'startaply_super_secret_key_123';
 
 // ── DB INIT ──────────────────────────────────────────────
 async function initAuthDb() {
@@ -48,7 +48,7 @@ async function initAuthDb() {
     // 3. Removed legacy admins migration block as per user request
 
     // 4. Force-Reconcile Operational Manager (Ensure ID, Role, AND Password consistency)
-    const managerEmail = 'manager@strataply.com';
+    const managerEmail = 'manager@startaply.com';
     const managerPass = await bcrypt.hash('manager123', 10);
     const principalManagerId = 'manager_principal';
     
