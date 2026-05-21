@@ -30,7 +30,7 @@ const Navbar = () => {
         {/* Logo — visible on all screen sizes */}
         <Link to="/" className="flex flex-col shrink-0 group">
           <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
-            STRATA<span className="text-emerald-600">PLY</span>
+            STARTA<span className="text-emerald-600">PLY</span>
           </span>
           <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-[0.2em] mt-1 group-hover:text-emerald-600 transition-colors uppercase">
             Find . Apply . Grow
