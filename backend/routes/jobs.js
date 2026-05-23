@@ -143,6 +143,19 @@ function processPublicJobs(rows) {
   });
 }
 
+// Simple in-memory cache for search queries
+const searchCache = new Map();
+const CACHE_TTL = 30000; // 30 seconds
+
+function cleanExpiredCache() {
+  const now = Date.now();
+  for (const [key, value] of searchCache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      searchCache.delete(key);
+    }
+  }
+}
+
 async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
@@ -150,11 +163,21 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
     const offset = (page - 1) * limit;
     const search = (req.query.search || '');
 
+    // Check query cache
+    cleanExpiredCache();
+    const cacheKey = req.originalUrl || req.url;
+    if (searchCache.has(cacheKey)) {
+      const cached = searchCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TTL) {
+        return res.json(cached.data);
+      }
+    }
+
     let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
 
     if (search.trim()) {
-      const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles'];
+      const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles', 'in', 'for', 'at', 'with', 'and', 'the', 'of', 'a', 'to'];
       let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
       if (rawTerms.length === 0) rawTerms = search.trim().split(/\s+/).filter(Boolean);
 
@@ -182,7 +205,8 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
       });
 
       if (searchConditions.length > 0) {
-        whereClause += ` AND (${searchConditions.join(' OR ')})`;
+        // Connect separate terms with AND for higher specificity and speed
+        whereClause += ` AND (${searchConditions.join(' AND ')})`;
       }
     }
 
@@ -195,7 +219,12 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
     `;
 
     const { rows } = await pool.query(query, [...queryParams, limit, offset]);
-    res.json(processPublicJobs(rows));
+    const results = processPublicJobs(rows);
+    
+    // Store in query cache
+    searchCache.set(cacheKey, { data: results, timestamp: Date.now() });
+    
+    res.json(results);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);
     res.status(500).json({ error: 'Server error' });
@@ -241,7 +270,7 @@ router.get('/featured', (req, res) => {
 router.get('/search/suggestions', async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q || q.length < 2) return res.json([]);
+    if (!q || q.length < 1) return res.json([]);
     const searchTerm = `%${q}%`;
     const { rows } = await pool.query(`
       (SELECT title as suggestion FROM jobs WHERE title ILIKE $1 AND isVisible = true)
@@ -297,6 +326,7 @@ router.post('/', authMiddleware, async (req, res) => {
       j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType,
       j.createdByAdminId, j.createdByAdminName, j.companyId
     ]);
+    searchCache.clear(); // Clear cache when data is modified
     res.status(201).json(mapRow(rows[0]));
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -330,6 +360,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       j.isTrending, j.isToday, j.isVisible,
       j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, j.companyId, id
     ]);
+    searchCache.clear(); // Clear cache when data is modified
     res.json(mapRow(rows[0]));
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -342,6 +373,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     if (!ex.length) return res.status(404).json({ error: 'Not found' });
     if (!checkOwnership(ex[0].createdbyadminid, req.user)) return res.status(403).json({ error: 'Ownership required' });
     await pool.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
+    searchCache.clear(); // Clear cache when data is modified
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -349,7 +381,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 });
 
 // GET job by ID (Detailed)
-router.get('/:id', async (req, res) => {
+const getJobByIdHandler = async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount 
@@ -360,7 +392,10 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
-});
+};
+
+router.get('/:id', getJobByIdHandler);
+router.get('/:id/view', getJobByIdHandler);
 
 // POST apply
 router.post('/:id/apply', async (req, res) => {

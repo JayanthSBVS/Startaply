@@ -101,6 +101,41 @@ async function initAuthDb() {
       console.error('Operational Migration Error:', e.message);
     }
 
+    // 7. ROLE PERMISSIONS TABLE INITIALIZATION
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS role_permissions (
+          role TEXT PRIMARY KEY,
+          can_post_job BOOLEAN DEFAULT TRUE,
+          can_edit_job BOOLEAN DEFAULT TRUE,
+          can_delete_job BOOLEAN DEFAULT FALSE,
+          can_view_applicants BOOLEAN DEFAULT TRUE,
+          can_manage_companies BOOLEAN DEFAULT TRUE,
+          can_manage_mela BOOLEAN DEFAULT TRUE,
+          can_manage_prep BOOLEAN DEFAULT TRUE,
+          updated_at BIGINT
+        )
+      `);
+
+      const defaultPerms = [
+        ['manager',              true,  true,  true,  true,  true,  true,  true],
+        ['operational_manager',  true,  true,  true,  true,  true,  true,  true],
+        ['executive',            true,  true,  false, true,  true,  true,  true],
+        ['admin',                true,  true,  false, true,  true,  true,  true],
+      ];
+      for (const [r, post, edit, del, apps, comps, mela, prep] of defaultPerms) {
+        await pool.query(
+          `INSERT INTO role_permissions (role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+           ON CONFLICT (role) DO NOTHING`,
+          [r, post, edit, del, apps, comps, mela, prep, Date.now()]
+        );
+      }
+      console.log('Operational Migration: Role permissions seeded successfully.');
+    } catch (e) {
+      console.error('Role Permissions Migration Error:', e.message);
+    }
+
   } catch (err) {
     console.error('Auth DB init error:', err.message);
   }
@@ -338,6 +373,44 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
   } catch (err) {
     console.error('[AUTH STATS] Error:', err);
     res.status(500).json({ error: 'Server error fetching stats' });
+  }
+});
+
+// GET role permissions
+router.get('/permissions', authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM role_permissions ORDER BY role');
+    res.json(Array.isArray(rows) ? rows : []);
+  } catch (err) {
+    console.error('[Permissions fetch error]', err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// PUT update role permissions (manager only)
+router.put('/permissions', authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep } = req.body;
+    const VALID_ROLES = ['manager', 'operational_manager', 'executive', 'admin'];
+    if (!role || !VALID_ROLES.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    if (role === 'manager') return res.status(400).json({ error: 'Cannot restrict manager permissions' });
+
+    await pool.query(
+      `INSERT INTO role_permissions (role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (role) DO UPDATE SET
+         can_post_job=$2, can_edit_job=$3, can_delete_job=$4, can_view_applicants=$5,
+         can_manage_companies=$6, can_manage_mela=$7, can_manage_prep=$8, updated_at=$9`,
+      [role, !!can_post_job, !!can_edit_job, !!can_delete_job, !!can_view_applicants, !!can_manage_companies, !!can_manage_mela, !!can_manage_prep, Date.now()]
+    );
+    
+    await logActivity(req.user.id, req.user.name, req.user.role, 'Auth', `Updated permissions for role: ${role}`, role);
+    if (req.io) req.io.emit('DATA_UPDATED', { module: 'Auth' });
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Permissions update error]', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

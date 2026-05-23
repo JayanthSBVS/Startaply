@@ -7,6 +7,7 @@ import { useJobs } from '../../context/JobsContext';
 // ── Pure component — only re-renders when the job object reference changes ─
 const JobCard = memo(({ job, onViewDetails }) => {
   const { companies } = useJobs();
+  const [imageError, setImageError] = React.useState(false);
   
   if (!job) return <div className="animate-pulse bg-white border border-slate-100 rounded-[2rem] h-[22rem] w-full shadow-sm" />;
 
@@ -81,8 +82,8 @@ const JobCard = memo(({ job, onViewDetails }) => {
 
       <div className="flex justify-between items-start mb-5 relative z-10">
         <div className="w-16 h-16 rounded-[1.25rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-center relative group-hover:shadow-md group-hover:border-emerald-200 transition-all duration-200 overflow-hidden">
-          {companyLogo ? (
-            <img src={companyLogo} alt={job.company} className="w-full h-full object-cover relative z-10" loading="lazy" />
+          {companyLogo && !imageError ? (
+            <img src={companyLogo} alt={job.company} className="w-full h-full object-cover relative z-10" loading="lazy" onError={() => setImageError(true)} />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-black text-2xl uppercase relative z-10">
               {job.company?.charAt(0) || <Building2 size={28} />}

@@ -20,6 +20,7 @@ async function updateFeedbackSchema() {
   try {
     await pool.query(`ALTER TABLE feedback ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'`);
     await pool.query(`ALTER TABLE feedback ADD COLUMN IF NOT EXISTS updatedAt BIGINT`);
+    await pool.query(`ALTER TABLE feedback ADD COLUMN IF NOT EXISTS rating INTEGER DEFAULT 5`);
   } catch (err) {
     console.error("Feedback Schema Update Error:", err.message);
   }
@@ -58,7 +59,8 @@ router.post('/', async (req, res) => {
     
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Feedback insertion error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

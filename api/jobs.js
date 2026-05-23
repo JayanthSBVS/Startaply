@@ -294,21 +294,19 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
     const search = (req.query.search || '');
     const offset = (page - 1) * limit;
 
-    // CACHING DISABLED FOR PUBLIC SEARCH TO ENSURE LIVE DATA
-    /*
+    // Fast 30-second query caching to avoid overloading serverless database connections
     const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${search.trim()}_${req.url.replace(/\W/g, '_')}`;
-    const cached   = getMemCache(cacheKey, 60);
+    const cached   = getMemCache(cacheKey, 30);
     if (cached) {
-      setEdgeCache(res, 60, 300);
+      setEdgeCache(res, 30, 120);
       return res.json(cached);
     }
-    */
 
     let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
 
     if (search.trim()) {
-      const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles'];
+      const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles', 'in', 'for', 'at', 'with', 'and', 'the', 'of', 'a', 'to'];
       let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
       if (rawTerms.length === 0) rawTerms = search.trim().split(/\s+/).filter(Boolean);
 
@@ -336,8 +334,8 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
       });
 
       if (searchConditions.length > 0) {
-        // USING OR TO BE TYPO TOLERANT AND INCLUSIVE (Lazy Friendly)
-        whereClause += ` AND (${searchConditions.join(' OR ')})`;
+        // Connect separate terms with AND for higher specificity and speed
+        whereClause += ` AND (${searchConditions.join(' AND ')})`;
       }
     }
 
@@ -352,6 +350,11 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
     const { rows } = await pool.query(query, [...queryParams, limit, offset]);
 
     const cleaned = processPublicJobs(rows);
+    
+    // Cache the cleaned results for 30s
+    setMemCache(cacheKey, cleaned);
+    setEdgeCache(res, 30, 120);
+    
     res.json(cleaned);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);
@@ -367,7 +370,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
 app.get('/api/jobs/search/suggestions', async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q || q.length < 2) return res.json([]);
+    if (!q || q.length < 1) return res.json([]);
 
     const cacheKey = `sq_${q.toLowerCase()}`;
     const cached   = getMemCache(cacheKey, 600);

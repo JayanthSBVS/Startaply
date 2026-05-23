@@ -118,6 +118,7 @@ const Footer = () => {
             <li><Link to="/about" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">About Us</Link></li>
             <li><Link to="/privacy" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Privacy Policy</Link></li>
             <li><Link to="/terms" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Terms of Service</Link></li>
+            <li><Link to="/#feedback" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Leave Feedback</Link></li>
           </ul>
         </div>
       </div>

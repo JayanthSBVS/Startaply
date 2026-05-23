@@ -35,7 +35,7 @@ const Hero = () => {
 
   // ── Local search suggestions from context data (no API call) ────────────
   useEffect(() => {
-    if (!query || query.length < 2) {
+    if (!query || query.length < 1) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;

@@ -41,16 +41,6 @@ function getInitialState(searchParams) {
   return { section, search, govtFilter, workMode };
 }
 
-// ─── Debounce hook ─────────────────────────────────────────────────────────
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debouncedValue;
-}
-
 const JobsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -69,7 +59,33 @@ const JobsPage = () => {
   const [hasMore, setHasMore]     = useState(true);
   const [failed, setFailed]       = useState(false);
 
-  const debouncedSearch = useDebounce(search, 500);
+  const [debouncedSearch, setDebouncedSearch] = useState(init.search);
+
+  // Sync typing search with state after a snappy 300ms debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Sync state from URL search params when they change externally
+  useEffect(() => {
+    const state = getInitialState(searchParams);
+    if (state.search !== search) {
+      setSearch(state.search);
+      setDebouncedSearch(state.search);
+    }
+    if (state.section !== activeSection) {
+      setActiveSection(state.section);
+    }
+    if (state.govtFilter !== govtFilter) {
+      setGovtFilter(state.govtFilter);
+    }
+    if (state.workMode !== workMode) {
+      setWorkMode(state.workMode);
+    }
+  }, [searchParams]);
 
   // Sync URL params when state changes
   useEffect(() => {
@@ -95,6 +111,12 @@ const JobsPage = () => {
     
     setSearchParams(newParams, { replace: true });
   }, [activeSection, debouncedSearch, govtFilter, workMode, setSearchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle immediate search trigger on form submission (Enter or Search Button click)
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setDebouncedSearch(search);
+  };
 
   // Reset list when filters change
   useEffect(() => {
@@ -176,7 +198,7 @@ const JobsPage = () => {
           </h1>
           <p className="text-slate-400 mb-8 text-lg font-medium">Browse verified openings across India</p>
 
-          <div className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all shadow-2xl">
+          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all shadow-2xl">
             <div className="flex-1 flex items-center pl-5">
               <Search size={20} className="text-emerald-400 shrink-0" />
               <input
@@ -188,15 +210,15 @@ const JobsPage = () => {
                 className="w-full bg-transparent px-4 py-3.5 text-white placeholder-slate-400 outline-none font-medium text-base"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="p-1.5 mr-2 text-slate-400 hover:text-white transition-colors">
+                <button type="button" onClick={() => setSearch('')} className="p-1.5 mr-2 text-slate-400 hover:text-white transition-colors">
                   <X size={16} />
                 </button>
               )}
             </div>
-            <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-7 py-3.5 rounded-[1.5rem] font-bold transition-colors shadow-sm text-sm">
+            <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-7 py-3.5 rounded-[1.5rem] font-bold transition-colors shadow-sm text-sm">
               Search
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
