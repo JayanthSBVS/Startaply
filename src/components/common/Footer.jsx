@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Youtube, Mail, Phone, Linkedin } from 'lucide-react';
+import { Instagram, Youtube, Mail, Phone, Linkedin, ArrowUpRight } from 'lucide-react';
 
 // WhatsApp SVG
 const WhatsAppIcon = ({ size = 20 }) => (
@@ -9,7 +9,6 @@ const WhatsAppIcon = ({ size = 20 }) => (
   </svg>
 );
 
-// Telegram SVG
 const TelegramIcon = ({ size = 20 }) => (
   <svg fill="currentColor" viewBox="0 0 24 24" width={size} height={size}>
     <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
@@ -17,124 +16,122 @@ const TelegramIcon = ({ size = 20 }) => (
 );
 
 const socialLinks = [
-  {
-    href: 'https://wa.me/919876543210',
-    icon: <WhatsAppIcon size={22} />,
-    label: 'WhatsApp',
-    hoverBg: 'hover:bg-[#25D366]',
-    hoverText: 'hover:text-white',
-  },
-  {
-    href: 'https://instagram.com/startaply',
-    icon: <Instagram size={22} />,
-    label: 'Instagram',
-    hoverBg: 'hover:bg-gradient-to-br hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045]',
-    hoverText: 'hover:text-white',
-  },
-  {
-    href: 'https://t.me/startaply',
-    icon: <TelegramIcon size={22} />,
-    label: 'Telegram',
-    hoverBg: 'hover:bg-[#0088cc]',
-    hoverText: 'hover:text-white',
-  },
-  {
-    href: 'https://youtube.com/@startaply',
-    icon: <Youtube size={22} />,
-    label: 'YouTube',
-    hoverBg: 'hover:bg-[#FF0000]',
-    hoverText: 'hover:text-white',
-  },
-  {
-    href: 'https://linkedin.com/company/startaply',
-    icon: <Linkedin size={22} />,
-    label: 'LinkedIn',
-    hoverBg: 'hover:bg-[#0A66C2]',
-    hoverText: 'hover:text-white',
-  },
+  { href: 'https://wa.me/919876543210', icon: <WhatsAppIcon size={18} />, label: 'WhatsApp', hover: 'hover:bg-[#25D366] hover:text-white hover:border-[#25D366]' },
+  { href: 'https://instagram.com/startaply', icon: <Instagram size={18} />, label: 'Instagram', hover: 'hover:bg-gradient-to-br hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] hover:text-white hover:border-transparent' },
+  { href: 'https://t.me/startaply', icon: <TelegramIcon size={18} />, label: 'Telegram', hover: 'hover:bg-[#0088cc] hover:text-white hover:border-[#0088cc]' },
+  { href: 'https://youtube.com/@startaply', icon: <Youtube size={18} />, label: 'YouTube', hover: 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]' },
+  { href: 'https://linkedin.com/company/startaply', icon: <Linkedin size={18} />, label: 'LinkedIn', hover: 'hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2]' },
 ];
+
+const FooterLink = ({ to, children }) => (
+  <li>
+    <Link
+      to={to}
+      className="group flex items-center gap-1 text-slate-500 hover:text-emerald-400 transition-colors duration-200 text-sm font-medium"
+    >
+      {children}
+      <ArrowUpRight size={11} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 -mt-0.5" />
+    </Link>
+  </li>
+);
 
 const Footer = () => {
   return (
-    <footer className="bg-slate-950 text-slate-400 pt-20 pb-10 border-t border-slate-900">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
+    <footer className="bg-[#020617] text-slate-400 relative overflow-hidden">
+      {/* Top gradient line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
 
-        {/* Brand Column */}
-        <div className="col-span-1 md:col-span-1 border-r border-slate-800/50 pr-6">
-          <h2 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
-            START<span className="text-emerald-500">APLY</span>
-          </h2>
-          <p className="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-4">
-            Find · Apply · Grow
-          </p>
-          <p className="text-sm leading-relaxed mb-6">
-            Find freshers, government, and private jobs in one place. Fast. Free. Reliable.
-          </p>
+      {/* Atmospheric glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-20 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(16,185,129,0.2) 0%, transparent 70%)', filter: 'blur(60px)' }}
+      />
 
-          {/* Social Icons with Brand Colors */}
-          <div className="flex gap-2.5 flex-wrap">
-            {socialLinks.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-                className={`p-2.5 bg-slate-900 rounded-xl text-slate-400 transition-all duration-300 border border-slate-800 ${s.hoverBg} ${s.hoverText} hover:border-transparent hover:scale-110 hover:shadow-lg`}
-              >
-                {s.icon}
-              </a>
-            ))}
+      <div className="relative z-10">
+        {/* ── Main footer content ─────────────────────────────────────── */}
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
+
+          {/* Brand column */}
+          <div className="col-span-1 md:col-span-1">
+            <Link to="/" className="group inline-block mb-4">
+              <div className="text-3xl font-extrabold text-white tracking-tight mb-1">
+                START<span className="text-emerald-500">APLY</span>
+              </div>
+              <div className="text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase">Find · Apply · Grow</div>
+            </Link>
+            <p className="text-sm leading-relaxed text-slate-500 mb-6 max-w-xs">
+              India's fastest-growing opportunity platform. Government, IT, Non-IT & Fresher roles — all verified, all free.
+            </p>
+
+            {/* Social icons */}
+            <div className="flex gap-2 flex-wrap">
+              {socialLinks.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className={`p-2 bg-slate-900 rounded-xl text-slate-500 transition-all duration-300 border border-slate-800 hover:scale-110 hover:shadow-lg ${s.hover}`}
+                >
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Platform Links */}
+          <div>
+            <h4 className="text-white font-bold mb-5 text-xs uppercase tracking-[0.2em]">Platform</h4>
+            <ul className="space-y-3">
+              <FooterLink to="/">Home</FooterLink>
+              <FooterLink to="/jobs">Browse Jobs</FooterLink>
+              <FooterLink to="/companies">Companies</FooterLink>
+              <FooterLink to="/job-melas">Job Melas</FooterLink>
+              <FooterLink to="/preparation">Preparation</FooterLink>
+            </ul>
+          </div>
+
+          {/* Categories */}
+          <div>
+            <h4 className="text-white font-bold mb-5 text-xs uppercase tracking-[0.2em]">Job Categories</h4>
+            <ul className="space-y-3">
+              <FooterLink to="/category/Government%20Jobs">Government Jobs</FooterLink>
+              <FooterLink to="/category/IT%20%26%20Non-IT%20Jobs">IT Jobs</FooterLink>
+              <FooterLink to="/jobs">Non-IT Jobs</FooterLink>
+              <FooterLink to="/jobs?fresh=true">Freshers Jobs</FooterLink>
+            </ul>
+          </div>
+
+          {/* Legal & Contact */}
+          <div>
+            <h4 className="text-white font-bold mb-5 text-xs uppercase tracking-[0.2em]">Legal & Info</h4>
+            <ul className="space-y-3 mb-8">
+              <FooterLink to="/about">About Us</FooterLink>
+              <FooterLink to="/privacy">Privacy Policy</FooterLink>
+              <FooterLink to="/terms">Terms of Service</FooterLink>
+              <FooterLink to="/#feedback">Leave Feedback</FooterLink>
+            </ul>
+
+            <h4 className="text-white font-bold mb-3 text-xs uppercase tracking-[0.2em]">Contact</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a href="mailto:support@startaply.com" className="flex items-center gap-2 text-slate-500 hover:text-emerald-400 transition-colors">
+                  <Mail size={13} /> support@startaply.com
+                </a>
+              </li>
+              <li>
+                <a href="tel:+919876543210" className="flex items-center gap-2 text-slate-500 hover:text-emerald-400 transition-colors">
+                  <Phone size={13} /> +91 98765 43210
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Platform Links */}
-        <div>
-          <h4 className="text-white font-semibold mb-6 tracking-wide uppercase text-sm">Platform</h4>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Home</Link></li>
-            <li><Link to="/jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Browse Jobs</Link></li>
-            <li><Link to="/companies" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Companies</Link></li>
-            <li><Link to="/job-melas" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Job Melas</Link></li>
-            <li><Link to="/preparation" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Preparation</Link></li>
-          </ul>
-        </div>
-
-        {/* Categories */}
-        <div>
-          <h4 className="text-white font-semibold mb-6 tracking-wide uppercase text-sm">Job Categories</h4>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/category/Government%20Jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Government Jobs</Link></li>
-            <li><Link to="/category/IT%20%26%20Non-IT%20Jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">IT Jobs</Link></li>
-            <li><Link to="/jobs" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Non-IT Jobs</Link></li>
-            <li><Link to="/jobs?fresh=true" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Freshers Jobs</Link></li>
-          </ul>
-        </div>
-
-        {/* Legal */}
-        <div>
-          <h4 className="text-white font-semibold mb-6 tracking-wide uppercase text-sm">Legal &amp; Info</h4>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/about" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">About Us</Link></li>
-            <li><Link to="/privacy" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Privacy Policy</Link></li>
-            <li><Link to="/terms" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Terms of Service</Link></li>
-            <li><Link to="/#feedback" className="hover:text-emerald-400 hover:translate-x-1 inline-block transition-all">Leave Feedback</Link></li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto px-4 mt-12 mb-8 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h4 className="text-white font-semibold mb-3 tracking-wide uppercase text-sm">Contact Us</h4>
-          <ul className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-sm">
-            <li><a href="mailto:support@startaply.com" className="hover:text-emerald-400 flex items-center gap-2 transition-colors"><Mail size={15} /> support@startaply.com</a></li>
-            <li><a href="tel:+919876543210" className="hover:text-emerald-400 flex items-center gap-2 transition-colors"><Phone size={15} /> +91 98765 43210</a></li>
-          </ul>
-        </div>
-        <div className="text-sm mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-800 w-full md:w-auto text-left md:text-right">
-          <p>© {new Date().getFullYear()} Startaply. All rights reserved.</p>
-          <p className="text-xs text-slate-600 mt-1">Made with ❤️ for job seekers across India</p>
+        {/* ── Bottom bar ─────────────────────────────────────────────── */}
+        <div className="border-t border-slate-900 max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <p className="text-xs text-slate-600">© {new Date().getFullYear()} Startaply. All rights reserved.</p>
+          <p className="text-xs text-slate-700">Made with ❤️ for job seekers across India</p>
         </div>
       </div>
     </footer>

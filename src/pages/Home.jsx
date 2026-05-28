@@ -8,7 +8,7 @@ import HowItWorks from '../components/home/HowItWorks';
 import FeaturedJobsSection from '../components/jobs/FeaturedJobsSection';
 import TodaysJobsSection from '../components/jobs/TodaysJobsSection';
 import WhySection from '../components/home/WhySection';
-import CollegeCollabBanner from '../components/home/CollegeCollabBanner'; // NEW
+import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 import TrendingCompanies from '../components/home/TrendingCompanies';
 import Testimonials from '../components/home/Testimonials';
 import Footer from '../components/common/Footer';
@@ -23,25 +23,45 @@ const Home = () => {
   const [selectedJob, setSelectedJob] = useState(null);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/40 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-white font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/40 transition-colors duration-300">
       <JobMelaPopup />
       <Navbar />
+
+      {/* ── Hero — Cinematic Entry ─────────────────────────────────── */}
       <Hero />
+
+      {/* ── Live Intelligence Ticker ───────────────────────────────── */}
+      <JobMelaTicker />
+
+      {/* ── Platform Impact Stats ──────────────────────────────────── */}
       <StatsStrip />
-      <div className="space-y-0">
-        <TodaysJobsSection onViewDetails={setSelectedJob} />
-        <FeaturedJobsSection onViewDetails={setSelectedJob} />
-      </div>
 
-      <div className="py-8">
-        <JobMelaTicker />
-      </div>
+      {/* ── Fresh Listings — Today's Jobs ─────────────────────────── */}
+      <TodaysJobsSection onViewDetails={setSelectedJob} />
 
+      {/* ── Featured Opportunities ─────────────────────────────────── */}
+      <FeaturedJobsSection onViewDetails={setSelectedJob} />
+
+      {/* ── Why Choose Startaply ───────────────────────────────────── */}
+      <WhySection />
+
+      {/* ── How It Works ──────────────────────────────────────────── */}
+      <HowItWorks />
+
+      {/* ── Partner Ecosystem — Company Streams ───────────────────── */}
       <TrendingCompanies />
+
+      {/* ── Career Transformations ────────────────────────────────── */}
       <Testimonials />
-      <div className="max-w-7xl mx-auto px-4 w-full">
+
+      {/* ── College Collaboration Banner ───────────────────────────── */}
+      <CollegeCollabBanner />
+
+      {/* ── Feedback Form ─────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 w-full py-8 bg-slate-50 dark:bg-[#020617]">
         <FeedbackForm />
       </div>
+
       <Footer />
 
       {/* Single shared JobDetailsPanel — avoids dual-panel conflicts */}

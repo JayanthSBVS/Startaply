@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { ExternalLink, Sparkles, BellRing } from 'lucide-react';
+import { Sparkles, ExternalLink, Radio } from 'lucide-react';
 
-const UPDATE_TYPES = [
-  { label: 'Govt Notifications', color: 'text-amber-300' },
-  { label: 'Exam Alerts',        color: 'text-blue-300' },
-  { label: 'Admit Cards',        color: 'text-purple-300' },
-  { label: 'Results',            color: 'text-rose-300' },
-  { label: 'Job Melas',          color: 'text-emerald-300' },
-  { label: 'Urgent Hiring',      color: 'text-orange-300' },
+const TYPE_BADGES = [
+  { label: 'URGENT', color: 'text-red-300 bg-red-500/15 border-red-500/20' },
+  { label: 'GOVT',   color: 'text-amber-300 bg-amber-500/15 border-amber-500/20' },
+  { label: 'IT',     color: 'text-blue-300 bg-blue-500/15 border-blue-500/20' },
+  { label: 'NEW',    color: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/20' },
+  { label: 'MELA',   color: 'text-purple-300 bg-purple-500/15 border-purple-500/20' },
+  { label: 'FRESHER',color: 'text-teal-300 bg-teal-500/15 border-teal-500/20' },
+];
+
+const SECONDARY_TEXT = [
+  '🏢 Infosys • Bangalore • Walk-in',
+  '🏛️ SSC CGL 2024 • Apply Now',
+  '⚡ Amazon Warehouse • Immediate',
+  '🚀 TCS Digital • 800 openings',
+  '📋 IBPS PO Result Out',
+  '🎯 Wipro Elite • Fresh Grads',
+  '🌟 Google India • SDE-2',
+  '🔥 Zepto Delivery • Weekly Pay',
 ];
 
 const JobMelaTicker = () => {
@@ -22,78 +33,90 @@ const JobMelaTicker = () => {
       .catch(() => {});
   }, []);
 
-  // Cycle through update type labels for the badge
   useEffect(() => {
-    const t = setInterval(() => setBadgeIdx(p => (p + 1) % UPDATE_TYPES.length), 3000);
+    const t = setInterval(() => setBadgeIdx(p => (p + 1) % TYPE_BADGES.length), 2800);
     return () => clearInterval(t);
   }, []);
 
-  const tickerText = activeMela?.tickerText ||
-    '🚀 New Government Notifications • Exam Admit Cards Released • Urgent IT Hiring Drive • State Govt Jobs Open • Job Mela 2024 Registrations Live • Railway Recruitment Announced ✨';
+  const primaryText = activeMela?.tickerText ||
+    '🚀 New Government Notifications  •  Exam Admit Cards Released  •  Urgent IT Hiring Drive  •  State Govt Jobs Open  •  Job Mela 2024 Registrations Live  •  Railway Recruitment Announced  •  Amazon 1000+ Openings  •  TCS Digital Fresh Drive';
 
-  const currentType = UPDATE_TYPES[badgeIdx];
+  const currentBadge = TYPE_BADGES[badgeIdx];
+
+  // Repeat items for seamless loop
+  const primaryItems = [...Array(4)].map((_, i) => (
+    <span key={i} className="flex items-center gap-8 px-6 shrink-0">
+      <span className="flex items-center gap-2 text-slate-200 text-sm font-medium tracking-tight whitespace-nowrap">
+        <Sparkles size={13} className="text-emerald-400 shrink-0" />
+        {primaryText}
+      </span>
+      <Link
+        to="/job-melas"
+        className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/10 px-3 py-1 rounded-full text-[11px] font-bold transition-all shrink-0"
+        onClick={e => e.stopPropagation()}
+      >
+        SEE ALL <ExternalLink size={11} />
+      </Link>
+    </span>
+  ));
+
+  const secondaryItems = [...SECONDARY_TEXT, ...SECONDARY_TEXT, ...SECONDARY_TEXT, ...SECONDARY_TEXT].map((text, i) => (
+    <span key={i} className="flex items-center gap-3 px-6 shrink-0 text-slate-500 text-xs font-semibold whitespace-nowrap">
+      <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+      {text}
+    </span>
+  ));
 
   return (
-    <div className="relative z-40 bg-emerald-600/95 backdrop-blur-md border-y border-emerald-400/30 overflow-hidden group select-none shadow-[0_-10px_40px_rgba(16,185,129,0.1)]">
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent" />
+    <div className="relative z-40 bg-slate-900 dark:bg-slate-900/80 border-y border-slate-800/60 overflow-hidden select-none">
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
 
-      <div className="flex items-center">
-        {/* Animated Badge */}
-        <div className="relative z-50 flex flex-col items-start gap-0.5 bg-slate-900 text-emerald-400 px-5 py-3 rounded-r-3xl font-black text-[10px] uppercase tracking-[0.15em] shadow-2xl border-r border-emerald-500/20 min-w-[100px] shrink-0">
+      <div className="flex">
+        {/* ── Live Badge ──────────────────────────────────────────────────── */}
+        <div className="relative z-20 flex flex-col justify-center gap-1 px-4 py-3 bg-slate-950 border-r border-slate-800 shrink-0 min-w-[90px]">
+          {/* Ping dot */}
           <div className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-emerald-400">Live</span>
+            <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest">Live</span>
           </div>
-          <span className={`transition-all duration-500 ${currentType.color}`} style={{ minWidth: 80 }}>
-            {currentType.label}
+          {/* Rotating type badge */}
+          <span
+            key={badgeIdx}
+            className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border transition-all duration-300 ${currentBadge.color}`}
+          >
+            {currentBadge.label}
           </span>
         </div>
 
-        {/* Marquee */}
-        <div className="flex-1 overflow-hidden relative py-3.5">
-          <div className="ticker-wrapper flex items-center whitespace-nowrap">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center gap-14 px-8">
-                <span className="text-white text-sm md:text-base font-bold tracking-tight flex items-center gap-2.5">
-                  <Sparkles size={15} className="text-emerald-300 opacity-70 shrink-0" />
-                  {tickerText}
-                </span>
-                <Link
-                  to="/job-melas"
-                  className="bg-white text-emerald-700 px-4 py-1.5 rounded-full text-[11px] font-black shadow-[0_4px_15px_rgba(255,255,255,0.2)] hover:bg-emerald-50 transition-all flex items-center gap-1.5 shrink-0"
-                >
-                  VIEW ALL <ExternalLink size={12} />
-                </Link>
-                <div className="w-1.5 h-1.5 bg-emerald-300/40 rounded-full" />
-              </div>
-            ))}
+        {/* ── Ticker Tracks ─────────────────────────────────────────────── */}
+        <div className="flex-1 overflow-hidden">
+          {/* Primary track */}
+          <div className="relative overflow-hidden py-2 border-b border-slate-800/40">
+            <div className="ticker-wrapper">{primaryItems}</div>
+            {/* Edge fades */}
+            <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none" />
           </div>
-
-          <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-emerald-600/95 to-transparent z-10 pointer-events-none" />
-          <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-emerald-600/95 to-transparent z-10 pointer-events-none" />
+          {/* Secondary track (reverse, slower) */}
+          <div className="relative overflow-hidden py-1.5">
+            <div
+              className="inline-flex whitespace-nowrap"
+              style={{ animation: 'marquee-rtl 45s linear infinite' }}
+            >
+              {secondaryItems}
+            </div>
+            <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none" />
+          </div>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        .ticker-wrapper {
-          display: inline-flex;
-          animation: ticker-marquee 40s linear infinite;
-        }
-        .ticker-wrapper:hover {
-          animation-play-state: paused;
-          cursor: pointer;
-        }
-        @keyframes ticker-marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        @media (max-width: 768px) {
-          .ticker-wrapper { animation-duration: 28s; }
-        }
-      `}} />
+      {/* Bottom accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
     </div>
   );
 };

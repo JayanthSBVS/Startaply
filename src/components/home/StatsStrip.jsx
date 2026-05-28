@@ -2,63 +2,134 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView, animate } from 'framer-motion';
 
 const stats = [
-  { target: 10000, suffix: '+', label: 'Verified Jobs', start: 9000 },
-  { target: 500, suffix: '+', label: 'Top Companies', start: 450 },
-  { target: 100, suffix: '%', label: 'Free Platform', start: 100 },
+  {
+    target: 10000,
+    suffix: '+',
+    label: 'Verified Jobs',
+    sublabel: 'Manually reviewed listings',
+    start: 9000,
+    accent: 'from-emerald-500 to-teal-400',
+    glow: 'rgba(16,185,129,0.2)',
+  },
+  {
+    target: 500,
+    suffix: '+',
+    label: 'Partner Companies',
+    sublabel: 'Trusted industry employers',
+    start: 450,
+    accent: 'from-blue-500 to-cyan-400',
+    glow: 'rgba(6,182,212,0.2)',
+  },
+  {
+    target: 100,
+    suffix: '%',
+    label: 'Free Platform',
+    sublabel: 'Zero fees, zero paywalls',
+    start: 100,
+    accent: 'from-emerald-400 to-teal-300',
+    glow: 'rgba(16,185,129,0.15)',
+  },
 ];
 
-const StatItem = ({ target, suffix, label, start, started }) => {
+const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, started, index }) => {
   const [count, setCount] = useState(start);
 
   useEffect(() => {
-    if (started) {
-      const controls = animate(start, target, {
-        duration: 1.5,
-        ease: "easeOut",
-        onUpdate: (value) => setCount(Math.floor(value)),
-      });
-      return () => controls.stop();
-    }
+    if (!started) return;
+    const controls = animate(start, target, {
+      duration: 1.8,
+      ease: 'easeOut',
+      onUpdate: (v) => setCount(Math.floor(v)),
+    });
+    return () => controls.stop();
   }, [started, start, target]);
 
-  const display = count >= 1000 ? `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}K` : count;
+  const display = count >= 1000
+    ? `${(count / 1000).toFixed(count % 1000 === 0 ? 0 : 1)}K`
+    : count;
 
   return (
-    <div className="relative text-center px-4 md:px-8 py-4 md:py-6 w-full md:w-auto flex-1 group">
-      <div className="absolute inset-0 bg-emerald-400/0 group-hover:bg-emerald-400/10 rounded-[2rem] transition-colors duration-500" />
-      <p className="text-3xl md:text-5xl font-black text-white mb-1 md:mb-2 tracking-tighter drop-shadow-md">
-        {display}<span className="text-emerald-400">{suffix}</span>
-      </p>
-      <p className="text-[10px] md:text-sm font-bold text-emerald-100/80 uppercase tracking-widest whitespace-nowrap">
-        {label}
-      </p>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={started ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
+      className="stat-panel group relative flex-1 min-w-[240px] max-w-sm mx-auto"
+    >
+      {/* Card */}
+      <div
+        className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 backdrop-blur-md p-8 md:p-10 flex flex-col gap-4 cursor-default"
+        style={{ boxShadow: `0 0 40px ${glow}, 0 8px 32px rgba(0,0,0,0.08)` }}
+      >
+        {/* Top gradient accent bar */}
+        <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${accent} opacity-80`} />
+
+        {/* Background glow */}
+        <div
+          className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${glow} 0%, transparent 70%)` }}
+        />
+
+        {/* Micro-label */}
+        <div className="flex items-center gap-2">
+          <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${accent}`} />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">
+            {label}
+          </span>
+        </div>
+
+        {/* Big number */}
+        <div className="flex items-end gap-0.5">
+          <span className={`text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter text-transparent bg-gradient-to-br ${accent} bg-clip-text leading-none`}>
+            {display}
+          </span>
+          <span className={`text-3xl md:text-4xl font-black text-transparent bg-gradient-to-br ${accent} bg-clip-text mb-1`}>
+            {suffix}
+          </span>
+        </div>
+
+        {/* Sublabel */}
+        <p className="text-sm text-slate-500 dark:text-slate-500 font-medium">{sublabel}</p>
+      </div>
+    </motion.div>
   );
 };
 
 const StatsStrip = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <div className="relative bg-emerald-950 dark:bg-slate-900 py-12 border-b border-emerald-900 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-emerald-600/20 rounded-full blur-[120px] pointer-events-none" />
+    <section className="relative py-16 md:py-24 bg-slate-50 dark:bg-[#020617] overflow-hidden border-b border-slate-200 dark:border-slate-800/50 transition-colors duration-300">
+      {/* Atmospheric background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full opacity-30"
+          style={{ background: 'radial-gradient(ellipse, rgba(16,185,129,0.06) 0%, transparent 70%)', filter: 'blur(60px)' }}
+        />
+      </div>
 
-      <motion.div
-        ref={ref}
-        initial={{ opacity: 0, y: 30 }}
-        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 max-w-5xl mx-auto grid grid-cols-2 md:flex md:flex-row justify-between items-center divide-y md:divide-y-0 md:divide-x divide-emerald-800/80 dark:divide-slate-800 bg-emerald-900/40 dark:bg-slate-900/60 backdrop-blur-md rounded-[2rem] border border-emerald-800/50 dark:border-slate-800 shadow-2xl overflow-hidden"
-      >
-        {stats.map((s, idx) => (
-          <div key={s.label} className={`${idx === stats.length - 1 && stats.length % 2 !== 0 ? 'col-span-2' : 'col-span-1'} flex justify-center`}>
-            <StatItem {...s} started={isInView} />
+      <div ref={ref} className="relative z-10 max-w-6xl mx-auto px-4">
+        {/* Section header */}
+        <div className="text-center mb-12 md:mb-16">
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-500">Platform Impact</span>
           </div>
-        ))}
-      </motion.div>
-    </div>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+            Numbers That <span className="text-gradient-emerald">Matter</span>
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto">
+            Real data. Real opportunities. Real growth.
+          </p>
+        </div>
+
+        {/* Stat panels */}
+        <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch">
+          {stats.map((s, i) => (
+            <StatPanel key={s.label} {...s} index={i} started={isInView} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
