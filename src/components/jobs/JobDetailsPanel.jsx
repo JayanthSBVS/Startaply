@@ -224,7 +224,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
                 {/* DESCRIPTIONS */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">Job Description</h3>
-                  <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{displayJob.fullDescription || displayJob.description || 'No detailed description provided.'}</div>
+                  <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[15px] whitespace-pre-wrap">{displayJob.fullDescription || 'No detailed description provided.'}</div>
                 </div>
 
                 {displayJob.benefits && (
