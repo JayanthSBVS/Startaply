@@ -412,11 +412,11 @@ const AdminDashboard = () => {
                           onFocus={() => setShowCompanyList(true)}
                           placeholder="Search or Select Company..." 
                         />
-                        {showCompanyList && (companySearch || jobs.length > 0) && (
+                        {showCompanyList && (
                           <div className="absolute top-full left-0 w-full mt-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[110] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
                             <div className="max-h-72 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                              {companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).length > 0 ? (
-                                companies.filter(c => c.name.toLowerCase().includes(companySearch.toLowerCase())).map(c => (
+                              {companies.filter(c => c.name.toLowerCase().includes((companySearch || '').toLowerCase())).length > 0 ? (
+                                companies.filter(c => c.name.toLowerCase().includes((companySearch || '').toLowerCase())).map(c => (
                                   <button
                                     key={c.id}
                                     type="button"
