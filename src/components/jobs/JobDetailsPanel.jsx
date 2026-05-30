@@ -246,13 +246,13 @@ const JobDetailsPanel = ({ job, onClose }) => {
         )}
 
         {/* FOOTER ACTION */}
-        <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.3)] z-20">
+        <div className="p-6 pb-8 md:pb-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.3)] z-20">
           {showForm ? (
-            <button type="submit" form="applyForm" disabled={isSubmitting || applied} className={`w-full py-4 rounded-full font-bold text-lg flex justify-center items-center gap-2 transition-all ${applied ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'}`}>
+            <button type="submit" form="applyForm" disabled={isSubmitting || applied} className={`w-full py-4 rounded-full font-bold text-lg flex justify-center items-center gap-2 transition-all active:scale-95 ${applied ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'}`}>
               {applied ? <><CheckCircle2 size={20} /> Application Saved</> : isSubmitting ? "Processing..." : displayJob.applyType === 'external' ? "Proceed to Apply" : "Submit Application"}
             </button>
           ) : (
-            <button onClick={() => setShowForm(true)} className="w-full py-4 rounded-full font-bold text-lg flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-600/30">
+            <button onClick={() => setShowForm(true)} className="w-full py-4 rounded-full font-bold text-lg flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white transition-all active:scale-95 shadow-lg shadow-emerald-600/30">
               Apply Now <ArrowRight size={20} />
             </button>
           )}

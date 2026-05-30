@@ -124,22 +124,22 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         </div>
 
         <div className="mb-4">
-          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors duration-300 line-clamp-2 ${isHero ? 'text-[1.75rem]' : 'text-lg'}`}>
+          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors duration-300 line-clamp-2 ${isHero ? 'text-xl md:text-[1.75rem]' : 'text-base md:text-lg'}`}>
             {job.title || 'Position Title'}
           </h3>
         </div>
 
         {/* ── Description ── */}
         {job.description && (
-          <p className="text-sm text-slate-600 dark:text-slate-400/90 leading-relaxed line-clamp-2 mb-5">
+          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400/90 leading-relaxed line-clamp-2 mb-4 md:mb-5">
             {job.description}
           </p>
         )}
 
         {/* ── Salary & Skills ── */}
-        <div className="mb-6 space-y-4">
+        <div className="mb-5 md:mb-6 space-y-3 md:space-y-4">
           {job.salary && (
-            <div className="flex items-center gap-1.5 text-slate-900 dark:text-emerald-400 font-black text-base bg-emerald-50 dark:bg-emerald-500/5 w-max px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/10">
+            <div className="flex items-center gap-1.5 text-slate-900 dark:text-emerald-400 font-black text-sm md:text-base bg-emerald-50 dark:bg-emerald-500/5 w-max px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/10">
               <IndianRupee size={14} strokeWidth={2.5} className="text-emerald-500" />
               {job.salary}
             </div>
@@ -147,12 +147,12 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
           {skills.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {skills.map((skill) => (
-                <span key={skill} className="px-3 py-1 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200/60 dark:border-white/5 transition-colors">
+                <span key={skill} className="px-2.5 md:px-3 py-1 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] md:text-xs font-semibold rounded-lg border border-slate-200/60 dark:border-white/5 transition-colors">
                   {skill}
                 </span>
               ))}
               {extraSkills > 0 && (
-                <span className="px-3 py-1 text-slate-400 dark:text-slate-500 text-xs font-bold rounded-lg bg-transparent border border-dashed border-slate-300 dark:border-white/10">
+                <span className="px-2.5 md:px-3 py-1 text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-bold rounded-lg bg-transparent border border-dashed border-slate-300 dark:border-white/10">
                   +{extraSkills}
                 </span>
               )}
