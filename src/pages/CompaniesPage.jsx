@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, X, Briefcase, Building2, ChevronRight, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import { useJobs } from '../context/JobsContext';
 import {
   Code2, ShoppingCart, Globe, Share2, Play, Music, Brain, Zap,
@@ -56,8 +54,7 @@ const CompaniesPage = () => {
   }, [companies, search, industry, companyType, jobs]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans transition-colors duration-300">
 
       {/* HEADER */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-24 pb-12 transition-colors">
@@ -77,7 +74,7 @@ const CompaniesPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoComplete="off"
-              className="w-full pl-14 pr-12 py-4 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm font-medium"
+              className="w-full pl-14 pr-12 py-4 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white bg-slate-50 dark:bg-[#0b0f14] focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm font-medium"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 p-1 rounded-full transition-colors">
@@ -110,7 +107,7 @@ const CompaniesPage = () => {
       </div>
 
       {/* COMPANY TYPE FILTER */}
-      <div className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+      <div className="bg-slate-50 dark:bg-[#0b0f14] border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2.5 overflow-x-auto py-3 no-scrollbar">
             <span className="shrink-0 flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-600 pr-3">
@@ -155,7 +152,7 @@ const CompaniesPage = () => {
 
         {filtered.length === 0 ? (
           <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-950 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-[#0b0f14] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
               <Building2 size={24} className="text-slate-400 dark:text-slate-600" />
             </div>
             <p className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">No companies found</p>
@@ -195,10 +192,13 @@ const CompaniesPage = () => {
                     <div className="w-20 h-20 rounded-3xl glass-logo-container flex items-center justify-center overflow-hidden mb-4 group-hover:scale-110 transition-transform duration-500">
                       {company.logo ? (
                         <img 
-                          src={company.logo} 
+                          src={company.logo.startsWith('http') || company.logo.startsWith('//') ? company.logo : `https://${company.logo}`} 
                           alt={company.name} 
                           className="w-full h-full object-contain p-3" 
-                          onError={e => { e.target.style.display = 'none'; }} 
+                          onError={(e) => { 
+                            e.target.onerror = null; 
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`; 
+                          }}
                         />
                       ) : (
                         <Building2 size={32} className="text-slate-400" />
@@ -227,7 +227,7 @@ const CompaniesPage = () => {
                       </div>
                     </div>
                     
-                    <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-950 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 group-hover:rotate-45">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-[#0b0f14] flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 group-hover:rotate-45">
                       <ChevronRight size={20} className="text-slate-400 dark:text-slate-600 group-hover:text-white" />
                     </div>
                   </div>
@@ -237,7 +237,6 @@ const CompaniesPage = () => {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 };

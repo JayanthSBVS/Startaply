@@ -2,15 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Target, Eye, CheckCircle2, Award, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import CategoryGrid from '../components/home/CategoryGrid';
 import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 
 const AboutUs = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white font-sans transition-colors duration-300">
 
       <div className="relative pt-32 pb-20 overflow-hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-20 pointer-events-none">
@@ -58,7 +55,7 @@ const AboutUs = () => {
       </div>
 
       {/* Category Integration */}
-      <div className="bg-white dark:bg-slate-950 border-y border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-[#0b0f14] border-y border-slate-200 dark:border-slate-800">
         <CategoryGrid />
       </div>
 
@@ -89,7 +86,7 @@ const AboutUs = () => {
 
       <CollegeCollabBanner />
 
-      <div className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 transition-colors">
+      <div className="bg-white dark:bg-[#0b0f14] border-t border-slate-200 dark:border-slate-800 transition-colors">
         <div className="max-w-4xl mx-auto px-4 py-32 text-center">
           <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-8 tracking-tight">Ready to elevate your career?</h2>
           <Link to="/jobs" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 hover:-translate-y-1 text-white px-10 py-4 rounded-full font-bold transition-all shadow-lg shadow-emerald-600/30 text-lg">
@@ -97,8 +94,6 @@ const AboutUs = () => {
           </Link>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

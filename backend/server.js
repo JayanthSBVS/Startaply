@@ -21,6 +21,8 @@ const io = new Server(server, {
   connectTimeout: 45000
 });
 
+const compression = require('compression');
+
 // Middleware to inject IO into requests
 app.use((req, res, next) => {
   req.io = io;
@@ -28,6 +30,7 @@ app.use((req, res, next) => {
 });
 
 app.use(cors());
+app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -40,6 +43,7 @@ app.use('/api/job-mela', require('./routes/jobmela'));
 app.use('/api/hero-banners', require('./routes/heroBanners'));
 app.use('/api/testimonials', require('./routes/testimonials'));
 app.use('/api/prep-data', require('./routes/prepData'));
+app.use('/api/live-ticker', require('./routes/liveTicker'));
 
 app.get('/', (req, res) => {
   res.send('Startaply Operational API Running');

@@ -1,110 +1,95 @@
 import React from 'react';
-import { CheckCircle2, Zap, Shield, Clock } from 'lucide-react';
+import { ShieldCheck, Zap, Target, Star, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const features = [
   {
-    icon: Zap,
-    title: 'Free to Use',
-    desc: 'No hidden fees, no premium gates. Complete access to every listing at zero cost — forever.',
-    accent: 'from-emerald-400 to-teal-400',
-    glow: 'rgba(16,185,129,0.12)',
+    icon: <ShieldCheck size={28} />,
+    title: '100% Verified Opportunities',
+    desc: 'Every job is manually vetted by our team. No fake listings, no scams, no consulting fees.',
+    accent: 'text-emerald-500',
+    bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+    border: 'border-l-emerald-500'
   },
   {
-    icon: Shield,
-    title: 'Verified Listings',
-    desc: 'Every company and job is manually reviewed. Zero spam, zero fraud — just real opportunities.',
-    accent: 'from-blue-400 to-cyan-400',
-    glow: 'rgba(6,182,212,0.12)',
+    icon: <Zap size={28} />,
+    title: 'Direct HR Access',
+    desc: 'Apply directly to company portals or connect with recruiters. We cut out the middlemen entirely.',
+    accent: 'text-indigo-500',
+    bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+    border: 'border-l-indigo-500'
   },
   {
-    icon: Clock,
-    title: 'One-Click Apply',
-    desc: 'Apply to multiple relevant jobs instantly. No lengthy forms, no login required.',
-    accent: 'from-amber-400 to-orange-400',
-    glow: 'rgba(245,158,11,0.12)',
-  },
+    icon: <Target size={28} />,
+    title: 'Smart Matching Engine',
+    desc: 'Our platform learns your preferences and highlights roles where you have the highest chance of success.',
+    accent: 'text-cyan-500',
+    bg: 'bg-cyan-50 dark:bg-cyan-500/10',
+    border: 'border-l-cyan-500'
+  }
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.12 } }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }
-};
 
 const WhySection = () => {
   return (
-    <section className="py-16 md:py-24 bg-white dark:bg-[#040b18] border-b border-slate-200 dark:border-slate-800/50 overflow-hidden relative transition-colors duration-300">
-      {/* Atmosphere */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[400px] opacity-30"
-          style={{ background: 'radial-gradient(ellipse, rgba(16,185,129,0.06) 0%, transparent 70%)', filter: 'blur(60px)' }}
-        />
-      </div>
+    <section className="py-24 section-light relative z-10 transition-colors duration-500 border-t border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-slate-50 to-transparent dark:from-slate-900/50 dark:to-transparent pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
+              <Star size={14} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Platform Edge</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] mb-6">
+              Why talent chooses <span className="text-gradient-indigo-emerald">Startaply</span>
+            </h2>
+            
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg leading-relaxed mb-10 max-w-lg">
+              We're not just a job board. We're a career acceleration platform designed to remove friction between great talent and top companies.
+            </p>
 
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: '-80px' }}
-        variants={containerVariants}
-        className="relative z-10 max-w-7xl mx-auto px-4"
-      >
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <motion.div variants={cardVariants} className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <CheckCircle2 size={12} className="text-emerald-500" />
-            <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-500">Why Startaply</span>
+            <button className="flex items-center gap-2 font-bold text-sm text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group">
+              Learn more about our vision 
+              <span className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
+                <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </button>
           </motion.div>
-          <motion.h2 variants={cardVariants} className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
-            Built for <span className="text-gradient-emerald">Speed</span> &{' '}
-            <span className="text-gradient-emerald-cyan">Simplicity</span>
-          </motion.h2>
-          <motion.p variants={cardVariants} className="text-slate-500 dark:text-slate-400 font-medium max-w-lg mx-auto text-base">
-            Everything is designed around getting you to your next opportunity as fast as possible.
-          </motion.p>
-        </div>
 
-        {/* Feature cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {features.map((f) => {
-            const Icon = f.icon;
-            return (
+          <div className="flex flex-col gap-6">
+            {features.map((feature, i) => (
               <motion.div
-                variants={cardVariants}
-                whileHover={{ y: -6 }}
-                key={f.title}
-                className="group relative bg-slate-50 dark:bg-slate-900/60 backdrop-blur-md p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800/50 hover:border-emerald-400/40 dark:hover:border-emerald-700/30 hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_60px_rgba(0,0,0,0.3)] transition-all duration-300 overflow-hidden cursor-default"
-                style={{ '--card-glow': f.glow }}
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
+                className={`premium-surface p-8 rounded-3xl border-l-4 ${feature.border} hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform hover:-translate-y-1 group`}
               >
-                {/* Top border accent on hover */}
-                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${f.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-                {/* Background hover glow */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl"
-                  style={{ background: `radial-gradient(ellipse at top left, ${f.glow} 0%, transparent 60%)` }}
-                />
-
-                {/* Icon */}
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.accent} flex items-center justify-center mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.12)] group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon size={22} className="text-white" />
+                <div className="flex gap-6 items-start">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${feature.bg} ${feature.accent} group-hover:scale-110 transition-transform duration-300`}>
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">{feature.title}</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">{feature.desc}</p>
+                  </div>
                 </div>
-
-                <h3 className="text-xl font-black mb-3 text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors relative z-10">
-                  {f.title}
-                </h3>
-                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium text-sm relative z-10">
-                  {f.desc}
-                </p>
               </motion.div>
-            );
-          })}
+            ))}
+          </div>
+
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 };

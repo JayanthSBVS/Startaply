@@ -29,7 +29,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans transition-colors duration-300">
       <div className="absolute top-0 w-full h-[400px] bg-emerald-500/5 dark:bg-emerald-900/20 blur-[100px] -z-10 transform -translate-y-1/2 rounded-full"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
@@ -70,7 +70,7 @@ const AdminLogin = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
+                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-[#0b0f14] border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
                   placeholder="admin@startaply.com"
                 />
               </div>
@@ -89,7 +89,7 @@ const AdminLogin = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
+                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-[#0b0f14] border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
                   placeholder="••••••••"
                 />
               </div>

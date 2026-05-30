@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import { Calendar, MapPin, Clock, Megaphone, ArrowRight, Building2, ExternalLink, GraduationCap } from 'lucide-react';
 import EmptyState from '../components/common/EmptyState';
 
@@ -23,8 +21,7 @@ const JobMelaPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
-            <Navbar />
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans transition-colors duration-300">
             <div className="bg-white dark:bg-slate-900 pt-32 pb-24 text-center px-6 border-b border-slate-200 dark:border-slate-800 transition-colors">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 border border-emerald-100 dark:border-emerald-800">
                     <Megaphone size={12} className="animate-pulse" /> Official Updates
@@ -97,7 +94,7 @@ const JobMelaPage = () => {
                                             </div>
                                         )}
                                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed flex-1 line-clamp-3">{mela.description}</p>
-                                        <div className="space-y-3 bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 group-hover:bg-emerald-50/30 dark:group-hover:bg-emerald-900/20 group-hover:border-emerald-100 dark:group-hover:border-emerald-800 transition-colors">
+                                        <div className="space-y-3 bg-slate-50 dark:bg-[#0b0f14] p-6 rounded-3xl border border-slate-100 dark:border-slate-800 group-hover:bg-emerald-50/30 dark:group-hover:bg-emerald-900/20 group-hover:border-emerald-100 dark:group-hover:border-emerald-800 transition-colors">
                                             {mela.date && <p className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300"><Calendar className="text-emerald-600 dark:text-emerald-400" size={18} /> {mela.date}</p>}
                                             {mela.time && <p className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300"><Clock className="text-emerald-600 dark:text-emerald-400" size={18} /> {mela.time}</p>}
                                             {mela.venue && <p className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300"><MapPin className="text-emerald-600 dark:text-emerald-400" size={18} /> {mela.venue}</p>}
@@ -131,7 +128,6 @@ const JobMelaPage = () => {
                     </div>
                 )}
             </div>
-            <Footer />
         </div>
     );
 };

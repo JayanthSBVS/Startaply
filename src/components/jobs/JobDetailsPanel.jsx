@@ -119,12 +119,12 @@ const JobDetailsPanel = ({ job, onClose }) => {
 
   return (
     <div className={`fixed inset-0 z-[300] flex justify-end transition-opacity duration-300 ${isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-      <div className="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} />
+      <div className="absolute inset-0 bg-slate-900/60 dark:bg-[#0b0f14]/80 backdrop-blur-sm" onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} />
 
       <div className={`relative w-full max-w-[500px] bg-white dark:bg-slate-900 h-full flex flex-col shadow-2xl transition-transform duration-300 transform ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
 
         {/* HEADER */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-950/50 shrink-0">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-[#0b0f14]/50 shrink-0">
           <div>
             <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight pr-4">{displayJob.title}</h2>
             <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">{displayJob.company}</p>
@@ -147,25 +147,25 @@ const JobDetailsPanel = ({ job, onClose }) => {
             <form id="applyForm" onSubmit={submitApplication} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Name *</label>
-                <input required type="text" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors({ ...errors, name: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-slate-950 dark:text-white ${errors.name ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                <input required type="text" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors({ ...errors, name: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.name ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
                 {errors.name && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.name}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Email *</label>
-                <input required type="email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors({ ...errors, email: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-slate-950 dark:text-white ${errors.email ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                <input required type="email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors({ ...errors, email: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.email ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
                 {errors.email && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.email}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Phone (10 Digits)</label>
-                <input type="text" placeholder="e.g. 9876543210" value={formData.phone} onChange={handlePhoneChange} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-slate-950 dark:text-white ${errors.phone ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                <input type="text" placeholder="e.g. 9876543210" value={formData.phone} onChange={handlePhoneChange} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.phone ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
                 {errors.phone && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.phone}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Resume (PDF/Doc)</label>
-                <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-600 dark:text-slate-400 dark:bg-slate-950 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-50 dark:file:bg-emerald-900/40 file:text-emerald-700 dark:file:text-emerald-400 hover:file:bg-emerald-100 dark:hover:file:bg-emerald-900/60 cursor-pointer" />
+                <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-600 dark:text-slate-400 dark:bg-[#0b0f14] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-50 dark:file:bg-emerald-900/40 file:text-emerald-700 dark:file:text-emerald-400 hover:file:bg-emerald-100 dark:hover:file:bg-emerald-900/60 cursor-pointer" />
               </div>
             </form>
           </div>
@@ -193,7 +193,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
                 <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
                   <MapPin size={16} /> Interview Walk-in Location
                 </h3>
-                <div className="w-full h-64 bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
+                <div className="w-full h-64 bg-slate-100 dark:bg-[#0b0f14] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
                   {displayJob.mapLocationUrl.includes('<iframe') || displayJob.mapLocationUrl.includes('embed') ? (
                     <iframe
                       src={displayJob.mapLocationUrl.match(/src="([^"]+)"/)?.[1] || displayJob.mapLocationUrl}

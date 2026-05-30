@@ -1,11 +1,8 @@
 import React from 'react';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white font-sans transition-colors duration-300">
 
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-32 pb-16 transition-colors">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -52,8 +49,6 @@ const PrivacyPolicy = () => {
           </p>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

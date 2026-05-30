@@ -17,7 +17,7 @@ const EmptyState = ({
     >
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-emerald-100 dark:bg-emerald-900/40 rounded-full blur-[30px] opacity-40 dark:opacity-20 animate-pulse" />
-        <div className="relative w-28 h-28 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-inner overflow-hidden">
+        <div className="relative w-28 h-28 bg-slate-50 dark:bg-[#0b0f14] rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-inner overflow-hidden">
           <motion.div
             animate={{
               rotate: [0, -5, 5, -5, 0],

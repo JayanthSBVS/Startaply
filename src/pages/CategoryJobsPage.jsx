@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Monitor, Building2, Briefcase, Zap, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import { useJobs } from '../context/JobsContext';
@@ -135,8 +133,7 @@ const CategoryJobsPage = () => {
     [jobs]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans transition-colors duration-300">
 
       {/* HERO */}
       <div className="relative bg-slate-950 text-white pt-32 pb-20 text-center border-b border-slate-900 px-4 overflow-hidden">
@@ -315,7 +312,6 @@ const CategoryJobsPage = () => {
         )}
       </div>
 
-      <Footer />
       <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );

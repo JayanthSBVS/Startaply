@@ -1,141 +1,136 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Instagram, Youtube, Mail, Phone, Linkedin, ArrowUpRight } from 'lucide-react';
-
-// WhatsApp SVG
-const WhatsAppIcon = ({ size = 20 }) => (
-  <svg fill="currentColor" viewBox="0 0 24 24" width={size} height={size}>
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-  </svg>
-);
-
-const TelegramIcon = ({ size = 20 }) => (
-  <svg fill="currentColor" viewBox="0 0 24 24" width={size} height={size}>
-    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-  </svg>
-);
-
-const socialLinks = [
-  { href: 'https://wa.me/919876543210', icon: <WhatsAppIcon size={18} />, label: 'WhatsApp', hover: 'hover:bg-[#25D366] hover:text-white hover:border-[#25D366]' },
-  { href: 'https://instagram.com/startaply', icon: <Instagram size={18} />, label: 'Instagram', hover: 'hover:bg-gradient-to-br hover:from-[#833ab4] hover:via-[#fd1d1d] hover:to-[#fcb045] hover:text-white hover:border-transparent' },
-  { href: 'https://t.me/startaply', icon: <TelegramIcon size={18} />, label: 'Telegram', hover: 'hover:bg-[#0088cc] hover:text-white hover:border-[#0088cc]' },
-  { href: 'https://youtube.com/@startaply', icon: <Youtube size={18} />, label: 'YouTube', hover: 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000]' },
-  { href: 'https://linkedin.com/company/startaply', icon: <Linkedin size={18} />, label: 'LinkedIn', hover: 'hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2]' },
-];
-
-const FooterLink = ({ to, children }) => (
-  <li>
-    <Link
-      to={to}
-      className="group flex items-center gap-1 text-slate-500 hover:text-emerald-400 transition-colors duration-200 text-sm font-medium"
-    >
-      {children}
-      <ArrowUpRight size={11} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 -mt-0.5" />
-    </Link>
-  </li>
-);
+import { Link, useLocation } from 'react-router-dom';
+import { Twitter, Linkedin, Instagram, Youtube, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Footer = () => {
+  const location = useLocation();
+
+  // Exclude rendering Footer on admin dashboard and login screens
+  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/admin-login');
+  if (isAdminRoute) return null;
+
   return (
-    <footer className="bg-[#020617] text-slate-400 relative overflow-hidden">
-      {/* Top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+    <footer className="relative bg-white dark:bg-[#0b0f14] pt-32 pb-12 overflow-hidden transition-colors duration-500">
+      
+      {/* ── Cinematic Background Atmosphere ── */}
+      <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50" />
+      <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
+      
+      {/* Atmospheric ambient glows */}
+      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] rounded-full opacity-30 dark:opacity-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen transition-opacity duration-500 bg-emerald-500/10 blur-[120px]" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-30 dark:opacity-10 pointer-events-none mix-blend-multiply dark:mix-blend-screen transition-opacity duration-500 bg-indigo-500/10 blur-[120px]" />
 
-      {/* Atmospheric glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-20 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, rgba(16,185,129,0.2) 0%, transparent 70%)', filter: 'blur(60px)' }}
-      />
-
-      <div className="relative z-10">
-        {/* ── Main footer content ─────────────────────────────────────── */}
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
-
-          {/* Brand column */}
-          <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="group inline-block mb-4">
-              <div className="text-3xl font-extrabold text-white tracking-tight mb-1">
-                START<span className="text-emerald-500">APLY</span>
-              </div>
-              <div className="text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase">Find · Apply · Grow</div>
+      <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+        
+        {/* ── Premium Call to Action ── */}
+        <div className="mb-24 relative rounded-[3rem] p-12 overflow-hidden bg-slate-950 dark:bg-white/5 border border-slate-800 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl group">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/30 rounded-full blur-[80px] pointer-events-none" />
+          
+          <div className="relative z-10 max-w-xl">
+            <h3 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
+              Ready to Accelerate Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Career?</span>
+            </h3>
+            <p className="text-slate-400 text-lg">Join thousands of professionals finding their dream roles on Startaply.</p>
+          </div>
+          <div className="relative z-10">
+            <Link to="/jobs" className="inline-flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-10 py-5 rounded-full text-lg transition-all shadow-[0_0_40px_rgba(16,185,129,0.3)] hover:shadow-[0_0_60px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95">
+              Explore Openings <ArrowRight size={20} />
             </Link>
-            <p className="text-sm leading-relaxed text-slate-500 mb-6 max-w-xs">
-              India's fastest-growing opportunity platform. Government, IT, Non-IT & Fresher roles — all verified, all free.
-            </p>
+          </div>
+        </div>
 
-            {/* Social icons */}
-            <div className="flex gap-2 flex-wrap">
-              {socialLinks.map((s) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-8 mb-24">
+          
+          {/* ── Brand & Mission (LEFT) ── */}
+          <div className="lg:col-span-5">
+            <Link to="/" className="inline-block mb-6 group relative">
+              <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none transition-colors relative z-10">
+                START<span className="text-emerald-500">APLY</span>
+              </span>
+              <div className="absolute -inset-4 bg-emerald-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </Link>
+            <p className="text-slate-600 dark:text-slate-400 font-medium text-lg mb-10 max-w-sm leading-relaxed">
+              India's premium opportunity ecosystem. Discover verified work that moves you, built for the ambitious.
+            </p>
+            <div className="flex items-center gap-4">
+              {[
+                { icon: <Twitter size={20} />, label: 'Twitter', color: 'hover:text-cyan-500 hover:bg-cyan-500/10 hover:border-cyan-500/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-500/20' },
+                { icon: <Linkedin size={20} />, label: 'LinkedIn', color: 'hover:text-blue-600 hover:bg-blue-600/10 hover:border-blue-600/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-600/20' },
+                { icon: <Instagram size={20} />, label: 'Instagram', color: 'hover:text-pink-600 hover:bg-pink-600/10 hover:border-pink-600/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-600/20' },
+                { icon: <Youtube size={20} />, label: 'YouTube', color: 'hover:text-red-600 hover:bg-red-600/10 hover:border-red-600/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-600/20' }
+              ].map((social) => (
                 <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className={`p-2 bg-slate-900 rounded-xl text-slate-500 transition-all duration-300 border border-slate-800 hover:scale-110 hover:shadow-lg ${s.hover}`}
+                  key={social.label}
+                  href="#"
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 transition-all duration-300 ${social.color}`}
+                  aria-label={social.label}
                 >
-                  {s.icon}
+                  {social.icon}
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Platform Links */}
-          <div>
-            <h4 className="text-white font-bold mb-5 text-xs uppercase tracking-[0.2em]">Platform</h4>
-            <ul className="space-y-3">
-              <FooterLink to="/">Home</FooterLink>
-              <FooterLink to="/jobs">Browse Jobs</FooterLink>
-              <FooterLink to="/companies">Companies</FooterLink>
-              <FooterLink to="/job-melas">Job Melas</FooterLink>
-              <FooterLink to="/preparation">Preparation</FooterLink>
+          {/* ── Navigation Clusters (CENTER) ── */}
+          <div className="lg:col-span-3 lg:col-start-7">
+            <h4 className="text-slate-900 dark:text-white font-black uppercase tracking-widest text-sm mb-8 flex items-center gap-2">
+              Platform
+            </h4>
+            <ul className="space-y-5">
+              {['Browse Jobs', 'Companies', 'Job Melas', 'Preparation'].map(link => (
+                <li key={link}>
+                  <Link to={`/${link.toLowerCase().replace(' ', '-')}`} className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold transition-all relative group inline-flex items-center gap-2 hover:translate-x-2">
+                    {link}
+                    <ArrowRight size={14} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-emerald-500" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className="lg:col-span-3">
+            <h4 className="text-slate-900 dark:text-white font-black uppercase tracking-widest text-sm mb-8 flex items-center gap-2">
+              Explore
+            </h4>
+            <ul className="space-y-5">
+              {[
+                { name: 'IT & Tech', path: '/category/IT%20%26%20Non-IT%20Jobs' },
+                { name: 'Government', path: '/category/Government%20Jobs' },
+                { name: 'Freshers', path: '/jobs?fresh=true' },
+                { name: 'Gig Workers', path: '/category/Gig%20%26%20Services' }
+              ].map(link => (
+                <li key={link.name}>
+                  <Link to={link.path} className="text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold transition-all relative group inline-flex items-center gap-2 hover:translate-x-2">
+                    {link.name}
+                    <ArrowRight size={14} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-indigo-500" />
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Categories */}
-          <div>
-            <h4 className="text-white font-bold mb-5 text-xs uppercase tracking-[0.2em]">Job Categories</h4>
-            <ul className="space-y-3">
-              <FooterLink to="/category/Government%20Jobs">Government Jobs</FooterLink>
-              <FooterLink to="/category/IT%20%26%20Non-IT%20Jobs">IT Jobs</FooterLink>
-              <FooterLink to="/jobs">Non-IT Jobs</FooterLink>
-              <FooterLink to="/jobs?fresh=true">Freshers Jobs</FooterLink>
-            </ul>
-          </div>
-
-          {/* Legal & Contact */}
-          <div>
-            <h4 className="text-white font-bold mb-5 text-xs uppercase tracking-[0.2em]">Legal & Info</h4>
-            <ul className="space-y-3 mb-8">
-              <FooterLink to="/about">About Us</FooterLink>
-              <FooterLink to="/privacy">Privacy Policy</FooterLink>
-              <FooterLink to="/terms">Terms of Service</FooterLink>
-              <FooterLink to="/#feedback">Leave Feedback</FooterLink>
-            </ul>
-
-            <h4 className="text-white font-bold mb-3 text-xs uppercase tracking-[0.2em]">Contact</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a href="mailto:support@startaply.com" className="flex items-center gap-2 text-slate-500 hover:text-emerald-400 transition-colors">
-                  <Mail size={13} /> support@startaply.com
-                </a>
-              </li>
-              <li>
-                <a href="tel:+919876543210" className="flex items-center gap-2 text-slate-500 hover:text-emerald-400 transition-colors">
-                  <Phone size={13} /> +91 98765 43210
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
 
-        {/* ── Bottom bar ─────────────────────────────────────────────── */}
-        <div className="border-t border-slate-900 max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-xs text-slate-600">© {new Date().getFullYear()} Startaply. All rights reserved.</p>
-          <p className="text-xs text-slate-700">Made with ❤️ for job seekers across India</p>
+        {/* ── Legal & Copyright (BOTTOM) ── */}
+        <div className="pt-8 border-t border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-wrap justify-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
+            <Link to="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Terms of Service</Link>
+            <Link to="/about" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">About Us</Link>
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-3 md:gap-8">
+            <p className="text-slate-400 dark:text-slate-500 font-semibold text-sm">
+              © {new Date().getFullYear()} Startaply. All rights reserved.
+            </p>
+          </div>
         </div>
+        
       </div>
     </footer>
   );
 };
 
 export default Footer;
+

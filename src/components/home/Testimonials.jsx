@@ -1,201 +1,165 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Quote, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import axios from 'axios';
-import { motion, useInView } from 'framer-motion';
-import { Star, Quote, ArrowUpRight } from 'lucide-react';
 
-const DUMMY_TESTIMONIALS = [
-  { id: 1, name: 'Rahul K.', tagline: 'Warehouse Manager', company: 'Amazon', description: 'Got placed in an Amazon warehouse within 2 days of applying. The Gig & Services category made finding blue-collar work super easy!', photo: '' },
-  { id: 2, name: 'Priya S.', tagline: 'Frontend Developer', company: 'Infosys', description: 'As a fresher, finding the first job is hard. Startaply made it seamless. Got multiple offers without paying a single rupee to consultancies.', photo: '' },
-  { id: 3, name: 'Amit V.', tagline: 'Delivery Partner', company: 'Zepto', description: 'Found a great gig with Zepto through this platform. Weekly payouts, flexible timings, and the application took 1 minute.', photo: '' },
-  { id: 4, name: 'Sneha M.', tagline: 'Govt Job Aspirant', company: 'State Board', description: 'The updates on govt job melas are incredibly fast and accurate. I secured my position in the state board thanks to their alerts.', photo: '' },
-  { id: 5, name: 'Ravi T.', tagline: 'Professional Plumber', company: 'Urban Company', description: 'Partnered with Urban Company through the Gig Works section. My earnings have doubled since I started getting direct leads.', photo: '' },
-  { id: 6, name: 'Anita D.', tagline: 'HR Executive', company: 'TCS', description: 'Found my dream corporate role without creating a 10-page profile. This platform respects your time. Highly recommended.', photo: '' },
-];
+const API = '/api';
 
-const CACHE_KEY = 'startaply_testimonials';
-const CACHE_TTL = 5 * 60 * 1000;
-
-function readTestimonialsCache() {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > CACHE_TTL) return null;
-    return Array.isArray(data) && data.length >= 4 ? data : null;
-  } catch { return null; }
-}
-
-function writeTestimonialsCache(data) {
-  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch { /* quota */ }
-}
-
-const AVATAR_GRADIENTS = [
-  'from-emerald-400 to-teal-500',
-  'from-blue-400 to-cyan-500',
-  'from-violet-400 to-purple-500',
-  'from-amber-400 to-orange-500',
-  'from-rose-400 to-pink-500',
-  'from-emerald-500 to-cyan-400',
-];
-
-const TestimonialCard = ({ t, idx, large = false }) => {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-  const grad = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: idx * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      className={`group relative bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/60 backdrop-blur-md rounded-3xl overflow-hidden hover:border-emerald-300/40 dark:hover:border-emerald-700/30 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] transition-all duration-300 cursor-default ${large ? 'p-8 md:p-10' : 'p-7'}`}
-    >
-      {/* Top gradient accent */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500/40 via-teal-400/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      {/* Big quote glyph — background decoration */}
-      <div className="absolute top-4 right-6 text-[80px] font-black text-slate-100 dark:text-slate-800/80 leading-none pointer-events-none select-none group-hover:text-emerald-100/50 dark:group-hover:text-emerald-900/30 transition-colors duration-300 font-serif">
-        "
-      </div>
-
-      {/* Stars */}
-      <div className="flex gap-1 mb-5">
-        {[1, 2, 3, 4, 5].map(s => (
-          <Star key={s} size={14} className="text-amber-400 fill-amber-400" />
-        ))}
-      </div>
-
-      {/* Quote text */}
-      <p className={`relative z-10 text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-6 ${large ? 'text-lg md:text-xl line-clamp-4' : 'text-sm md:text-base line-clamp-3'}`}>
-        "{t.description}"
-      </p>
-
-      {/* Divider */}
-      <div className="border-t border-slate-100 dark:border-slate-800/60 pt-5">
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className={`shrink-0 ${large ? 'w-14 h-14' : 'w-11 h-11'} rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-black shadow-[0_4px_16px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-2 border-white dark:border-slate-800 overflow-hidden`}>
-            {t.photo ? (
-              <img src={t.photo} alt={t.name} className="w-full h-full object-cover" loading="lazy" />
-            ) : (
-              <span className={large ? 'text-2xl' : 'text-lg'}>{t.name?.charAt(0) || 'U'}</span>
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <h4 className="font-black text-slate-900 dark:text-white text-sm md:text-base">{t.name}</h4>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">{t.tagline}</span>
-              {t.company && (
-                <>
-                  <span className="text-slate-300 dark:text-slate-600">·</span>
-                  <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">{t.company}</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="ml-auto shrink-0 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-500 transition-all duration-200">
-            <ArrowUpRight size={14} />
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-const TestimonialSkeleton = () => (
-  <div className="bg-white dark:bg-slate-900/60 rounded-3xl p-7 border border-slate-200 dark:border-slate-800 animate-pulse">
-    <div className="flex gap-1 mb-5">
-      {[1,2,3,4,5].map(i => <div key={i} className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700" />)}
-    </div>
-    <div className="space-y-2 mb-6">
-      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full" />
-      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6" />
-      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-4/6" />
-    </div>
-    <div className="border-t border-slate-100 dark:border-slate-800 pt-5 flex items-center gap-3">
-      <div className="w-11 h-11 rounded-2xl bg-slate-200 dark:bg-slate-700" />
-      <div className="space-y-2">
-        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24" />
-        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16" />
+const SkeletonCard = ({ wide }) => (
+  <div className={`animate-pulse premium-surface rounded-[2rem] p-8 ${wide ? 'md:col-span-2' : ''}`}>
+    <div className="w-16 h-3 bg-slate-200 dark:bg-slate-700 rounded mb-6" />
+    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-full" />
+    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-5/6" />
+    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-8 w-4/6" />
+    <div className="flex items-center gap-3">
+      <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700" />
+      <div>
+        <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-1.5" />
+        <div className="h-2.5 w-32 bg-slate-200 dark:bg-slate-700 rounded" />
       </div>
     </div>
   </div>
 );
 
+// Accent colours cycle
+const ACCENTS = ['emerald', 'indigo', 'amber'];
+
 const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState(() => readTestimonialsCache() || []);
-  const [fetching, setFetching] = useState(testimonials.length === 0);
+  const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const cached = readTestimonialsCache();
-    if (cached) { setTestimonials(cached); setFetching(false); return; }
-    axios.get('/api/testimonials')
+    axios.get(`${API}/testimonials`)
       .then(res => {
-        if (Array.isArray(res.data) && res.data.length >= 4) {
-          setTestimonials(res.data);
-          writeTestimonialsCache(res.data);
-        } else { setTestimonials(DUMMY_TESTIMONIALS); }
+        setTestimonials(Array.isArray(res.data) ? res.data : []);
       })
-      .catch(() => setTestimonials(DUMMY_TESTIMONIALS))
-      .finally(() => setFetching(false));
+      .catch(() => setTestimonials([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  const safeTestimonials = Array.isArray(testimonials) && testimonials.length > 0
-    ? testimonials
-    : DUMMY_TESTIMONIALS;
-
   return (
-    <section className="py-16 md:py-24 bg-slate-50 dark:bg-[#020617] overflow-hidden relative border-b border-slate-200 dark:border-slate-800/50 transition-colors duration-300">
-      {/* Atmospheric background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[500px] opacity-30"
-          style={{ background: 'radial-gradient(ellipse at top right, rgba(16,185,129,0.07) 0%, transparent 65%)', filter: 'blur(60px)' }}
-        />
-      </div>
+    <section className="py-24 section-surface border-y border-slate-200/50 dark:border-slate-800/50 relative overflow-hidden transition-colors duration-500">
+      {/* Subtle background mesh */}
+      <div className="absolute inset-0 pointer-events-none opacity-30 dark:opacity-10"
+        style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(16,185,129,0.08) 0%, transparent 60%), radial-gradient(circle at 80% 50%, rgba(99,102,241,0.06) 0%, transparent 60%)' }}
+      />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4">
-        {/* ── Section Header ─────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-12 md:mb-16"
-        >
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <Star size={12} className="text-emerald-500 fill-emerald-500" />
-            <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-500">Success Stories</span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+
+        {/* Header */}
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]"
+          >
+            <Star size={12} />
+            Real Stories
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.05 }}
+            className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
+          >
             Career <span className="text-gradient-emerald">Transformations</span>
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium max-w-lg mx-auto text-base">
-            Real people. Real placements. Zero paywalls.
-          </p>
-        </motion.div>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-xl mx-auto"
+          >
+            Real stories from professionals who found their next opportunity through Startaply.
+          </motion.p>
+        </div>
 
-        {/* ── Testimonial Grid (asymmetric) ──────────────────────────── */}
-        {fetching ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[1,2,3,4].map(i => <TestimonialSkeleton key={i} />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* First card gets large treatment */}
-            {safeTestimonials.slice(0, 1).map((t, i) => (
-              <div key={t.id || i} className="md:row-span-1">
-                <TestimonialCard t={t} idx={i} large={true} />
-              </div>
-            ))}
-            {/* Rest are normal */}
-            {safeTestimonials.slice(1, 6).map((t, i) => (
-              <TestimonialCard key={t.id || i + 1} t={t} idx={i + 1} large={false} />
-            ))}
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <SkeletonCard wide />
+            <SkeletonCard />
           </div>
         )}
+
+        {/* Empty state */}
+        {!loading && testimonials.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+              <Quote size={24} className="text-slate-400" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Success stories coming soon.</p>
+          </motion.div>
+        )}
+
+        {/* Testimonial cards */}
+        {!loading && testimonials.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => {
+              const accent = ACCENTS[i % ACCENTS.length];
+              const isWide = i === 0;
+              return (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className={`premium-surface p-8 rounded-[2rem] flex flex-col relative group hover:-translate-y-1 transition-all duration-300 ${isWide ? 'md:col-span-2' : 'col-span-1'}`}
+                >
+                  {/* Giant watermark quote */}
+                  <div className="absolute top-6 right-8 text-slate-100 dark:text-slate-800/60 group-hover:text-emerald-50 dark:group-hover:text-emerald-900/20 transition-colors pointer-events-none">
+                    <Quote size={72} className="rotate-180" />
+                  </div>
+
+                  <div className="relative z-10">
+                    {/* Accent tag from tagline */}
+                    {t.tagline && (
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider mb-6 bg-${accent}-50 dark:bg-${accent}-500/10 text-${accent}-600 dark:text-${accent}-400 border border-${accent}-100 dark:border-${accent}-500/20`}>
+                        <Star size={10} />
+                        {t.tagline}
+                      </div>
+                    )}
+
+                    {/* Quote */}
+                    <p className={`text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-8 ${isWide ? 'text-lg md:text-xl' : 'text-base'}`}>
+                      "{t.description}"
+                    </p>
+                  </div>
+
+                  {/* Author */}
+                  <div className="mt-auto flex items-center gap-4 relative z-10">
+                    {t.photo ? (
+                      <img
+                        src={t.photo}
+                        alt={t.name}
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-500/20 dark:ring-emerald-500/30 shadow-sm"
+                      />
+                    ) : (
+                      <div className={`w-12 h-12 rounded-full bg-${accent}-100 dark:bg-${accent}-500/10 flex items-center justify-center text-${accent}-600 dark:text-${accent}-400 font-black text-lg`}>
+                        {t.name?.charAt(0) || '?'}
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="font-black text-slate-900 dark:text-white text-sm">{t.name}</h4>
+                      {t.tagline && (
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">{t.tagline}</p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
       </div>
     </section>
   );

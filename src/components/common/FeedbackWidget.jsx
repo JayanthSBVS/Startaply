@@ -29,7 +29,7 @@ const FeedbackWidget = () => {
             </button>
 
             {isOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-slate-900/50 dark:bg-[#0b0f14]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative animate-[fadeIn_0.2s_ease-out] border border-slate-200 dark:border-slate-800 transition-colors">
                         <button onClick={() => setIsOpen(false)} className="absolute top-6 right-6 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-800 p-2 rounded-full transition-colors">
                             <X size={16} />
@@ -43,9 +43,9 @@ const FeedbackWidget = () => {
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <input required type="text" placeholder="Your Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-full px-5 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium text-slate-900 dark:text-white" />
-                                <input required type="email" placeholder="Your Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-full px-5 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium text-slate-900 dark:text-white" />
-                                <textarea required rows="4" placeholder="Your message..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-[1.25rem] px-5 py-4 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none font-medium text-slate-900 dark:text-white"></textarea>
+                                <input required type="text" placeholder="Your Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-full px-5 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                                <input required type="email" placeholder="Your Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-full px-5 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all font-medium text-slate-900 dark:text-white" />
+                                <textarea required rows="4" placeholder="Your message..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-[1.25rem] px-5 py-4 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none font-medium text-slate-900 dark:text-white"></textarea>
                                 <button type="submit" disabled={status === 'sending'} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-full shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all">
                                     {status === 'sending' ? 'Sending...' : <><Send size={18} /> Submit Feedback</>}
                                 </button>

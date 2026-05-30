@@ -41,7 +41,7 @@ const CompanyProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-20">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="h-64 bg-slate-200 dark:bg-slate-900 rounded-[3rem] animate-pulse mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -60,7 +60,7 @@ const CompanyProfilePage = () => {
 
   if (error || !company) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col items-center justify-center p-4">
         <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mb-6">
           <Building2 size={40} />
         </div>
@@ -74,7 +74,7 @@ const CompanyProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white selection:bg-emerald-500/30">
       {/* Premium Header Section */}
       <div className="relative pt-32 pb-16 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-emerald-500/5 to-transparent dark:from-emerald-500/10 pointer-events-none" />
@@ -213,7 +213,7 @@ const CompanyProfilePage = () => {
               </div>
             ) : (
               <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-800">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-slate-50 dark:bg-[#0b0f14] rounded-full flex items-center justify-center mx-auto mb-6">
                   <Briefcase size={32} className="text-slate-300 dark:text-slate-700" />
                 </div>
                 <h3 className="text-xl font-black mb-2">No Active Openings</h3>

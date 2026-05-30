@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import {
   Calendar, MapPin, Clock, Building2, ExternalLink,
   ArrowLeft, Megaphone, Users, CheckCircle2, Share2
@@ -73,8 +71,7 @@ const JobMelaDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-300">
-        <Navbar />
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col transition-colors duration-300">
         <div className="flex-1 flex items-center justify-center">
           <div className="space-y-4 w-full max-w-3xl px-6 pt-32">
             <div className="h-72 bg-white dark:bg-slate-900 rounded-[2.5rem] animate-pulse border border-slate-100 dark:border-slate-800" />
@@ -88,8 +85,7 @@ const JobMelaDetailPage = () => {
 
   if (!mela) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-300">
-        <Navbar />
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col transition-colors duration-300">
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-32">
           <Megaphone size={56} className="text-slate-300 dark:text-slate-700 mb-6" />
           <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Event Not Found</h2>
@@ -106,8 +102,7 @@ const JobMelaDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-white transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* ── Hero Banner ── */}
       <div className="relative w-full h-[50vh] min-h-[340px] max-h-[520px] overflow-hidden border-b border-slate-200 dark:border-slate-800">
@@ -348,8 +343,6 @@ const JobMelaDetailPage = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

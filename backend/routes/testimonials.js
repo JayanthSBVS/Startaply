@@ -29,6 +29,22 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/admin/list', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT * FROM testimonials ORDER BY createdAt DESC');
+        res.json(rows.map(r => ({
+            id: r.id,
+            name: r.name,
+            tagline: r.tagline,
+            description: r.description,
+            photo: r.photo,
+            createdAt: Number(r.createdat)
+        })));
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.post('/', async (req, res) => {
     try {
         const { name, tagline, description, photo } = req.body;

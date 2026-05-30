@@ -26,6 +26,8 @@ const { logActivity } = require('../utils/logger');
 
 async function updateCompaniesSchema() {
   try {
+    await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS color TEXT`);
+    await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS iconName TEXT`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS createdByAdminId TEXT DEFAULT 'system'`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS createdByAdminName TEXT DEFAULT 'System'`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS createdAt BIGINT`);
@@ -143,7 +145,8 @@ router.post('/', authMiddleware, async (req, res) => {
 
     res.json(rows[0]);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Company Create Error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

@@ -27,7 +27,7 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
   const activeTabData = TABS.find(t => t.key === activeTab) || TABS[0];
 
   return (
-    <section className="py-16 md:py-24 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800/50 overflow-hidden relative transition-colors duration-300">
+    <section className="py-16 md:py-24 bg-white dark:bg-[#0b0f14] border-b border-slate-200 dark:border-slate-800/50 overflow-hidden relative transition-colors duration-300">
       {/* Background atmosphere */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute left-0 top-0 w-[500px] h-[400px] opacity-20 dark:opacity-30"

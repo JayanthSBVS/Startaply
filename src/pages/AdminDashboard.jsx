@@ -24,12 +24,11 @@ const textareaCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-20
 
 // Role presentation helpers
 const ROLE_CONFIG = {
-  manager:              { label: 'Manager',              color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/20',  icon: Crown },
-  operational_manager:  { label: 'Op. Manager',          color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: BadgeCheck },
-  executive:            { label: 'Exec.',                color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    icon: UserCheck },
-  admin:                { label: 'Exec.',                color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    icon: UserCheck },
+  manager:               { label: 'Manager',              color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/20',  icon: Crown },
+  operational_manager:   { label: 'Op. Manager (Full Access)',          color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: BadgeCheck },
+  operational_executive: { label: 'Op. Executive (Restricted)',        color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    icon: UserCheck },
 };
-const getRoleConfig  = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.executive;
+const getRoleConfig  = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.operational_executive;
 const getRoleLabel   = (role) => getRoleConfig(role).label;
 
 const AdminDashboard = () => {
@@ -72,20 +71,22 @@ const AdminDashboard = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [prepData, setPrepData] = useState([]);
   const [heroBanners, setHeroBanners] = useState([]);
+  const [liveTickerItems, setLiveTickerItems] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [logs, setLogs] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
   const [dashboardSummary, setDashboardSummary] = useState(null);
 
-  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '' });
+  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', subtitle: '', isHeroFeatured: false });
   const [editingJobId, setEditingJobId] = useState(null);
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '', companyType: '' });
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' });
   const [testimonialForm, setTestimonialForm] = useState({ name: '', tagline: '', description: '', photo: '' });
   const [prepForm, setPrepForm] = useState({ heading: '', jobType: 'IT Jobs', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
+  const [tickerForm, setTickerForm] = useState({ text: '' });
 
   // Team Management state
-  const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'executive', department: '', mobile: '', joinedAt: '' });
+  const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'operational_executive', department: '', mobile: '', joinedAt: '' });
   const [showTeamModal, setShowTeamModal] = useState(false);
 
   // Role Permissions state — keyed by role name
@@ -163,18 +164,20 @@ const AdminDashboard = () => {
       } else if (activeTab === 'feedback') {
         const res = await safeGet(`${API}/feedback`, config);
         setFeedbacks(Array.isArray(res.data) ? res.data : []);
-      } else if (['team', 'permissions', 'logs', 'global_stats', 'herobanners'].includes(activeTab)) {
+      } else if (['team', 'permissions', 'logs', 'global_stats', 'herobanners', 'liveticker'].includes(activeTab)) {
         if (currentIsManager) {
-          const [statsRes, logsRes, adminsRes, heroRes] = await Promise.all([
+          const [statsRes, logsRes, adminsRes, heroRes, tickerRes] = await Promise.all([
             safeGet(`${API}/auth/stats`, config, null),
             safeGet(`${API}/auth/logs`, config),
             safeGet(`${API}/auth/users`, config),
-            activeTab === 'herobanners' ? safeGet(`${API}/hero-banners`, config).catch(() => ({ data: [] })) : Promise.resolve(null)
+            activeTab === 'herobanners' ? safeGet(`${API}/hero-banners`, config).catch(() => ({ data: [] })) : Promise.resolve(null),
+            activeTab === 'liveticker' ? safeGet(`${API}/live-ticker`, config).catch(() => ({ data: [] })) : Promise.resolve(null)
           ]);
           if (statsRes?.data) setGlobalStats(prev => ({...prev, ...statsRes.data, totalToday: statsRes.data.totalToday || (parseInt(statsRes.data.todayJobs || 0) + parseInt(statsRes.data.todayPrep || 0) + parseInt(statsRes.data.todayMela || 0))}));
           if (logsRes?.data) setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
           if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
           if (heroRes?.data) setHeroBanners(Array.isArray(heroRes.data) ? heroRes.data : []);
+          if (tickerRes?.data) setLiveTickerItems(Array.isArray(tickerRes.data) ? tickerRes.data : []);
         }
       }
     } catch (err) {
@@ -203,7 +206,10 @@ const AdminDashboard = () => {
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
     setJobs(prev => prev.map(j => j.id === job.id ? updatedJob : j));
-    axios.put(`${API}/jobs/${job.id}`, updatedJob, getConfig()).catch(() => {
+    axios.put(`${API}/jobs/${job.id}`, updatedJob, getConfig()).then(() => {
+      localStorage.removeItem('cache_jobs');
+      sessionStorage.removeItem('cache_jobs');
+    }).catch(() => {
       setJobs(prev => prev.map(j => j.id === job.id ? job : j));
       toast.error("Database sync failed.");
     });
@@ -227,9 +233,11 @@ const AdminDashboard = () => {
         await axios.post(`${API}/jobs`, payload, getConfig());
         showMsg('Job Published');
       }
-      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null }); 
+      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null, subtitle: '', isHeroFeatured: false }); 
       setEditingJobId(null); 
       setActiveTab('manage'); 
+      localStorage.removeItem('cache_jobs');
+      sessionStorage.removeItem('cache_jobs');
       fetchData();
     } catch (err) { toast.error('Error saving job data'); }
   };
@@ -237,6 +245,8 @@ const AdminDashboard = () => {
   const handleJobDelete = async (id) => {
     confirmAction('Permanently delete this job?', async () => {
       await axios.delete(`${API}/jobs/${id}`, getConfig());
+      localStorage.removeItem('cache_jobs');
+      sessionStorage.removeItem('cache_jobs');
       fetchData(); showMsg('Job Removed');
     });
   };
@@ -249,6 +259,7 @@ const AdminDashboard = () => {
       { id: 'logs',        label: 'Activity Logs',   icon: History },
       { id: 'global_stats', label: 'Global Intelligence', icon: BarChart3 },
       { id: 'herobanners', label: 'Hero Banners',    icon: ImageIcon },
+      { id: 'liveticker',  label: 'Live Ticker',     icon: Zap },
     ] : []),
     { id: 'add',          label: 'Post Job',     icon: PlusCircle },
     { id: 'manage',       label: 'Jobs List',    icon: Briefcase },
@@ -261,9 +272,9 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex text-slate-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-[#0b0f14] flex text-slate-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300">
       {/* Sidebar */}
-      <div className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-50 dark:bg-slate-950/80 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800/50 flex flex-col z-[100] transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <div className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-50 dark:bg-[#0b0f14]/80 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800/50 flex flex-col z-[100] transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6 border-b border-slate-200 dark:border-slate-800/50 flex justify-between items-center">
           <h2 className="text-xl font-black tracking-tighter">START<span className="text-emerald-500">ADMIN</span></h2>
           <button className="md:hidden text-slate-500 dark:text-slate-500 dark:text-slate-400" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
@@ -282,8 +293,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-slate-950">
-        <header className="bg-white/80 dark:bg-slate-950/50 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/50 p-4 md:px-8 flex justify-between items-center sticky top-0 z-50">
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-[#0b0f14]">
+        <header className="bg-white/80 dark:bg-[#0b0f14]/50 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/50 p-4 md:px-8 flex justify-between items-center sticky top-0 z-50">
           <div className="flex items-center gap-4">
             <button className="md:hidden text-slate-500" onClick={() => setIsMobileMenuOpen(true)}><LayoutDashboard size={24} /></button>
             <h1 className="text-xl font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">{activeTab}</h1>
@@ -410,6 +421,7 @@ const AdminDashboard = () => {
                         <option value="IT & Non-IT Jobs">IT & Non-IT Jobs</option>
                         <option value="Government Jobs">Government Jobs</option>
                         <option value="Private Jobs">Private Jobs</option>
+                        <option value="Fresher Jobs">Fresher Jobs</option>
                         <option value="Gig & Services">Gig & Services</option>
                       </select>
                       <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
@@ -521,7 +533,12 @@ const AdminDashboard = () => {
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Experience</label><input className={inputCls} value={jobForm.experience || ''} onChange={e => setJobForm({ ...jobForm, experience: e.target.value })} placeholder="2+ Years" /></div>
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Qualification</label><input className={inputCls} value={jobForm.qualification || ''} onChange={e => setJobForm({ ...jobForm, qualification: e.target.value })} placeholder="B.Tech / MCA" /></div>
 
-                <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Short Description (Card preview)</label><textarea rows="2" className={textareaCls} value={jobForm.description || ''} onChange={e => setJobForm({ ...jobForm, description: e.target.value })} placeholder="Brief summary of the job..."></textarea></div>
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Job Tagline / Subtitle (Appears in Card preview)</label>
+                  <input className={inputCls} value={jobForm.subtitle || ''} onChange={e => setJobForm({ ...jobForm, subtitle: e.target.value })} placeholder="e.g. Work with India's fastest growing fintech" />
+                </div>
+
+                <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Job Card Small Info (Reflected on Job Card first)</label><textarea rows="2" className={textareaCls} value={jobForm.description || ''} onChange={e => setJobForm({ ...jobForm, description: e.target.value })} placeholder="Brief summary of the job..."></textarea></div>
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Benefits & Perks</label><textarea rows="3" className={textareaCls} value={jobForm.benefits || ''} onChange={e => setJobForm({ ...jobForm, benefits: e.target.value })} placeholder="Provide details about health insurance, PTO, bonuses..."></textarea></div>
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Detailed Description</label><textarea rows="5" className={textareaCls} value={jobForm.fullDescription || ''} onChange={e => setJobForm({ ...jobForm, fullDescription: e.target.value })} placeholder="Full job scope..."></textarea></div>
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Required Skills (Comma separated)</label><input className={inputCls} value={jobForm.requiredSkills || ''} onChange={e => setJobForm({ ...jobForm, requiredSkills: e.target.value })} placeholder="React, Python, SQL" /></div>
@@ -584,7 +601,7 @@ const AdminDashboard = () => {
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Live Intelligence & Contribution highlights</p>
                     </div>
                     
-                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950/40 p-2 rounded-3xl border border-slate-200 dark:border-slate-800/60">
+                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-[#0b0f14]/40 p-2 rounded-3xl border border-slate-200 dark:border-slate-800/60">
                        <div className="px-4 py-2 text-center">
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Today</p>
                           <p className="text-xl font-black text-emerald-500">{globalStats?.totalToday || 0}</p>
@@ -609,7 +626,7 @@ const AdminDashboard = () => {
                       const color = moduleColors[log.module] || 'text-slate-400 bg-slate-500/10 border-slate-500/20';
                       
                       return (
-                        <div key={i} className="group flex items-center gap-6 p-5 rounded-[2.5rem] bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                        <div key={i} className="group flex items-center gap-6 p-5 rounded-[2.5rem] bg-slate-50 dark:bg-[#0b0f14]/20 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border ${color} shadow-sm group-hover:scale-110 transition-transform`}>
                             {log.module?.charAt(0)}
                           </div>
@@ -654,7 +671,7 @@ const AdminDashboard = () => {
                                  </div>
                                  <p className="text-[10px] font-bold text-slate-500">{p?.todayTotal || 0} posts today</p>
                                </div>
-                               <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
+                               <div className="h-1.5 w-full bg-slate-100 dark:bg-[#0b0f14] rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
                                   <div className={`h-full rounded-full transition-all duration-1000 ${admin.isactive ? 'bg-emerald-500' : 'bg-slate-700'} ${progress > 0 ? 'shadow-[0_0_8px_rgba(16,185,129,0.3)]' : ''}`} style={{ width: `${progress}%` }} />
                                </div>
                             </div>
@@ -685,7 +702,7 @@ const AdminDashboard = () => {
                 {jobs.map(job => (
                   <div key={job.id} className="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-slate-800/60 p-5 rounded-3xl shadow-sm dark:shadow-lg hover:border-slate-300 dark:hover:border-slate-700/80 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
                     <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-center text-xl font-black text-emerald-500 group-hover:scale-110 transition-transform">{job.company?.charAt(0)}</div>
+                      <div className="w-14 h-14 bg-slate-50 dark:bg-[#0b0f14] rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-center text-xl font-black text-emerald-500 group-hover:scale-110 transition-transform">{job.company?.charAt(0)}</div>
                       <div>
                         <h4 className="font-black text-lg leading-tight">{job.title}</h4>
                         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium flex items-center gap-2 mt-1">
@@ -725,6 +742,12 @@ const AdminDashboard = () => {
                           </button>
                         </div>
                         <div className="flex flex-col items-center gap-1.5">
+                          <span className="text-[10px] font-black uppercase text-slate-500">Fresher</span>
+                          <button onClick={() => handleToggle(job, 'isFresh')} className={`w-10 h-5 rounded-full transition-colors relative ${job.isFresh ? 'bg-teal-500' : 'bg-slate-700'}`}>
+                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${job.isFresh ? 'left-6' : 'left-1'}`} />
+                          </button>
+                        </div>
+                        <div className="flex flex-col items-center gap-1.5">
                           <span className="text-[10px] font-black uppercase text-slate-500">Today</span>
                           <button onClick={() => handleToggle(job, 'isToday')} className={`w-10 h-5 rounded-full transition-colors relative ${job.isToday ? 'bg-blue-500' : 'bg-slate-700'}`}>
                             <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${job.isToday ? 'left-6' : 'left-1'}`} />
@@ -744,9 +767,7 @@ const AdminDashboard = () => {
                         {job.canDelete !== false && (
                           <button onClick={() => handleJobDelete(job.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl text-rose-500 transition-colors"><Trash2 size={18} /></button>
                         )}
-                        {!job.canEdit && !job.canDelete && (
-                          <span className="px-3 py-1.5 text-[9px] font-black uppercase bg-slate-100 dark:bg-slate-800/50 text-slate-400 rounded-xl border border-slate-200 dark:border-slate-700 tracking-widest">VIEW ONLY</span>
-                        )}
+
                       </div>
                       </div>
                     </div>
@@ -786,7 +807,7 @@ const AdminDashboard = () => {
                       <input
                         type="text"
                         placeholder="Search by applicant name, email, or job title..."
-                        className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700/50 rounded-full pl-12 pr-5 py-3.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-inner"
+                        className="w-full bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-700/50 rounded-full pl-12 pr-5 py-3.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-inner"
                         onChange={(e) => {
                           const term = e.target.value.toLowerCase();
                           const rows = document.querySelectorAll('.applicant-row');
@@ -804,7 +825,7 @@ const AdminDashboard = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="bg-slate-50 dark:bg-slate-950/50 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black border-b border-slate-800">
+                      <tr className="bg-slate-50 dark:bg-[#0b0f14]/50 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black border-b border-slate-800">
                         <th className="px-8 py-5">Applicant</th>
                         <th className="px-8 py-5">Position Applied</th>
                         <th className="px-8 py-5">Contact Info</th>
@@ -1209,6 +1230,68 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+          {activeTab === 'liveticker' && (
+            <div className="animate-in fade-in slide-in-from-bottom-5 max-w-4xl mx-auto space-y-8">
+              <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-[2.5rem] p-8 shadow-2xl">
+                <h3 className="text-xl font-black mb-6 flex items-center gap-3 text-emerald-500"><Zap size={24} /> Add Live Ticker Entry</h3>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Ticker Message</label>
+                    <input
+                      type="text"
+                      className={inputCls}
+                      placeholder="e.g. 🚀 Urgent IT Hiring Drive in Bangalore..."
+                      value={tickerForm.text}
+                      onChange={(e) => setTickerForm({...tickerForm, text: e.target.value})}
+                    />
+                  </div>
+                  
+                  <button 
+                    onClick={async () => {
+                      if(!tickerForm.text) return toast.error('Message required');
+                      try {
+                        await axios.post(`${API}/live-ticker`, tickerForm, getConfig());
+                        setTickerForm({text: ''});
+                        fetchData();
+                        toast.success('Ticker entry added!');
+                      } catch (err) { toast.error('Error adding ticker'); }
+                    }}
+                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] active:scale-95"
+                  >
+                    Publish to Ticker
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {liveTickerItems.length > 0 ? liveTickerItems.map(item => (
+                  <div key={item.id} className="bg-white dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-800/50 p-6 rounded-3xl flex justify-between items-center group">
+                    <div className="flex-1">
+                      <p className="text-slate-800 dark:text-slate-200 font-bold">{item.text}</p>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-2">{new Date(Number(item.createdAt)).toLocaleString()}</p>
+                    </div>
+                    <button 
+                      onClick={() => confirmAction('Delete this entry?', async () => {
+                        await axios.delete(`${API}/live-ticker/${item.id}`, getConfig());
+                        fetchData();
+                        toast.success('Deleted');
+                      })}
+                      className="w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )) : (
+                  <div className="py-20 text-center bg-slate-50 dark:bg-slate-900/10 border border-slate-200 dark:border-slate-800/50 border-dashed rounded-3xl">
+                    <Zap size={32} className="mx-auto text-slate-300 dark:text-slate-700 mb-4" />
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No Active Ticker Entries</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {activeTab === 'herobanners' && (
             <div className="animate-in fade-in slide-in-from-bottom-5 max-w-4xl mx-auto space-y-8">
               <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-[2.5rem] p-8 shadow-2xl">
@@ -1221,21 +1304,50 @@ const AdminDashboard = () => {
                       type="file" 
                       accept="image/*"
                       className="w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-3 font-medium text-slate-900 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-500/10 file:text-blue-500 dark:file:text-blue-400 hover:file:bg-blue-500/20 cursor-pointer shadow-inner" 
-                      onChange={e => {
+                      onChange={async (e) => {
                         const file = e.target.files[0];
                         if (file) {
-                          const reader = new FileReader();
-                          reader.onload = async (ev) => {
-                            try {
-                              showMsg('Uploading banner...');
-                              await axios.post(`${API}/hero-banners`, { image: ev.target.result }, getConfig());
-                              fetchData();
-                              showMsg('Banner Published Successfully');
-                            } catch (err) {
-                              toast.error('Failed to upload banner');
-                            }
-                          };
-                          reader.readAsDataURL(file);
+                          try {
+                            showMsg('Compressing banner...');
+                            // Client-side compression
+                            const compressedBase64 = await new Promise((resolve) => {
+                              const reader = new FileReader();
+                              reader.readAsDataURL(file);
+                              reader.onload = (ev) => {
+                                const img = new Image();
+                                img.src = ev.target.result;
+                                img.onload = () => {
+                                  const canvas = document.createElement('canvas');
+                                  const MAX_WIDTH = 1920;
+                                  const MAX_HEIGHT = 1080;
+                                  let width = img.width;
+                                  let height = img.height;
+
+                                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                                    if (width / height > MAX_WIDTH / MAX_HEIGHT) {
+                                      height = Math.round((height * MAX_WIDTH) / width);
+                                      width = MAX_WIDTH;
+                                    } else {
+                                      width = Math.round((width * MAX_HEIGHT) / height);
+                                      height = MAX_HEIGHT;
+                                    }
+                                  }
+                                  canvas.width = width;
+                                  canvas.height = height;
+                                  const ctx = canvas.getContext('2d');
+                                  ctx.drawImage(img, 0, 0, width, height);
+                                  resolve(canvas.toDataURL('image/jpeg', 0.8));
+                                };
+                              };
+                            });
+
+                            showMsg('Uploading banner...');
+                            await axios.post(`${API}/hero-banners`, { image: compressedBase64 }, getConfig());
+                            fetchData();
+                            showMsg('Banner Published Successfully');
+                          } catch (err) {
+                            toast.error('Failed to upload banner');
+                          }
                         }
                       }} 
                     />
@@ -1310,7 +1422,7 @@ const AdminDashboard = () => {
                             <div className="w-px h-full bg-slate-200 dark:bg-slate-800 mt-2" />
                           </div>
                           <div className="flex-1 pb-10">
-                            <div className="bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800/60 p-6 rounded-[2rem] hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                            <div className="bg-slate-50/50 dark:bg-[#0b0f14]/30 border border-slate-200 dark:border-slate-800/60 p-6 rounded-[2rem] hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
                               <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-3">
                                   <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${colorClass}`}>
@@ -1382,7 +1494,7 @@ const AdminDashboard = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="bg-slate-50/80 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800">
+                      <tr className="bg-slate-50/80 dark:bg-[#0b0f14]/50 border-b border-slate-200 dark:border-slate-800">
                         <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Member</th>
                         <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Contact & Dept</th>
                         <th className="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Role</th>
@@ -1438,7 +1550,7 @@ const AdminDashboard = () => {
                             </td>
                             {/* Actions */}
                             <td className="px-8 py-6">
-                              {member.role !== 'manager' && (
+                              {member.email !== 'admin@startaply.com' && (
                                 <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={async () => { await axios.put(`${API}/auth/users/${member.id}/toggle`, { isActive: !member.isactive }, getConfig()); fetchData(); toast.success('Status updated'); }}
@@ -1462,7 +1574,7 @@ const AdminDashboard = () => {
                                   </button>
                                 </div>
                               )}
-                              {member.role === 'manager' && (
+                              {member.email === 'admin@startaply.com' && (
                                 <span className="text-[9px] font-black uppercase text-purple-500 tracking-widest flex items-center gap-1 justify-end"><Crown size={10} /> Manager</span>
                               )}
                             </td>
@@ -1493,7 +1605,7 @@ const AdminDashboard = () => {
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role *</label>
                         <select className={selectCls} value={teamForm.role} onChange={e => setTeamForm(f => ({ ...f, role: e.target.value }))}>
-                          <option value="executive">Executive</option>
+                          <option value="operational_executive">Operational Executive</option>
                           <option value="operational_manager">Operational Manager</option>
                         </select>
                       </div>
@@ -1511,7 +1623,7 @@ const AdminDashboard = () => {
                             await axios.post(`${API}/auth/register`, { name, email, password, role, department, mobile, joinedAt }, getConfig());
                             toast.success(`${name} added to team!`);
                             setShowTeamModal(false);
-                            setTeamForm({ name: '', email: '', password: '', role: 'executive', department: '', mobile: '', joinedAt: '' });
+                            setTeamForm({ name: '', email: '', password: '', role: 'operational_executive', department: '', mobile: '', joinedAt: '' });
                             fetchData();
                           } catch(e) { toast.error(e.response?.data?.error || 'Failed to add member'); }
                         }}
@@ -1537,7 +1649,7 @@ const AdminDashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {['operational_manager', 'executive'].map(role => {
+                {['operational_manager', 'operational_executive'].map(role => {
                   const rc = getRoleConfig(role);
                   const RoleIcon = rc.icon;
                   // Get the authoritative server row for this role
@@ -1590,7 +1702,7 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-3">
                           <div className={`w-12 h-12 rounded-2xl ${rc.bg} border ${rc.border} flex items-center justify-center`}><RoleIcon size={22} className={rc.color} /></div>
                           <div>
-                            <h3 className={`text-lg font-black ${rc.color}`}>{rc.label === 'Exec.' ? 'Executive' : 'Operational Manager'}</h3>
+                            <h3 className={`text-lg font-black ${rc.color}`}>{rc.label}</h3>
                             <p className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Permission Matrix</p>
                           </div>
                         </div>
@@ -1621,7 +1733,7 @@ const AdminDashboard = () => {
                           // isOn always reads from fully-seeded local object — guaranteed boolean
                           const isOn = local[key] === true;
                           return (
-                            <div key={key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200/50 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                            <div key={key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 dark:bg-[#0b0f14]/30 border border-slate-200/50 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
                               <div className="flex items-center gap-3">
                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isOn ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}`}>
                                   {isOn ? <Unlock size={14} /> : <Lock size={14} />}
@@ -1746,7 +1858,7 @@ const AdminDashboard = () => {
                     </h3>
                     <p className="text-slate-500 dark:text-slate-400 font-bold mt-1 uppercase text-[10px] tracking-widest">Real-time contribution audit</p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex gap-10">
+                  <div className="bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex gap-10">
                     <div className="text-center">
                       <p className="text-[10px] font-black uppercase text-slate-500">Team Today</p>
                       <p className="text-lg font-black text-emerald-500">
@@ -1765,7 +1877,7 @@ const AdminDashboard = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800/80">
+                      <tr className="bg-slate-50 dark:bg-[#0b0f14]/50 border-b border-slate-200 dark:border-slate-800/80">
                         <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Admin Entity</th>
                         <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Today's Session</th>
                         <th className="px-10 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500">Daily Output</th>
@@ -1823,7 +1935,7 @@ const AdminDashboard = () => {
                     </h3>
                     <div className="grid grid-cols-1 gap-6">
                       {(Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).map(admin => (
-                        <div key={admin.id} className="bg-slate-50/50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem]">
+                        <div key={admin.id} className="bg-slate-50/50 dark:bg-[#0b0f14]/30 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem]">
                           <div className="flex justify-between items-center mb-4">
                             <span className="font-black text-[10px] uppercase tracking-[0.2em] text-slate-500">{admin.adminName}'s Daily Output (Jobs)</span>
                           </div>
@@ -1879,7 +1991,7 @@ const AdminDashboard = () => {
               
               <div className="md:col-span-2 space-y-3 mt-2">
                 <label className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest pl-5">Brand Visual Identity (Logo)</label>
-                <div className="flex gap-6 items-center bg-slate-50 dark:bg-slate-950/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-800">
+                <div className="flex gap-6 items-center bg-slate-50 dark:bg-[#0b0f14]/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-800">
                   <input type="file" accept="image/*" className="hidden" id="modal-logo" onChange={e => {
                     const file = e.target.files[0];
                     if (file) {

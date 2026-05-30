@@ -1,114 +1,109 @@
 import React from 'react';
+import { Search, MapPin, MousePointerClick, CheckCircle2, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Compass, FileSearch, Rocket } from 'lucide-react';
 
 const steps = [
   {
-    num: '01',
-    icon: Compass,
-    title: 'Explore Roles',
-    desc: 'Search verified government, private, and fresher jobs instantly across 15+ categories.',
-    accent: 'from-emerald-400 to-teal-400',
-    glow: 'rgba(16,185,129,0.12)',
+    icon: <Search size={26} />,
+    title: 'Discover Opportunities',
+    desc: 'Search across Government, IT, Non-IT, Fresher and Startup jobs — all verified, zero consulting fees.',
+    number: '01',
+    color: 'emerald',
   },
   {
-    num: '02',
-    icon: FileSearch,
-    title: 'Review Details',
-    desc: 'Check salary, location, and skills with complete transparency. No hidden information.',
-    accent: 'from-blue-400 to-cyan-400',
-    glow: 'rgba(6,182,212,0.12)',
+    icon: <MapPin size={26} />,
+    title: 'Explore Verified Openings',
+    desc: 'Review salary, location, work mode, experience required, skills needed, and last date to apply.',
+    number: '02',
+    color: 'cyan',
   },
   {
-    num: '03',
-    icon: Rocket,
+    icon: <MousePointerClick size={26} />,
     title: 'Apply Directly',
-    desc: 'Click to apply with zero friction. No account creation. No consultancy fees.',
-    accent: 'from-violet-400 to-purple-400',
-    glow: 'rgba(167,139,250,0.12)',
+    desc: 'Click Apply and go straight to the company portal or use Easy Apply — no middlemen, no hidden steps.',
+    number: '03',
+    color: 'indigo',
+  },
+  {
+    icon: <CheckCircle2 size={26} />,
+    title: 'Land Your Role',
+    desc: 'Follow up with new listings daily. Job Mela campaigns and Featured Drives give you an edge.',
+    number: '04',
+    color: 'slate',
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.12 } }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }
-};
-
 const HowItWorks = () => {
   return (
-    <section className="py-16 md:py-24 bg-white dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/50 overflow-hidden relative transition-colors duration-300">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[400px] opacity-20"
-          style={{ background: 'radial-gradient(ellipse at top right, rgba(16,185,129,0.08) 0%, transparent 65%)', filter: 'blur(80px)' }}
-        />
-      </div>
+    <section className="py-24 section-elevated relative overflow-hidden transition-colors duration-500 border-y border-slate-200/50 dark:border-slate-800/50">
+      {/* Faint background dot grid */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.025] dark:opacity-[0.04]"
+        style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+      />
 
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.1 }}
-        variants={containerVariants}
-        className="relative z-10 max-w-6xl mx-auto px-4"
-      >
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-500">Zero Friction</span>
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em]"
+          >
+            <Zap size={12} />
+            How It Works
           </motion.div>
-          <motion.h2 variants={itemVariants} className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
-            How It <span className="text-gradient-emerald">Works</span>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.05 }}
+            className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
+          >
+            Your path to <span className="text-gradient-emerald">success</span>
           </motion.h2>
-          <motion.p variants={itemVariants} className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto font-medium text-base">
-            Three simple steps to your next opportunity. No account required.
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-xl mx-auto"
+          >
+            Four simple steps between you and your next career move.
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {steps.map((step) => {
-            const Icon = step.icon;
-            return (
+        <div className="relative">
+          {/* Desktop connecting line */}
+          <div className="hidden lg:block absolute top-12 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700/50 to-transparent z-0" />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 relative z-10">
+            {steps.map((step, i) => (
               <motion.div
-                variants={itemVariants}
-                whileHover={{ y: -6 }}
-                key={step.num}
-                className="group relative bg-slate-50 dark:bg-slate-900/60 backdrop-blur-md p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800/50 hover:border-emerald-400/40 dark:hover:border-emerald-700/30 hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_60px_rgba(0,0,0,0.3)] transition-all duration-300 overflow-hidden cursor-default"
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="relative flex flex-col items-center text-center group"
               >
-                {/* Accent bar */}
-                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${step.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-                {/* Background glow */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl"
-                  style={{ background: `radial-gradient(ellipse at top left, ${step.glow} 0%, transparent 60%)` }}
-                />
-
-                {/* Step number (ghost) */}
-                <div className="absolute top-6 right-6 text-6xl font-black text-slate-100 dark:text-slate-800/60 leading-none pointer-events-none select-none group-hover:text-emerald-100/30 dark:group-hover:text-emerald-900/30 transition-colors">
-                  {step.num}
+                {/* Ghost number watermark */}
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-8xl font-black text-slate-900/[0.04] dark:text-white/[0.04] pointer-events-none group-hover:-translate-y-2 transition-transform duration-500">
+                  {step.number}
                 </div>
 
-                {/* Icon */}
-                <div className={`relative z-10 w-12 h-12 rounded-2xl bg-gradient-to-br ${step.accent} flex items-center justify-center mb-6 shadow-[0_4px_16px_rgba(0,0,0,0.12)] group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon size={22} className="text-white" />
+                {/* Icon container */}
+                <div className={`w-20 h-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg flex items-center justify-center mb-6 relative z-10 text-${step.color}-500 group-hover:-translate-y-2 transition-all duration-300`}>
+                  <div className={`absolute inset-0 bg-${step.color}-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity`} />
+                  {step.icon}
                 </div>
 
-                <h3 className="relative z-10 text-xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  {step.title}
-                </h3>
-                <p className="relative z-10 text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-sm">
-                  {step.desc}
-                </p>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 tracking-tight">{step.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed px-2">{step.desc}</p>
               </motion.div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 };

@@ -6,6 +6,8 @@ import { Toaster } from 'react-hot-toast';
 import ScrollToTop from './components/common/ScrollToTop';
 import ScrollToTopButton from './components/common/ScrollToTopButton';
 import MobileBottomNav from './components/common/MobileBottomNav';
+import Navbar from './components/common/Navbar';
+import Footer from './components/common/Footer';
 
 // ── Eager-load high-priority pages (above the fold, visited most) ──────────
 import Home from './pages/Home';
@@ -51,6 +53,7 @@ function App() {
       <Toaster position="top-right" />
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
+        <Navbar />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/"               element={<Home />} />
@@ -69,6 +72,7 @@ function App() {
             <Route path="/terms"          element={<TermsOfService />} />
           </Routes>
         </Suspense>
+        <Footer />
         <ScrollToTopButton />
         {/* Mobile-only bottom navigation — hidden on desktop via CSS/Tailwind */}
         <MobileBottomNav />

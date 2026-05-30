@@ -47,68 +47,48 @@ async function initAuthDb() {
 
     // 3. Removed legacy admins migration block as per user request
 
-    // 4. Force-Reconcile Operational Manager (Ensure ID, Role, AND Password consistency)
-    const managerEmail = 'manager@startaply.com';
-    const managerPass = await bcrypt.hash('manager123', 10);
-    const principalManagerId = 'manager_principal';
+    // 4. Force-Reconcile Fixed Admin Identity (Ensure ID, Role, AND Password consistency)
+    const adminEmail = 'admin@startaply.com';
+    const adminPass = await bcrypt.hash('admin123', 10);
+    const principalManagerId = 'admin_principal';
     
-    // Check for existing manager by email
-    const existingManager = await pool.query('SELECT id, role, password FROM users WHERE email = $1', [managerEmail]);
+    // Check for existing admin by email
+    const existingAdmin = await pool.query('SELECT id, role, password FROM users WHERE email = $1', [adminEmail]);
     
-    if (existingManager.rows.length > 0) {
-      const current = existingManager.rows[0];
-      console.log(`Force-Reconciling Manager Identity & Password for: ${managerEmail}`);
-      // Force update ID, role, name, AND password to ensure manager123 works
+    if (existingAdmin.rows.length > 0) {
+      console.log(`Force-Reconciling Admin Identity & Password for: ${adminEmail}`);
+      // Force update ID, role, name, AND password to ensure admin123 works
       await pool.query(
-        `UPDATE users SET id = $1, role = 'manager', name = 'Operations Manager', password = $2 WHERE email = $3`,
-        [principalManagerId, managerPass, managerEmail]
+        `UPDATE users SET id = $1, role = 'manager', name = 'System Admin', password = $2 WHERE email = $3`,
+        [principalManagerId, adminPass, adminEmail]
       );
     } else {
       // Create from scratch if doesn't exist
       await pool.query(`
         INSERT INTO users (id, name, email, password, role, createdAt)
         VALUES ($1, $2, $3, $4, $5, $6)
-      `, [principalManagerId, 'Operations Manager', managerEmail, managerPass, 'manager', Date.now()]);
+      `, [principalManagerId, 'System Admin', adminEmail, adminPass, 'manager', Date.now()]);
     }
 
-    // 5. Force-Reset Jayanth's Credentials
-    const jayanthEmail = 'Jayanth@gmail.com';
-    const jayanthPass = await bcrypt.hash('jayanth123', 10);
-    const jayanthId = 'admin_jayanth';
-
-    const existingJayanth = await pool.query('SELECT id FROM users WHERE email = $1', [jayanthEmail]);
-    if (existingJayanth.rows.length > 0) {
-        console.log(`Force-Updating Jayanth's Credentials for: ${jayanthEmail}`);
-        await pool.query(
-            `UPDATE users SET id = $1, role = 'admin', name = 'Jayanth', password = $2 WHERE email = $3`,
-            [jayanthId, jayanthPass, jayanthEmail]
-        );
-    } else {
-        await pool.query(
-            `INSERT INTO users (id, name, email, password, role, createdAt) VALUES ($1, $2, $3, $4, $5, $6)`,
-            [jayanthId, 'Jayanth', jayanthEmail, jayanthPass, 'admin', Date.now()]
-        );
-    }
-
-    // 6. DATA ATTRIBUTION MIGRATION (Link records to reconciled identity)
+    // 5. DATA ATTRIBUTION MIGRATION (Link records to reconciled identity)
     try {
-      await pool.query(`UPDATE jobs SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy'`, [principalManagerId]);
-      await pool.query(`UPDATE companies SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy'`, [principalManagerId]);
-      await pool.query(`UPDATE prep_data SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy'`, [principalManagerId]);
-      await pool.query(`UPDATE job_mela SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy'`, [principalManagerId]);
+      await pool.query(`UPDATE jobs SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
+      await pool.query(`UPDATE companies SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
+      await pool.query(`UPDATE prep_data SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
+      await pool.query(`UPDATE job_mela SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
       console.log('Operational Migration: Identity reconciliation complete.');
     } catch (e) {
       console.error('Operational Migration Error:', e.message);
     }
 
-    // 7. ROLE PERMISSIONS TABLE INITIALIZATION
+    // 6. ROLE PERMISSIONS TABLE INITIALIZATION
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS role_permissions (
           role TEXT PRIMARY KEY,
           can_post_job BOOLEAN DEFAULT TRUE,
           can_edit_job BOOLEAN DEFAULT TRUE,
-          can_delete_job BOOLEAN DEFAULT FALSE,
+          can_delete_job BOOLEAN DEFAULT TRUE,
           can_view_applicants BOOLEAN DEFAULT TRUE,
           can_manage_companies BOOLEAN DEFAULT TRUE,
           can_manage_mela BOOLEAN DEFAULT TRUE,
@@ -118,19 +98,21 @@ async function initAuthDb() {
       `);
 
       const defaultPerms = [
-        ['manager',              true,  true,  true,  true,  true,  true,  true],
-        ['operational_manager',  true,  true,  true,  true,  true,  true,  true],
-        ['executive',            true,  true,  false, true,  true,  true,  true],
-        ['admin',                true,  true,  false, true,  true,  true,  true],
+        ['manager',                true,  true,  true,  true,  true,  true,  true],
+        ['operational_manager',    true,  true,  true,  true,  true,  true,  true],
+        ['operational_executive',  true,  true,  true,  true,  true,  true,  true]
       ];
       for (const [r, post, edit, del, apps, comps, mela, prep] of defaultPerms) {
         await pool.query(
           `INSERT INTO role_permissions (role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep, updated_at)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-           ON CONFLICT (role) DO NOTHING`,
+           ON CONFLICT (role) DO UPDATE SET can_delete_job = excluded.can_delete_job`,
           [r, post, edit, del, apps, comps, mela, prep, Date.now()]
         );
       }
+      // Cleanup old roles if needed
+      await pool.query(`DELETE FROM role_permissions WHERE role NOT IN ('manager', 'operational_manager', 'operational_executive')`);
+      
       console.log('Operational Migration: Role permissions seeded successfully.');
     } catch (e) {
       console.error('Role Permissions Migration Error:', e.message);
@@ -275,8 +257,30 @@ router.get('/logs', authMiddleware, managerMiddleware, async (req, res) => {
   }
 });
 
+// GET Dashboard Summary (accessible to all admins)
+router.get('/dashboard-summary', authMiddleware, async (req, res) => {
+  try {
+    const [jobs, melas, companies, apps] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM jobs'),
+      pool.query('SELECT COUNT(*) FROM job_mela'),
+      pool.query('SELECT COUNT(*) FROM companies'),
+      pool.query('SELECT COUNT(*) FROM applications')
+    ]);
+
+    res.json({
+      totalJobs: parseInt(jobs.rows[0].count),
+      totalApplications: parseInt(apps.rows[0].count),
+      totalCompanies: parseInt(companies.rows[0].count),
+      totalMelas: parseInt(melas.rows[0].count)
+    });
+  } catch (err) {
+    console.error('[Dashboard Summary] Error:', err);
+    res.status(500).json({ error: 'Server error fetching summary' });
+  }
+});
+
 // GET Global Stats for Dashboard
-router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
+router.get('/stats', authMiddleware, async (req, res) => {
   try {
     const [jobs, melas, companies, apps, feedback] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM jobs'),
@@ -298,6 +302,16 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
     ]);
 
     // Detailed Admin Performance (Aggregated for Performance)
+    let userFilter = '';
+    let queryParams = [todayMillis, fourteenDaysAgo];
+    if (req.user.role === 'operational_executive') {
+      userFilter = 'WHERE u.id = $3';
+      queryParams.push(req.user.id);
+    } else if (req.user.role === 'operational_manager') {
+      userFilter = `WHERE u.id = $3 OR u.role = 'operational_executive'`;
+      queryParams.push(req.user.id);
+    }
+
     const adminStats = await pool.query(`
       WITH 
         job_counts AS (SELECT createdbyadminid as uid, COUNT(*) as count, COUNT(*) FILTER (WHERE createdat >= $1) as today FROM jobs GROUP BY uid),
@@ -327,8 +341,9 @@ router.get('/stats', authMiddleware, managerMiddleware, async (req, res) => {
       LEFT JOIN comp_counts c ON u.id = c.uid
       LEFT JOIN prep_counts p ON u.id = p.uid
       LEFT JOIN mela_counts m ON u.id = m.uid
+      ${userFilter}
       ORDER BY u.createdat DESC
-    `, [todayMillis, fourteenDaysAgo]);
+    `, queryParams);
 
     res.json({
       totalJobs: parseInt(jobs.rows[0].count),

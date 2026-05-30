@@ -5,8 +5,6 @@ import {
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import axios from 'axios';
@@ -186,8 +184,7 @@ const JobsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-white transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* ── HERO SEARCH ────────────────────────────────────────── */}
       <div className="bg-slate-950 pt-28 pb-16 px-4 border-b border-slate-800 relative overflow-hidden">
@@ -330,7 +327,7 @@ const JobsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm"
           >
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-950 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 dark:border-slate-800">
+            <div className="w-20 h-20 bg-slate-50 dark:bg-[#0b0f14] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 dark:border-slate-800">
               <Search size={30} className="text-slate-300 dark:text-slate-700" />
             </div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">No jobs match your criteria</h3>
@@ -382,7 +379,6 @@ const JobsPage = () => {
         )}
       </div>
 
-      <Footer />
       <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );

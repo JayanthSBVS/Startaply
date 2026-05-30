@@ -5,8 +5,8 @@ const AuthContext = createContext();
 
 // Role normalization — mirrors the server-side helper
 const normalizeRole = (role) => {
-  if (!role) return 'executive';
-  if (role === 'admin') return 'executive';
+  if (!role) return 'operational_executive';
+  if (role === 'admin' || role === 'executive') return 'operational_executive';
   return role;
 };
 
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   // ── ROLE HELPERS ────────────────────────────────────────────────────────────
   const isManager   = () => user?.role === 'manager';
   const isOpManager = () => user?.role === 'operational_manager';
-  const isExecutive = () => user?.role === 'executive' || user?.role === 'admin';
+  const isExecutive = () => user?.role === 'operational_executive';
 
   // Get the permissions row for the current user's role
   const getMyPermissions = useCallback(() => {
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
     const row = permissions.find(p => p.role === myRole);
     // Defaults if not loaded yet
     return row || {
-      can_post_job: true, can_edit_job: true, can_delete_job: false,
+      can_post_job: true, can_edit_job: true, can_delete_job: true,
       can_view_applicants: true, can_manage_companies: true,
       can_manage_mela: true, can_manage_prep: true
     };

@@ -29,7 +29,7 @@ const StickySearch = ({ onSearch }) => {
     >
       <div className="max-w-4xl mx-auto flex gap-2">
 
-        <div className="flex-1 flex items-center border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 rounded-lg px-3 gap-2 transition-colors">
+        <div className="flex-1 flex items-center border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f14] rounded-lg px-3 gap-2 transition-colors">
           <Search size={14} className="text-slate-400 dark:text-slate-500" />
           <input
             value={query}

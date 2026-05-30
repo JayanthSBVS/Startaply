@@ -1,71 +1,69 @@
-import React, { useState } from 'react';
-import Navbar from '../components/common/Navbar';
+import React, { useState, useEffect } from 'react';
 import Hero from '../components/home/Hero';
+import JobMelaTicker from '../components/home/JobMelaTicker';
 import StatsStrip from '../components/home/StatsStrip';
 import CategoryGrid from '../components/home/CategoryGrid';
-import JobMelaTicker from '../components/home/JobMelaTicker';
-import HowItWorks from '../components/home/HowItWorks';
 import FeaturedJobsSection from '../components/jobs/FeaturedJobsSection';
 import TodaysJobsSection from '../components/jobs/TodaysJobsSection';
-import WhySection from '../components/home/WhySection';
-import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 import TrendingCompanies from '../components/home/TrendingCompanies';
+import HowItWorks from '../components/home/HowItWorks';
+import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 import Testimonials from '../components/home/Testimonials';
-import Footer from '../components/common/Footer';
-import JobMelaPopup from '../components/home/JobMelaPopup';
 import FeedbackForm from '../components/home/FeedbackForm';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
+import JobMelaPopup from '../components/home/JobMelaPopup';
 
-// Home.jsx owns the single shared JobDetailsPanel so that
-// FeaturedJobsSection and TodaysJobsSection don't each render
-// their own panel, which caused dual-panel stacking conflicts.
 const Home = () => {
   const [selectedJob, setSelectedJob] = useState(null);
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-white font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900/40 transition-colors duration-300">
-      <JobMelaPopup />
-      <Navbar />
+  useEffect(() => {
+    document.title = "Startaply - Opportunity Engine";
+  }, []);
 
-      {/* ── Hero — Cinematic Entry ─────────────────────────────────── */}
+  return (
+    <div className="relative flex flex-col min-h-screen bg-slate-50 dark:bg-[#0b0f14] transition-colors duration-300">
+      {/* Hero Section — with backend banner carousel */}
       <Hero />
 
-      {/* ── Live Intelligence Ticker ───────────────────────────────── */}
+      {/* Live Job Mela Ticker */}
       <JobMelaTicker />
 
-      {/* ── Platform Impact Stats ──────────────────────────────────── */}
+      {/* Platform Scale Metrics */}
       <StatsStrip />
 
-      {/* ── Fresh Listings — Today's Jobs ─────────────────────────── */}
+      {/* Job Categories */}
+      <CategoryGrid />
+
+      {/* Live Opportunities — Today's Jobs (backend-connected) */}
       <TodaysJobsSection onViewDetails={setSelectedJob} />
 
-      {/* ── Featured Opportunities ─────────────────────────────────── */}
-      <FeaturedJobsSection onViewDetails={setSelectedJob} />
+      {/* Featured Jobs (backend-connected, admin-controlled isFeatured flag) */}
+      <FeaturedJobsSection onJobClick={setSelectedJob} />
 
-      {/* ── Why Choose Startaply ───────────────────────────────────── */}
-      <WhySection />
-
-      {/* ── How It Works ──────────────────────────────────────────── */}
-      <HowItWorks />
-
-      {/* ── Partner Ecosystem — Company Streams ───────────────────── */}
+      {/* The Startaply Network */}
       <TrendingCompanies />
 
-      {/* ── Career Transformations ────────────────────────────────── */}
-      <Testimonials />
+      {/* How It Works — real platform flow */}
+      <HowItWorks />
 
-      {/* ── College Collaboration Banner ───────────────────────────── */}
+      {/* Campus to Corporate — college partnerships */}
       <CollegeCollabBanner />
 
-      {/* ── Feedback Form ─────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 w-full py-8 bg-slate-50 dark:bg-[#020617]">
-        <FeedbackForm />
-      </div>
+      {/* Career Transformations — admin-controlled testimonials */}
+      <Testimonials />
 
-      <Footer />
+      {/* Feedback Form */}
+      <FeedbackForm />
 
-      {/* Single shared JobDetailsPanel — avoids dual-panel conflicts */}
-      <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
+      {/* Slide-over Job Details Panel */}
+      <JobDetailsPanel
+        job={selectedJob}
+        isOpen={!!selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
+
+      {/* Job Mela Popup — backend-connected, shows after 5s if admin enabled showPopup */}
+      <JobMelaPopup />
     </div>
   );
 };

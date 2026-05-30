@@ -247,7 +247,7 @@ const MobileBottomNav = () => {
 
       {/* Embedded Feedback Modal for seamless non-navigating mobile feedback */}
       {feedbackOpen && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-[#0b0f14]/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden relative border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200">
             <div className="absolute top-4 right-4">
               <button
@@ -292,7 +292,7 @@ const MobileBottomNav = () => {
                     id="modal-name"
                     type="text"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-950 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium text-sm text-slate-900 dark:text-white"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-950 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium text-sm text-slate-900 dark:text-white"
                     placeholder="e.g. Rahul Kumar"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -307,7 +307,7 @@ const MobileBottomNav = () => {
                     id="modal-email"
                     type="email"
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-950 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium text-sm text-slate-900 dark:text-white"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl focus:bg-white dark:focus:bg-slate-950 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium text-sm text-slate-900 dark:text-white"
                     placeholder="e.g. rahul@example.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -347,7 +347,7 @@ const MobileBottomNav = () => {
                     id="modal-message"
                     required
                     rows={4}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:bg-white dark:focus:bg-slate-950 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none font-medium text-sm text-slate-900 dark:text-white"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-2xl focus:bg-white dark:focus:bg-slate-950 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none font-medium text-sm text-slate-900 dark:text-white"
                     placeholder="Tell us what you think..."
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}

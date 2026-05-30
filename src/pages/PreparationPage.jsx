@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import Navbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
 import {
   BookOpen, Download, ChevronDown, ChevronUp,
   GraduationCap, Building2, Monitor, FileText, HelpCircle, Newspaper
@@ -178,8 +176,7 @@ const PreparationPage = () => {
   }, [prepData, activeCategory, activeContentTab]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans selection:bg-emerald-100 transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans selection:bg-emerald-100 transition-colors duration-300">
 
       {/* Hero */}
       <motion.div
@@ -271,8 +268,6 @@ const PreparationPage = () => {
           </AnimatePresence>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 };

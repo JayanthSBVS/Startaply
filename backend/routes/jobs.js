@@ -40,8 +40,14 @@ async function initDb() {
     `);
 
     await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS companyId VARCHAR(50)`);
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS isHeroFeatured BOOLEAN DEFAULT FALSE`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_companyid ON jobs (companyId)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_adminid ON jobs (createdByAdminId)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs (category)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_createdat ON jobs (createdAt)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_istrending ON jobs (isTrending)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_istoday ON jobs (isToday)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_isfresh ON jobs (isFresh)`);
 
     // ONE-TIME MIGRATION: Auto-link existing jobs to companies
     try {
@@ -84,9 +90,9 @@ const { logActivity } = require('../utils/logger');
 function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 
 const JOBS_SELECT_LIGHT = `
-  id, title, company, location, category, type, salary, createdat, 
+  id, title, subtitle, description, company, location, category, type, salary, createdat, 
   isFeatured, isToday, isTrending, isVisible, workmode, companylogo, 
-  govtjobtype, statename, jobcategorytype, updatedat, companyId
+  govtjobtype, statename, jobcategorytype, updatedat, companyId, isHeroFeatured, isfresh
 `;
 
 function mapRow(row) {
@@ -122,11 +128,12 @@ function mapRow(row) {
     govtDept: row.govtdept || '',
     stateName: row.statename || '',
     jobCategoryType: row.jobcategorytype || '',
-    isFeatured: row.isfeatured,
-    isFresh: row.isfresh,
-    isTrending: row.istrending,
-    isToday: row.istoday,
-    isVisible: row.isvisible,
+    isFeatured: nb(row.isfeatured),
+    isFresh: nb(row.isfresh),
+    isTrending: nb(row.istrending),
+    isToday: nb(row.istoday),
+    isVisible: nb(row.isvisible),
+    isHeroFeatured: nb(row.isherofeatured),
     views: Number(row.views || 0),
     applicationCount: Number(row.applicationcount || 0),
     createdByAdminId: row.createdbyadminid,
@@ -173,7 +180,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
       }
     }
 
-    let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
+    let whereClause = `WHERE isVisible::text = 'true' ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
 
     if (search.trim()) {
@@ -218,6 +225,9 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `;
 
+    console.log('[DEBUG SQL]', query.trim().replace(/\s+/g, ' '));
+    console.log('[DEBUG PARAMS]', [...queryParams, limit, offset]);
+
     const { rows } = await pool.query(query, [...queryParams, limit, offset]);
     const results = processPublicJobs(rows);
     
@@ -255,16 +265,16 @@ router.get('/non-it', (req, res) => {
 });
 
 router.get('/freshers', (req, res) => {
-  return getPaginatedJobs(req, res, `(experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR isFresh = true)`);
+  return getPaginatedJobs(req, res, `(experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher Jobs%' OR isFresh::text = 'true')`);
 });
 
 router.get('/today', (req, res) => {
   const dayAgo = Date.now() - 86400000;
-  return getPaginatedJobs(req, res, `createdAt > ${dayAgo} OR isToday = true`);
+  return getPaginatedJobs(req, res, `createdAt > ${dayAgo} OR isToday::text = 'true'`);
 });
 
 router.get('/featured', (req, res) => {
-  return getPaginatedJobs(req, res, `isFeatured = true`);
+  return getPaginatedJobs(req, res, `isFeatured::text = 'true'`);
 });
 
 router.get('/search/suggestions', async (req, res) => {
@@ -273,9 +283,9 @@ router.get('/search/suggestions', async (req, res) => {
     if (!q || q.length < 1) return res.json([]);
     const searchTerm = `%${q}%`;
     const { rows } = await pool.query(`
-      (SELECT title as suggestion FROM jobs WHERE title ILIKE $1 AND isVisible = true)
+      (SELECT title as suggestion FROM jobs WHERE title ILIKE $1 AND isVisible::text = 'true')
       UNION
-      (SELECT company as suggestion FROM jobs WHERE company ILIKE $1 AND isVisible = true)
+      (SELECT company as suggestion FROM jobs WHERE company ILIKE $1 AND isVisible::text = 'true')
       LIMIT 8
     `, [searchTerm]);
     res.json(rows.map(r => r.suggestion));
@@ -286,12 +296,26 @@ router.get('/search/suggestions', async (req, res) => {
 
 // ── ADMIN & UTILITY ROUTES ────────────────────────────────
 
+async function checkHierarchicalOwnership(itemAdminId, user) {
+  if (user.role === 'manager') return true;
+  if (itemAdminId === user.id) return true;
+  if (user.role === 'operational_manager') {
+    // Op Manager can edit if creator is operational_executive
+    const { rows } = await pool.query('SELECT role FROM users WHERE id=$1', [itemAdminId]);
+    if (rows.length && rows[0].role === 'operational_executive') return true;
+  }
+  return false;
+}
+
 router.get('/admin/list', authMiddleware, async (req, res) => {
   try {
     let query = `SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount FROM jobs j`;
     let params = [];
-    if (req.user.role !== 'manager') {
+    if (req.user.role === 'operational_executive') {
       query += ` WHERE j.createdByAdminId = $1`;
+      params.push(req.user.id);
+    } else if (req.user.role === 'operational_manager') {
+      query += ` WHERE j.createdByAdminId = $1 OR j.createdByAdminId IN (SELECT id FROM users WHERE role = 'operational_executive')`;
       params.push(req.user.id);
     }
     const { rows } = await pool.query(query, params);
@@ -314,8 +338,8 @@ router.post('/', authMiddleware, async (req, res) => {
         monthTag,applyUrl,applyType,expiryDays,processType,mapLocationUrl,
         isFeatured,isFresh,isTrending,isToday,isVisible,
         govtJobType,govtDept,stateName,jobCategoryType,
-        createdByAdminId, createdByAdminName, companyId
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38)
+        createdByAdminId, createdByAdminName, companyId, isHeroFeatured
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
@@ -324,7 +348,7 @@ router.post('/', authMiddleware, async (req, res) => {
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.processType, j.mapLocationUrl,
       j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
       j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType,
-      j.createdByAdminId, j.createdByAdminName, j.companyId
+      j.createdByAdminId, j.createdByAdminName, j.companyId, j.isHeroFeatured
     ]);
     searchCache.clear(); // Clear cache when data is modified
     res.status(201).json(mapRow(rows[0]));
@@ -339,7 +363,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Not found' });
     const existing = mapRow(ex[0]);
-    if (!checkOwnership(existing.createdByAdminId, req.user)) return res.status(403).json({ error: 'Ownership required' });
+    if (!(await checkHierarchicalOwnership(existing.createdByAdminId, req.user))) return res.status(403).json({ error: 'Ownership required' });
     const j = normalizeJob(req.body, existing);
     const { rows } = await pool.query(`
       UPDATE jobs SET
@@ -349,8 +373,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,processType=$23,mapLocationUrl=$24,isFeatured=$25,isFresh=$26,
         isTrending=$27,isToday=$28,isVisible=$29,
-        govtJobType=$30,govtDept=$31,stateName=$32,jobCategoryType=$33, companyId=$34
-      WHERE id=$35 RETURNING *
+        govtJobType=$30,govtDept=$31,stateName=$32,jobCategoryType=$33, companyId=$34,
+        isHeroFeatured=$35
+      WHERE id=$36 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
@@ -358,7 +383,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.processType, j.mapLocationUrl, j.isFeatured, j.isFresh,
       j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, j.companyId, id
+      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, j.companyId,
+      j.isHeroFeatured, id
     ]);
     searchCache.clear(); // Clear cache when data is modified
     res.json(mapRow(rows[0]));
@@ -371,10 +397,26 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { rows: ex } = await pool.query('SELECT * FROM jobs WHERE id=$1', [req.params.id]);
     if (!ex.length) return res.status(404).json({ error: 'Not found' });
-    if (!checkOwnership(ex[0].createdbyadminid, req.user)) return res.status(403).json({ error: 'Ownership required' });
+    if (!(await checkHierarchicalOwnership(ex[0].createdbyadminid, req.user))) return res.status(403).json({ error: 'Ownership required' });
     await pool.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
     searchCache.clear(); // Clear cache when data is modified
     res.json({ message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET all applications
+router.get('/applications/all', authMiddleware, async (req, res) => {
+  try {
+    let query = 'SELECT * FROM applications ORDER BY appliedAt DESC';
+    let params = [];
+    if (req.user.role !== 'manager' && req.user.role !== 'operational_manager') {
+      query = 'SELECT * FROM applications WHERE createdByAdminId = $1 ORDER BY appliedAt DESC';
+      params.push(req.user.id);
+    }
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -460,6 +502,7 @@ function normalizeJob(body, existing = null) {
     processType: body.processType || 'Standard',
     mapLocationUrl: body.mapLocationUrl || '',
     isFeatured: nb(body.isFeatured),
+    isHeroFeatured: nb(body.isHeroFeatured),
     isFresh: nb(body.isFresh),
     isTrending: nb(body.isTrending),
     isToday: nb(body.isToday),
