@@ -242,7 +242,16 @@ function mapRow(r) {
     processType: r.processtype || r.processType || 'Standard',
     createdByAdminId: r.createdbyadminid || r.createdByAdminId || '',
     companyId: r.companyid || r.companyId || null,
-    jobCategory: r.category || r.jobcategory || r.jobCategory || ''
+    jobCategory: r.category || r.jobcategory || r.jobCategory || '',
+    fullDescription: r.fulldescription || r.fullDescription || '',
+    requiredSkills: r.requiredskills || r.requiredSkills || '',
+    techStack: r.techstack || r.techStack || '',
+    aboutCompany: r.aboutcompany || r.aboutCompany || '',
+    companyLogo: r.companylogo || r.companyLogo || '',
+    applyUrl: r.applyurl || r.applyUrl || '',
+    applyType: r.applytype || r.applyType || 'external',
+    workMode: r.workmode || r.workMode || '',
+    monthTag: r.monthtag || r.monthTag || ''
   };
 }
 
