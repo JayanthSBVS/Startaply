@@ -59,7 +59,7 @@
       "dest": "/api/job-mela.js"
     },
     {
-      "src": "/api/feedback/([^/]+)",
+      "src": "/api/feedback/(.*)",
       "dest": "/api/feedback.js"
     },
     {
@@ -83,7 +83,7 @@
       "dest": "/api/hero-banners.js"
     },
     {
-      "src": "/api/qna/([^/]+)",
+      "src": "/api/qna/(.*)",
       "dest": "/api/qna.js"
     },
     {
@@ -91,7 +91,7 @@
       "dest": "/api/qna.js"
     },
     {
-      "src": "/api/testimonials/([^/]+)",
+      "src": "/api/testimonials/(.*)",
       "dest": "/api/testimonials.js"
     },
     {
