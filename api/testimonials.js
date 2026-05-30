@@ -43,15 +43,8 @@ const authMiddleware = (req, res, next) => {
 
 app.get('/api/testimonials/admin/list', authMiddleware, async (req, res) => {
   try {
-    const isManager = req.user.role === 'manager';
-    let query = 'SELECT * FROM testimonials';
-    let params = [];
-    if (!isManager) {
-      query += ' WHERE createdByAdminId = $1';
-      params.push(req.user.id);
-    }
-    query += ' ORDER BY createdAt DESC';
-    const { rows } = await pool.query(query, params);
+    // All admin roles see all testimonials — ownership only affects delete permissions
+    const { rows } = await pool.query('SELECT * FROM testimonials ORDER BY createdAt DESC');
     res.json(rows);
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });

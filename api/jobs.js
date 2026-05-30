@@ -684,27 +684,10 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
 // GET all applications
 app.get('/api/jobs/applications/all', authMiddleware, async (req, res) => {
   try {
-    const role      = req.user.role;
-    const isManager = role === 'manager';
-    const isOpMgr   = role === 'operational_manager';
-
-    // Check if role has permission to view applicants
-    const perms = await getPermissions(role);
-    if (!perms.can_view_applicants && !isManager) {
-      return res.status(403).json({ error: 'Your role does not have permission to view applicants' });
-    }
-
-    // Managers and Op-Managers see all; Executives see only their jobs' applicants
-    let query  = `SELECT a.* FROM applications a JOIN jobs j ON a.jobId = j.id`;
-    let params = [];
-
-    if (!isManager && !isOpMgr) {
-      query += ` WHERE j.createdByAdminId = $1`;
-      params.push(req.user.id);
-    }
-    query += ` ORDER BY a.appliedAt DESC`;
-
-    const { rows } = await pool.query(query, params);
+    // All admin roles see all applicants — no ownership filtering
+    const { rows } = await pool.query(
+      `SELECT a.* FROM applications a JOIN jobs j ON a.jobId = j.id ORDER BY a.appliedAt DESC`
+    );
     res.json(rows.map(r => ({
       ...r,
       appliedAt:   Number(r.appliedat || r.appliedAt),

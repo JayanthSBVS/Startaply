@@ -72,16 +72,8 @@ function mapRow(r) {
 
 app.get('/api/prep-data/admin/list', authMiddleware, async (req, res) => {
   try {
-    const role    = req.user.role;
-    const isManager = role === 'manager' || role === 'operational_manager';
-    let query = 'SELECT * FROM prep_data';
-    let params = [];
-    if (!isManager) {
-      query += ' WHERE createdByAdminId = $1';
-      params.push(req.user.id);
-    }
-    query += ' ORDER BY createdAt DESC';
-    const { rows } = await pool.query(query, params);
+    // All admin roles see all prep data — ownership only affects delete permissions
+    const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });

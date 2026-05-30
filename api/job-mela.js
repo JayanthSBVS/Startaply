@@ -66,16 +66,8 @@ function mapRow(r) {
 
 app.get('/api/job-mela/admin/list', authMiddleware, async (req, res) => {
   try {
-    const role    = req.user.role;
-    const isManager = role === 'manager' || role === 'operational_manager';
-    let query = 'SELECT * FROM job_mela';
-    let params = [];
-    if (!isManager) {
-      query += ' WHERE createdByAdminId = $1';
-      params.push(req.user.id);
-    }
-    query += ' ORDER BY createdAt DESC';
-    const { rows } = await pool.query(query, params);
+    // All admin roles see all job melas — ownership only affects edit/delete permissions
+    const { rows } = await pool.query('SELECT * FROM job_mela ORDER BY createdAt DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
