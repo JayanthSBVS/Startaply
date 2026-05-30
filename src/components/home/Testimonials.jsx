@@ -4,14 +4,14 @@ import axios from 'axios';
 
 const API = '/api';
 
-// 6 precise orbit coordinates that absolutely avoid the center max-w-2xl area
+// 6 precise orbit coordinates forming a Hexagon around the center to prevent vertical overlap
 const ORBIT_POSITIONS = [
-  "md:absolute md:top-[5%] md:left-[2%] lg:left-[5%] md:w-[320px]",   // Top Left
-  "md:absolute md:bottom-[10%] md:right-[2%] lg:right-[5%] md:w-[340px]", // Bottom Right
-  "md:absolute md:bottom-[5%] md:left-[5%] lg:left-[8%] md:w-[300px]",  // Bottom Left
-  "md:absolute md:top-[8%] md:right-[5%] lg:right-[8%] md:w-[320px]",   // Top Right
-  "md:absolute md:top-[45%] md:left-[2%] lg:left-[3%] md:w-[280px]",    // Middle Left (pushed to edge)
-  "md:absolute md:top-[40%] md:right-[2%] lg:right-[3%] md:w-[300px]",   // Middle Right (pushed to edge)
+  "md:absolute md:top-[2%] md:left-[12%] lg:left-[18%] md:w-[320px]",      // Top Left (pushed inward)
+  "md:absolute md:top-[42%] md:left-[0%] lg:left-[2%] md:w-[300px]",       // Middle Left (pushed outward)
+  "md:absolute md:bottom-[2%] md:left-[12%] lg:left-[18%] md:w-[320px]",   // Bottom Left (pushed inward)
+  "md:absolute md:top-[2%] md:right-[12%] lg:right-[18%] md:w-[320px]",    // Top Right (pushed inward)
+  "md:absolute md:top-[42%] md:right-[0%] lg:right-[2%] md:w-[300px]",     // Middle Right (pushed outward)
+  "md:absolute md:bottom-[2%] md:right-[12%] lg:right-[18%] md:w-[320px]", // Bottom Right (pushed inward)
 ];
 
 const FALLBACK_TESTIMONIALS = [
@@ -19,7 +19,8 @@ const FALLBACK_TESTIMONIALS = [
   { id: 'f2', name: 'Rahul Desai', tagline: 'Product Manager', company: 'Microsoft', description: 'The preparation materials and exclusive Job Melas were the missing puzzle pieces in my career journey.', photo: '' },
   { id: 'f3', name: 'Ananya Gupta', tagline: 'Data Analyst', company: 'Amazon', description: 'I switched from a non-tech background to a high-paying data role thanks to the direct connections here.', photo: '' },
   { id: 'f4', name: 'Vikas Kumar', tagline: 'Frontend Developer', company: 'Meta', description: 'A premium experience that actually delivers. The insights are pure gold.', photo: '' },
-  { id: 'f5', name: 'Sneha Patel', tagline: 'UX Designer', company: 'Adobe', description: 'I never realized how much my portfolio was lacking until I attended the prep sessions. Highly recommended!', photo: '' }
+  { id: 'f5', name: 'Sneha Patel', tagline: 'UX Designer', company: 'Adobe', description: 'I never realized how much my portfolio was lacking until I attended the prep sessions. Highly recommended!', photo: '' },
+  { id: 'f6', name: 'Rohan Mehta', tagline: 'Cloud Architect', company: 'AWS', description: 'The fastest way to accelerate your career. The curated opportunities are unmatched.', photo: '' }
 ];
 
 const SkeletonBubble = ({ className }) => (
@@ -33,13 +34,29 @@ const SkeletonBubble = ({ className }) => (
 );
 
 const Bubble = ({ t, className, index }) => {
+  // Generate slightly different animation properties based on index to make them feel organic and independent
+  const floatY = index % 2 === 0 ? [-8, 8, -8] : [8, -8, 8];
+  const floatX = index % 3 === 0 ? [-4, 4, -4] : [4, -4, 4];
+  const duration = 5 + (index % 3) * 1.5;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      animate={{ 
+        y: floatY, 
+        x: floatX,
+        rotateZ: index % 2 === 0 ? [-1, 1, -1] : [1, -1, 1] 
+      }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] }}
-      className={`group relative p-6 md:p-7 lg:p-8 rounded-[2.5rem] bg-white dark:bg-slate-800/95 backdrop-blur-xl shadow-[0_10px_40px_rgb(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700/60 hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgb(0,0,0,0.6)] flex flex-col hover:z-30 w-full ${className}`}
+      transition={{ 
+        opacity: { duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] },
+        scale: { duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] },
+        y: { duration, repeat: Infinity, ease: "easeInOut" },
+        x: { duration: duration + 1, repeat: Infinity, ease: "easeInOut" },
+        rotateZ: { duration: duration + 2, repeat: Infinity, ease: "easeInOut" }
+      }}
+      className={`group relative p-6 md:p-7 lg:p-8 rounded-[2.5rem] bg-white dark:bg-slate-800/95 backdrop-blur-xl shadow-[0_10px_40px_rgb(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700/60 hover:shadow-[0_20px_50px_rgb(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgb(0,0,0,0.6)] flex flex-col hover:z-30 w-full ${className}`}
     >
       <div className="absolute -top-6 -left-4 md:-left-6 w-14 h-14 md:w-16 md:h-16 rounded-full border-[4px] md:border-[5px] border-slate-50 dark:border-[#0b0f14] shadow-md overflow-hidden bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 origin-bottom-right">
         {t.photo ? (
@@ -78,12 +95,12 @@ const Testimonials = () => {
     axios.get(`${API}/testimonials`)
       .then(res => {
         let data = Array.isArray(res.data) ? res.data : [];
-        // Ensure at least 5 testimonials using fallbacks
-        if (data.length < 5) {
-          const needed = 5 - data.length;
+        // Ensure exactly 6 testimonials using fallbacks
+        if (data.length < 6) {
+          const needed = 6 - data.length;
           data = [...data, ...FALLBACK_TESTIMONIALS.slice(0, needed)];
         }
-        setTestimonials(data);
+        setTestimonials(data.slice(0, 6)); // Ensure we don't render more than 6 in orbit
       })
       .catch(() => setTestimonials(FALLBACK_TESTIMONIALS))
       .finally(() => setLoading(false));
@@ -114,7 +131,7 @@ const Testimonials = () => {
       </div>
 
       {/* Inner Canvas (Absolute positioning wrapper for Desktop) */}
-      <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 min-h-[500px] md:min-h-[850px] flex flex-col justify-center items-center">
+      <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 min-h-[500px] md:min-h-[900px] flex flex-col justify-center items-center">
         
         {/* Central Headline Anchor (Centered securely, no overlap) */}
         <motion.div 
