@@ -144,15 +144,16 @@ function mapRow(r) {
 
 // ── ROUTES ────────────────────────────────────────────────────
 
-// Admin list (filtered by ownership for executives; managers + op-managers see all)
+// Admin list (managers + op-managers + op-executives see all; regular executives see own)
 app.get('/api/companies/admin/list', authMiddleware, async (req, res) => {
   try {
     const role      = req.user.role;
     const isManager = role === 'manager';
     const isOpMgr   = role === 'operational_manager';
+    const isOpExec  = role === 'operational_executive';
     let query = 'SELECT * FROM companies';
     let params = [];
-    if (!isManager && !isOpMgr) {
+    if (!isManager && !isOpMgr && !isOpExec) {
       query += ' WHERE createdByAdminId = $1';
       params.push(req.user.id);
     }

@@ -188,20 +188,33 @@ const AdminDashboard = () => {
       } else if (activeTab === 'feedback') {
         const res = await safeGet(`${API}/feedback`, config);
         setFeedbacks(Array.isArray(res.data) ? res.data : []);
-      } else if (['team', 'permissions', 'logs', 'global_stats', 'herobanners', 'liveticker'].includes(activeTab)) {
+      } else if (activeTab === 'liveticker') {
+        // Ticker is accessible to all admin roles
+        const tickerRes = await safeGet(`${API}/live-ticker`, config).catch(() => ({ data: [] }));
+        if (tickerRes?.data) setLiveTickerItems(Array.isArray(tickerRes.data) ? tickerRes.data : []);
+        // Also fetch manager-only data in parallel if manager
         if (currentIsManager) {
-          const [statsRes, logsRes, adminsRes, heroRes, tickerRes] = await Promise.all([
+          const [statsRes, logsRes, adminsRes] = await Promise.all([
+            safeGet(`${API}/auth/stats`, config, null),
+            safeGet(`${API}/auth/logs`, config),
+            safeGet(`${API}/auth/users`, config),
+          ]);
+          if (statsRes?.data) setGlobalStats(prev => ({...prev, ...statsRes.data}));
+          if (logsRes?.data) setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
+          if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
+        }
+      } else if (['team', 'permissions', 'logs', 'global_stats', 'herobanners'].includes(activeTab)) {
+        if (currentIsManager) {
+          const [statsRes, logsRes, adminsRes, heroRes] = await Promise.all([
             safeGet(`${API}/auth/stats`, config, null),
             safeGet(`${API}/auth/logs`, config),
             safeGet(`${API}/auth/users`, config),
             activeTab === 'herobanners' ? safeGet(`${API}/hero-banners`, config).catch(() => ({ data: [] })) : Promise.resolve(null),
-            activeTab === 'liveticker' ? safeGet(`${API}/live-ticker`, config).catch(() => ({ data: [] })) : Promise.resolve(null)
           ]);
           if (statsRes?.data) setGlobalStats(prev => ({...prev, ...statsRes.data, totalToday: statsRes.data.totalToday || (parseInt(statsRes.data.todayJobs || 0) + parseInt(statsRes.data.todayPrep || 0) + parseInt(statsRes.data.todayMela || 0))}));
           if (logsRes?.data) setLogs(prev => JSON.stringify(prev) === JSON.stringify(logsRes.data) ? prev : (Array.isArray(logsRes.data) ? logsRes.data : []));
           if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
           if (heroRes?.data) setHeroBanners(Array.isArray(heroRes.data) ? heroRes.data : []);
-          if (tickerRes?.data) setLiveTickerItems(Array.isArray(tickerRes.data) ? tickerRes.data : []);
         }
       }
     } catch (err) {
@@ -1123,7 +1136,49 @@ const AdminDashboard = () => {
                   {prepForm.contentType === 'paper' && (
                     <>
                       <div className="space-y-2"><label className="text-[10px] font-black uppercase text-amber-500 tracking-widest pl-1">Paper Title</label><input className={inputCls} placeholder="e.g. UPSC Prelims 2023 GS Paper" value={prepForm.heading} onChange={e => setPrepForm({ ...prepForm, heading: e.target.value })} /></div>
-                      <div className="space-y-2"><label className="text-[10px] font-black uppercase text-amber-500 tracking-widest pl-1">PDF / Download URL</label><input className={inputCls} placeholder="https://drive.google.com/..." value={prepForm.fileUrl} onChange={e => setPrepForm({ ...prepForm, fileUrl: e.target.value })} /></div>
+                      
+                      {/* File upload OR URL */}
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-amber-500 tracking-widest pl-1">Upload PDF from Device</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            id="prep-paper-upload"
+                            type="file"
+                            accept=".pdf,.doc,.docx,application/pdf,application/msword"
+                            className="hidden"
+                            onClick={(e) => { e.target.value = null; }}
+                            onChange={async (e) => {
+                              const file = e.target.files[0];
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error('File too large. Please upload files under 5MB.');
+                                return;
+                              }
+                              showMsg('Reading file...');
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                setPrepForm(f => ({ ...f, fileUrl: ev.target.result }));
+                                showMsg('File ready to upload!');
+                              };
+                              reader.onerror = () => toast.error('Could not read file.');
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                          <label htmlFor="prep-paper-upload" className="flex-1 cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 border-2 border-dashed border-amber-500/40 rounded-2xl px-5 py-4 text-sm text-center text-amber-600 dark:text-amber-400 font-bold transition-all block select-none">
+                            {prepForm.fileUrl?.startsWith('data:') ? '✓ File Selected' : '📎 Click to Upload PDF / DOC'}
+                          </label>
+                          {prepForm.fileUrl?.startsWith('data:') && (
+                            <button type="button" onClick={() => setPrepForm(f => ({ ...f, fileUrl: '' }))} className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all shrink-0"><Trash2 size={16}/></button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">OR paste URL</span>
+                          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                        </div>
+                        <input className={inputCls} placeholder="https://drive.google.com/... (optional if file uploaded)" value={prepForm.fileUrl?.startsWith('data:') ? '' : prepForm.fileUrl} onChange={e => setPrepForm({ ...prepForm, fileUrl: e.target.value })} disabled={prepForm.fileUrl?.startsWith('data:')} />
+                      </div>
+                      
                       <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Description (optional)</label><textarea rows="3" className={textareaCls} placeholder="e.g. 100 questions, 2 hours, GS Paper I" value={prepForm.content} onChange={e => setPrepForm({ ...prepForm, content: e.target.value })}></textarea></div>
                     </>
                   )}

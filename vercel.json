@@ -107,6 +107,14 @@
       "dest": "/api/prepData.js"
     },
     {
+      "src": "/api/live-ticker/(.*)",
+      "dest": "/api/live-ticker.js"
+    },
+    {
+      "src": "/api/live-ticker",
+      "dest": "/api/live-ticker.js"
+    },
+    {
       "handle": "filesystem"
     },
     {
