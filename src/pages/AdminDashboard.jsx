@@ -188,6 +188,25 @@ const AdminDashboard = () => {
   }, [activeTab, navigate, logout]);
 
   useEffect(() => {
+    // Global axios interceptor for 401/403 responses
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          toast.error('Session expired or unauthorized. Please log in again.');
+          logout();
+          navigate('/admin-login');
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [logout, navigate]);
+
+  useEffect(() => {
     const token = localStorage.getItem('startaply_token');
     if (!token || token === 'null' || token === 'undefined') {
       navigate('/admin-login');
