@@ -151,7 +151,7 @@ const JobsPage = () => {
 
         const res = await axios.get(`${endpoint}${queryParams}`);
         if (!isCancelled) {
-          const newJobs = res.data || [];
+          const newJobs = Array.isArray(res.data) ? res.data : [];
           if (newJobs.length < 20) setHasMore(false);
           setLocalJobs(prev => page === 1 ? newJobs : [...prev, ...newJobs]);
         }

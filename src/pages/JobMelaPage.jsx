@@ -10,7 +10,8 @@ const JobMelaPage = () => {
     useEffect(() => {
         axios.get('/api/job-mela')
             .then(res => {
-                const cleaned = res.data.map(m => ({
+                const data = Array.isArray(res.data) ? res.data : [];
+                const cleaned = data.map(m => ({
                     ...m,
                     description: m.description?.replace(/thei sjob mea/gi, 'this job mela')
                 })).filter(m => m.isactive !== false && m.isActive !== false);

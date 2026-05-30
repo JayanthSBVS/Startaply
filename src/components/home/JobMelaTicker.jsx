@@ -33,7 +33,7 @@ const JobMelaTicker = () => {
       .catch(() => {});
       
     axios.get('/api/live-ticker')
-      .then(res => { if (res.data) setTickerItems(res.data); })
+      .then(res => { if (Array.isArray(res.data)) setTickerItems(res.data); })
       .catch(() => {});
   }, []);
 
