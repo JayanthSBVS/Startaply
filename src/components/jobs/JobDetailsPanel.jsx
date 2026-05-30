@@ -118,7 +118,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
   if (!job) return null;
 
   return (
-    <div className={`fixed inset-0 z-[300] flex justify-end transition-opacity duration-300 ${isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+    <div className={`fixed inset-0 z-[2000] flex justify-end transition-opacity duration-300 ${isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
       <div className="absolute inset-0 bg-slate-900/60 dark:bg-[#0b0f14]/80 backdrop-blur-sm" onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} />
 
       <div className={`relative w-full max-w-[500px] bg-white dark:bg-slate-900 h-full flex flex-col shadow-2xl transition-transform duration-300 transform ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>

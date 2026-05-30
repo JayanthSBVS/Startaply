@@ -82,6 +82,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
       <motion.div
         onClick={() => onViewDetails && onViewDetails(job)}
         whileHover={{ y: -8, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className={`relative rounded-[2rem] bg-white dark:bg-[#0b0f14]/80 backdrop-blur-3xl border border-slate-200/80 dark:border-white/5 group-hover:border-emerald-500/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-7 md:p-8' : 'p-5'}`}
       >
