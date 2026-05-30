@@ -41,6 +41,30 @@ const AdminDashboard = () => {
     if (!token || token === 'null' || token === 'undefined') return null;
     return { headers: { Authorization: `Bearer ${token}` } };
   };
+
+  // Compress and resize image client-side before uploading (prevents 413 Payload Too Large)
+  const compressImage = (file, maxWidth = 800, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.src = ev.target.result;
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+      };
+    });
+  };
+
   const showMsg = (msg) => { toast.success(msg); };
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -108,25 +132,6 @@ const AdminDashboard = () => {
     const storedUser = JSON.parse(localStorage.getItem('startaply_user') || '{}');
     const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@startaply.com';
     const config = { headers: { Authorization: `Bearer ${token}` } };
-
-    const compressImage = async (file, maxWidth = 800, quality = 0.7) => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (ev) => {
-          const img = new Image();
-          img.src = ev.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let w = img.width, h = img.height;
-            if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL('image/jpeg', quality));
-          };
-        };
-      });
-    };
 
     const safeGet = async (url, cfg, fallback = []) => {
       try {
@@ -1185,28 +1190,53 @@ const AdminDashboard = () => {
                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Review</label><textarea rows="4" className={textareaCls} value={testimonialForm.description} onChange={e => setTestimonialForm({ ...testimonialForm, description: e.target.value })} placeholder="Their success story..."></textarea></div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Candidate Photo</label>
-                      <div className="flex gap-2">
-                        <input id="testimonial-upload-input" type="file" accept="image/*" className="hidden" onClick={(e) => { e.target.value = null; }} onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            compressImage(file, 400).then(res => setTestimonialForm(f => ({ ...f, photo: res })));
-                          }
-                        }} />
-                        <label htmlFor="testimonial-upload-input" className="flex-1 cursor-pointer bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-center text-slate-600 dark:text-slate-300 font-bold transition-all shadow-sm block">
-                          {testimonialForm.photo ? 'Photo Selected ✓' : 'Upload Image'}
+                      <div className="flex gap-2 items-center">
+                        <input
+                          id="testimonial-upload-input"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onClick={(e) => { e.target.value = null; }}
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            try {
+                              showMsg('Processing image...');
+                              const compressed = await compressImage(file, 400, 0.75);
+                              setTestimonialForm(f => ({ ...f, photo: compressed }));
+                            } catch (err) {
+                              toast.error('Could not read image. Try a different file.');
+                            }
+                          }}
+                        />
+                        <label htmlFor="testimonial-upload-input" className="flex-1 cursor-pointer bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl px-5 py-4 text-sm text-center text-slate-600 dark:text-slate-300 font-bold transition-all block select-none">
+                          {testimonialForm.photo ? '✓ Image Ready' : '📷 Click to Upload Photo'}
                         </label>
                         {testimonialForm.photo && (
-                          <button onClick={() => setTestimonialForm(f => ({ ...f, photo: '' }))} className="px-4 py-3.5 rounded-full bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 font-black transition-all"><Trash2 size={16}/></button>
+                          <button type="button" onClick={() => setTestimonialForm(f => ({ ...f, photo: '' }))} className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 font-black transition-all shrink-0"><Trash2 size={16}/></button>
                         )}
                       </div>
+                      {testimonialForm.photo && (
+                        <div className="mt-2 rounded-2xl overflow-hidden border-2 border-emerald-500/40 w-20 h-20 shadow-md">
+                          <img src={testimonialForm.photo} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; }} />
+                        </div>
+                      )}
                     </div>
-                    <button onClick={async () => { 
+                    <button type="button" onClick={async () => { 
+                      if (!testimonialForm.name?.trim() || !testimonialForm.description?.trim()) {
+                        toast.error('Please fill in at least Name and Review fields.');
+                        return;
+                      }
                       try {
                         await axios.post(`${API}/testimonials`, testimonialForm, getConfig()); 
                         setTestimonialForm({ name: '', tagline: '', description: '', photo: '' }); 
-                        fetchData(); showMsg('Testimonial added'); 
+                        fetchData(); 
+                        showMsg('Testimonial published!'); 
                       } catch (err) {
-                        toast.error(err.response?.status === 413 ? 'Image is too large. Please use a smaller file.' : 'Failed to publish testimonial.');
+                        const status = err.response?.status;
+                        if (status === 413) toast.error('Photo is too large. Try a smaller image.');
+                        else if (status === 401) toast.error('Session expired. Please log in again.');
+                        else toast.error(`Failed: ${err.response?.data?.message || err.message}`);
                       }
                     }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full mt-4 transition-all shadow-lg shadow-emerald-500/20">Publish Review</button>
                   </div>
