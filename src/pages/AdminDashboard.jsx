@@ -1186,13 +1186,13 @@ const AdminDashboard = () => {
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Candidate Photo</label>
                       <div className="flex gap-2">
-                        <label className="flex-1 cursor-pointer bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-center text-slate-600 dark:text-slate-300 font-bold transition-all shadow-sm">
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              compressImage(file, 400).then(res => setTestimonialForm(f => ({ ...f, photo: res })));
-                            }
-                          }} />
+                        <input id="testimonial-upload-input" type="file" accept="image/*" className="hidden" onClick={(e) => { e.target.value = null; }} onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            compressImage(file, 400).then(res => setTestimonialForm(f => ({ ...f, photo: res })));
+                          }
+                        }} />
+                        <label htmlFor="testimonial-upload-input" className="flex-1 cursor-pointer bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-center text-slate-600 dark:text-slate-300 font-bold transition-all shadow-sm block">
                           {testimonialForm.photo ? 'Photo Selected ✓' : 'Upload Image'}
                         </label>
                         {testimonialForm.photo && (
