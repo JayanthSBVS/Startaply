@@ -1,78 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { Quote, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
 const API = '/api';
 
-const BUBBLE_VARIANTS = [
-  "md:w-[420px] md:-translate-y-12 z-10",
-  "md:w-[340px] md:translate-y-20 md:-ml-8 lg:-ml-12 z-0",
-  "md:w-[460px] md:-translate-y-8 md:ml-8 lg:ml-12 z-20",
-  "md:w-[360px] md:translate-y-16 md:-mr-6 lg:-mr-10 z-0",
-  "md:w-[400px] md:translate-y-4 md:ml-6 lg:ml-10 z-10",
-  "md:w-[320px] md:translate-y-24 z-0"
+const GRID_POSITIONS = [
+  "col-span-4 col-start-1 row-start-1 justify-self-start mt-8", // 0: Top Left
+  "col-span-3 col-start-10 row-start-2 justify-self-end mt-12", // 1: Middle Right
+  "col-span-4 col-start-2 row-start-3 justify-self-start mt-8", // 2: Bottom Left
+  "col-span-4 col-start-9 row-start-1 justify-self-end -mt-4", // 3: Top Right
+  "col-span-3 col-start-1 row-start-2 justify-self-start -mt-8",// 4: Middle Left
+  "col-span-4 col-start-9 row-start-3 justify-self-end mt-4", // 5: Bottom Right
+  "col-span-4 col-start-5 row-start-1 justify-self-center -mt-16",// 6: Top Center
+  "col-span-4 col-start-5 row-start-3 justify-self-center mt-16", // 7: Bottom Center
 ];
 
 const SkeletonBubble = ({ className }) => (
-  <div className={`animate-pulse bg-white/50 dark:bg-slate-900/40 border border-white/40 dark:border-white/5 rounded-[2.5rem] p-8 md:p-10 ${className}`}>
-    <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full mb-6" />
-    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-full" />
-    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-3 w-5/6" />
-    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mb-8 w-4/6" />
-    <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700" />
-      <div>
-        <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
-        <div className="h-2.5 w-32 bg-slate-200 dark:bg-slate-700 rounded" />
-      </div>
-    </div>
+  <div className={`relative p-6 md:p-8 rounded-[2.5rem] bg-white/60 dark:bg-slate-800/60 backdrop-blur-md shadow-sm border border-slate-100 dark:border-slate-700/50 animate-pulse ${className}`}>
+    <div className="absolute -top-5 -left-5 w-14 h-14 rounded-full border-4 border-slate-50 dark:border-[#0b0f14] bg-slate-200 dark:bg-slate-700" />
+    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full mt-4 mb-2" />
+    <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6 mb-6" />
+    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-2" />
+    <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded w-1/3" />
   </div>
 );
 
 const Bubble = ({ t, className, index }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.6, delay: Math.min(index * 0.1, 0.4), ease: "easeOut" }}
-      className={`group relative bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_12px_40px_rgb(0,0,0,0.3)] rounded-[2.5rem] p-8 md:p-10 transition-all duration-500 hover:-translate-y-1 hover:z-30 flex flex-col ${className}`}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] }}
+      className={`group relative p-6 md:p-8 rounded-[2.5rem] bg-white dark:bg-slate-800/95 backdrop-blur-xl shadow-[0_10px_40px_rgb(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700/60 hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_20px_50px_rgb(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgb(0,0,0,0.6)] flex flex-col hover:z-30 w-full ${className}`}
     >
-      {/* Subtle interior gradient for glass depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent rounded-[2.5rem] pointer-events-none" />
-      
-      {/* Watermark Quote */}
-      <Quote size={48} className="text-emerald-500/10 dark:text-emerald-400/10 absolute top-6 right-8 rotate-180 pointer-events-none transition-colors group-hover:text-emerald-500/20 dark:group-hover:text-emerald-400/20" />
+      {/* Floating Avatar */}
+      <div className="absolute -top-6 -left-4 md:-left-6 w-14 h-14 md:w-16 md:h-16 rounded-full border-[4px] md:border-[5px] border-slate-50 dark:border-[#0b0f14] shadow-md overflow-hidden bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 origin-bottom-right">
+        {t.photo ? (
+          <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="font-black text-xl text-emerald-600 dark:text-emerald-400">
+            {t.name?.charAt(0) || '?'}
+          </span>
+        )}
+      </div>
 
-      <div className="relative z-10 flex-1 flex flex-col">
-        {/* Story */}
-        <p className="text-slate-700 dark:text-slate-300 text-lg md:text-[1.05rem] lg:text-[1.1rem] font-medium leading-relaxed mb-10 flex-1">
+      <div className="mt-4 md:mt-2">
+        <p className="text-slate-800 dark:text-slate-200 font-semibold leading-relaxed text-[15px] md:text-base">
           "{t.description}"
         </p>
-
-        {/* Profile */}
-        <div className="flex items-center gap-4 mt-auto">
-          {t.photo ? (
-            <img
-              src={t.photo}
-              alt={t.name}
-              className="w-12 h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-slate-800"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-lg ring-2 ring-white dark:ring-slate-800">
-              {t.name?.charAt(0) || '?'}
-            </div>
+        
+        <div className="mt-6 flex flex-col border-t border-slate-100 dark:border-slate-700/50 pt-4">
+          <span className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{t.name}</span>
+          {t.tagline && (
+            <span className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{t.tagline}</span>
           )}
-          <div>
-            <h4 className="font-bold text-slate-900 dark:text-white text-base leading-tight">{t.name}</h4>
-            {t.tagline && (
-              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{t.tagline}</p>
-            )}
-            {t.company && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{t.company}</p>
-            )}
-          </div>
+          {t.company && (
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">{t.company}</span>
+          )}
         </div>
       </div>
     </motion.div>
@@ -94,87 +79,86 @@ const Testimonials = () => {
 
   return (
     <section className="py-24 md:py-32 bg-slate-50 dark:bg-[#0b0f14] relative overflow-hidden transition-colors duration-500 border-y border-slate-200/50 dark:border-slate-800/50">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
-        style={{ backgroundImage: 'radial-gradient(circle at 15% 30%, rgba(16,185,129,0.12) 0%, transparent 40%), radial-gradient(circle at 85% 70%, rgba(16,185,129,0.08) 0%, transparent 40%)' }}
-      />
+      
+      {/* Outer Section Header */}
+      <div className="max-w-7xl mx-auto px-4 text-center mb-16 relative z-20">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-emerald-100/60 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]"
+        >
+          Success Stories
+        </motion.div>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base uppercase tracking-widest"
+        >
+          Hear from people who found their path
+        </motion.p>
+      </div>
 
-      <div className="max-w-[1400px] mx-auto relative z-10">
+      {/* Inner Canvas */}
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 min-h-[500px] md:min-h-[800px] flex flex-col justify-center">
+        
+        {/* Central Headline Anchor */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative md:absolute md:inset-0 flex flex-col items-center justify-center text-center z-10 pointer-events-none mb-16 md:mb-0"
+        >
+          <div className="max-w-3xl mx-auto px-4">
+            <h2 className="text-5xl md:text-6xl lg:text-[5rem] font-black text-slate-900 dark:text-white tracking-tighter leading-[1.05] mb-6">
+              Real opportunities.<br />
+              Real careers.<br />
+              <span className="text-emerald-600 dark:text-emerald-400">Real results.</span>
+            </h2>
+            <p className="text-lg md:text-2xl text-slate-500 dark:text-slate-400 font-medium max-w-xl mx-auto">
+              Built by thousands who switched and never looked back.
+            </p>
+          </div>
+        </motion.div>
 
-        {/* Header */}
-        <div className="text-center mb-16 md:mb-28 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-emerald-100/50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-sm"
-          >
-            <Star size={12} />
-            Success Stories
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.05 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6"
-          >
-            Real Career <span className="text-emerald-600 dark:text-emerald-400">Outcomes</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-slate-500 dark:text-slate-400 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
-          >
-            Discover how professionals transformed their careers and landed top roles through Startaply.
-          </motion.p>
-        </div>
-
-        {/* Loading state */}
-        {loading && (
-          <div className="hidden md:flex flex-wrap justify-center items-center gap-8 px-8">
-            <SkeletonBubble className="w-[400px] z-10" />
-            <SkeletonBubble className="w-[340px] mt-24 -ml-8 z-0" />
-            <SkeletonBubble className="w-[420px] -mt-12 ml-8 z-20" />
+        {/* Floating Bubble Constellation (Desktop) */}
+        {!loading && testimonials.length > 0 && (
+          <div className="hidden md:grid grid-cols-12 gap-x-6 lg:gap-x-12 gap-y-16 lg:gap-y-24 items-center relative z-20 py-12">
+            {testimonials.map((t, i) => {
+              const gridPos = i < GRID_POSITIONS.length ? GRID_POSITIONS[i] : "col-span-4 mt-12";
+              return <Bubble key={t.id} t={t} index={i} className={gridPos} />;
+            })}
           </div>
         )}
 
-        {/* Empty state */}
-        {!loading && testimonials.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <div className="w-20 h-20 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <Quote size={28} className="text-slate-400" />
-            </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Success stories coming soon.</p>
-          </motion.div>
+        {/* Staggered Flow (Mobile) */}
+        {!loading && testimonials.length > 0 && (
+          <div className="md:hidden flex flex-col gap-14 relative z-20 pt-8 pb-12">
+            {testimonials.map((t, i) => (
+              <div key={t.id} className={`${i % 2 === 0 ? 'mr-6 ml-2' : 'ml-6 mr-2'}`}>
+                <Bubble t={t} index={i} className="w-full" />
+              </div>
+            ))}
+          </div>
         )}
 
-        {/* Testimonials Container */}
-        {!loading && testimonials.length > 0 && (
-          <>
-            {/* Desktop Asymmetrical Layout */}
-            <div className="hidden md:flex flex-wrap justify-center items-center gap-x-6 lg:gap-x-10 gap-y-12 lg:gap-y-16 px-8 py-8">
-              {testimonials.map((t, i) => {
-                const variant = BUBBLE_VARIANTS[i % BUBBLE_VARIANTS.length];
-                return <Bubble key={t.id} t={t} className={variant} index={i} />;
-              })}
-            </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="hidden md:grid grid-cols-12 gap-x-8 gap-y-16 items-center relative z-20">
+            <SkeletonBubble className="col-span-4 col-start-1 row-start-1" />
+            <SkeletonBubble className="col-span-3 col-start-10 row-start-2" />
+            <SkeletonBubble className="col-span-4 col-start-2 row-start-3" />
+          </div>
+        )}
 
-            {/* Mobile Horizontal Carousel */}
-            <div className="md:hidden flex overflow-x-auto snap-x snap-mandatory gap-5 px-6 pb-16 pt-4 no-scrollbar">
-              {testimonials.map((t, i) => (
-                <div key={t.id} className="snap-center shrink-0 w-[85vw] max-w-[340px]">
-                  <Bubble t={t} className="w-full h-full" index={i} />
-                </div>
-              ))}
-            </div>
-          </>
+        {/* Empty State */}
+        {!loading && testimonials.length === 0 && (
+          <div className="relative z-20 text-center py-20 bg-white/40 dark:bg-slate-800/30 rounded-3xl backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 max-w-xl mx-auto mt-12 md:mt-0">
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Stories are currently being curated.</p>
+          </div>
         )}
 
       </div>
