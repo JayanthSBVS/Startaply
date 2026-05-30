@@ -101,7 +101,7 @@ const AdminDashboard = () => {
   const [globalStats, setGlobalStats] = useState(null);
   const [dashboardSummary, setDashboardSummary] = useState(null);
 
-  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', subtitle: '', isHeroFeatured: false });
+  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', isHeroFeatured: false });
   const [editingJobId, setEditingJobId] = useState(null);
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '', companyType: '' });
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' });
@@ -589,10 +589,7 @@ const AdminDashboard = () => {
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Experience</label><input className={inputCls} value={jobForm.experience || ''} onChange={e => setJobForm({ ...jobForm, experience: e.target.value })} placeholder="2+ Years" /></div>
                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Qualification</label><input className={inputCls} value={jobForm.qualification || ''} onChange={e => setJobForm({ ...jobForm, qualification: e.target.value })} placeholder="B.Tech / MCA" /></div>
 
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Job Tagline / Subtitle (Appears in Card preview)</label>
-                  <input className={inputCls} value={jobForm.subtitle || ''} onChange={e => setJobForm({ ...jobForm, subtitle: e.target.value })} placeholder="e.g. Work with India's fastest growing fintech" />
-                </div>
+
 
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Job Card Small Info (Reflected on Job Card first)</label><textarea rows="2" className={textareaCls} value={jobForm.description || ''} onChange={e => setJobForm({ ...jobForm, description: e.target.value })} placeholder="Brief summary of the job..."></textarea></div>
                 <div className="md:col-span-2 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Benefits & Perks</label><textarea rows="3" className={textareaCls} value={jobForm.benefits || ''} onChange={e => setJobForm({ ...jobForm, benefits: e.target.value })} placeholder="Provide details about health insurance, PTO, bonuses..."></textarea></div>
