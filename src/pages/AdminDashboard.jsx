@@ -289,7 +289,7 @@ const AdminDashboard = () => {
         await axios.post(`${API}/jobs`, payload, getConfig());
         showMsg('Job Published');
       }
-      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null, subtitle: '', isHeroFeatured: false }); 
+      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null, isHeroFeatured: false }); 
       setEditingJobId(null); 
       setActiveTab('manage'); 
       localStorage.removeItem('cache_jobs');

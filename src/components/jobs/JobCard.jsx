@@ -123,16 +123,10 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
           </div>
         </div>
 
-        {/* ── Title & Subtitle ── */}
         <div className="mb-4">
           <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors duration-300 line-clamp-2 ${isHero ? 'text-[1.75rem]' : 'text-lg'}`}>
             {job.title || 'Position Title'}
           </h3>
-          {job.subtitle && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 line-clamp-1">
-              {job.subtitle}
-            </p>
-          )}
         </div>
 
         {/* ── Description ── */}
