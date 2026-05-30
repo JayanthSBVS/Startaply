@@ -646,74 +646,61 @@ const AdminDashboard = () => {
                 ))}
               </div>
 
-              {/* Unified Operational Pulse & Intelligence Feed */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl relative overflow-hidden">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-                    <div>
-                      <h3 className="text-2xl font-black flex items-center gap-3">
-                        <Activity className="text-emerald-500 animate-pulse" /> Operational Pulse
-                      </h3>
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Live Intelligence & Contribution highlights</p>
+              {/* Role-aware second row */}
+              {isManager() ? (
+                /* Manager view: Activity logs + admin health */
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl relative overflow-hidden">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                      <div>
+                        <h3 className="text-2xl font-black flex items-center gap-3">
+                          <Activity className="text-emerald-500 animate-pulse" /> Operational Pulse
+                        </h3>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Live Intelligence & Contribution highlights</p>
+                      </div>
+                      <div className="flex items-center gap-4 bg-slate-50 dark:bg-[#0b0f14]/40 p-2 rounded-3xl border border-slate-200 dark:border-slate-800/60">
+                         <div className="px-4 py-2 text-center">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Today</p>
+                            <p className="text-xl font-black text-emerald-500">{globalStats?.totalToday || 0}</p>
+                         </div>
+                         <div className="w-px h-8 bg-slate-200 dark:bg-slate-800" />
+                         <div className="px-4 py-2 text-center">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Active Admins</p>
+                            <p className="text-xl font-black text-blue-500">{(Array.isArray(admins) ? admins : []).filter(a => a.isactive).length}</p>
+                         </div>
+                         <button onClick={fetchData} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-emerald-500"><RefreshCw size={14} /></button>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-[#0b0f14]/40 p-2 rounded-3xl border border-slate-200 dark:border-slate-800/60">
-                       <div className="px-4 py-2 text-center">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Today</p>
-                          <p className="text-xl font-black text-emerald-500">{globalStats?.totalToday || 0}</p>
-                       </div>
-                       <div className="w-px h-8 bg-slate-200 dark:bg-slate-800" />
-                       <div className="px-4 py-2 text-center">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Active Admins</p>
-                          <p className="text-xl font-black text-blue-500">{(Array.isArray(admins) ? admins : []).filter(a => a.isactive).length}</p>
-                       </div>
-                       <button onClick={fetchData} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-emerald-500"><RefreshCw size={14} /></button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {(Array.isArray(logs) ? logs : []).slice(0, 6).map((log, i) => {
-                       const moduleColors = {
-                        'Jobs': 'text-sky-500 bg-sky-500/10 border-sky-500/20',
-                        'Auth': 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-                        'Companies': 'text-purple-500 bg-purple-500/10 border-purple-500/20',
-                        'Feedback': 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20'
-                      };
-                      const color = moduleColors[log.module] || 'text-slate-400 bg-slate-500/10 border-slate-500/20';
-                      
-                      return (
-                        <div key={i} className="group flex items-center gap-6 p-5 rounded-[2.5rem] bg-slate-50 dark:bg-[#0b0f14]/20 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border ${color} shadow-sm group-hover:scale-110 transition-transform`}>
-                            {log.module?.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                              <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter border ${color}`}>{log.module}</span>
-                              <span className="text-[10px] font-bold text-slate-400">
-                                {new Date(parseInt(log.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                    <div className="space-y-4">
+                      {(Array.isArray(logs) ? logs : []).slice(0, 6).map((log, i) => {
+                         const moduleColors = {
+                          'Jobs': 'text-sky-500 bg-sky-500/10 border-sky-500/20',
+                          'Auth': 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+                          'Companies': 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+                          'Feedback': 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20'
+                        };
+                        const color = moduleColors[log.module] || 'text-slate-400 bg-slate-500/10 border-slate-500/20';
+                        return (
+                          <div key={i} className="group flex items-center gap-6 p-5 rounded-[2.5rem] bg-slate-50 dark:bg-[#0b0f14]/20 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border ${color} shadow-sm group-hover:scale-110 transition-transform`}>{log.module?.charAt(0)}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start mb-1">
+                                <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter border ${color}`}>{log.module}</span>
+                                <span className="text-[10px] font-bold text-slate-400">{new Date(parseInt(log.timestamp)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{log.action}</p>
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-tight mt-0.5">By {log.username || 'System Admin'} <span className="opacity-50 lowercase">• {log.role || 'identity'}</span></p>
                             </div>
-                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{log.action}</p>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-tight mt-0.5">
-                              By {log.username || 'System Admin'} <span className="opacity-50 lowercase">• {log.role || 'identity'}</span>
-                            </p>
                           </div>
-                          <div className="text-right flex flex-col items-end gap-1">
-                             <div className="text-[9px] font-mono text-slate-400">#{log.id}</div>
-                             {log.action?.includes('Logged In') && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {logs.length === 0 && <p className="text-center py-10 text-slate-500 text-xs font-black uppercase tracking-widest">Generating secure pulse feed...</p>}
+                        );
+                      })}
+                      {logs.length === 0 && <p className="text-center py-10 text-slate-500 text-xs font-black uppercase tracking-widest">Generating secure pulse feed...</p>}
+                    </div>
                   </div>
-                </div>
-
-                <div className="lg:col-span-1 space-y-6">
-                    {/* Admin Status Monitor */}
+                  <div className="lg:col-span-1 space-y-6">
                     <div className="bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl relative overflow-hidden">
-                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
-                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-8 flex items-center gap-2"><Zap size={16} className="text-amber-400" /> Operational Health</h3>
+                      <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
+                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-8 flex items-center gap-2"><Zap size={16} className="text-amber-400" /> Team Performance</h3>
                       <div className="space-y-6">
                         {(Array.isArray(admins) ? admins : []).slice(0, 5).map(admin => {
                           const p = (Array.isArray(globalStats?.adminProductivity) ? globalStats.adminProductivity : []).find(x => x.id === admin.id);
@@ -728,17 +715,71 @@ const AdminDashboard = () => {
                                  <p className="text-[10px] font-bold text-slate-500">{p?.todayTotal || 0} posts today</p>
                                </div>
                                <div className="h-1.5 w-full bg-slate-100 dark:bg-[#0b0f14] rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
-                                  <div className={`h-full rounded-full transition-all duration-1000 ${admin.isactive ? 'bg-emerald-500' : 'bg-slate-700'} ${progress > 0 ? 'shadow-[0_0_8px_rgba(16,185,129,0.3)]' : ''}`} style={{ width: `${progress}%` }} />
+                                  <div className={`h-full rounded-full transition-all duration-1000 ${admin.isactive ? 'bg-emerald-500' : 'bg-slate-700'}`} style={{ width: `${progress}%` }} />
                                </div>
                             </div>
                           );
                         })}
+                        {admins.length === 0 && <p className="text-center text-slate-500 text-xs font-black">No team data yet</p>}
                       </div>
                     </div>
+                  </div>
                 </div>
-              </div>
-              
-               {/* OperationalPulse removed generic shortcuts/insights as per request */}
+              ) : (
+                /* Executive / Op-Executive view: Quick Actions + Platform overview */
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                  {/* Quick Actions */}
+                  <div className="lg:col-span-1 bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl">
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2"><Zap size={16} className="text-emerald-400" /> Quick Actions</h3>
+                    <div className="space-y-3">
+                      {[
+                        { label: 'Post a New Job', icon: PlusCircle, color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20', tab: 'add' },
+                        { label: 'Manage Job Listings', icon: Briefcase, color: 'text-blue-500 bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20', tab: 'manage' },
+                        { label: 'View Applicants', icon: Users, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20 hover:bg-purple-500/20', tab: 'applications' },
+                        { label: 'Browse Companies', icon: Building2, color: 'text-amber-500 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20', tab: 'companies' },
+                        { label: 'Add Testimonial', icon: MessageSquareQuote, color: 'text-pink-500 bg-pink-500/10 border-pink-500/20 hover:bg-pink-500/20', tab: 'testimonials' },
+                        { label: 'Preparation Content', icon: BookOpen, color: 'text-teal-500 bg-teal-500/10 border-teal-500/20 hover:bg-teal-500/20', tab: 'prep' },
+                      ].map(action => (
+                        <button key={action.tab} onClick={() => setActiveTab(action.tab)} className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl border font-bold text-sm transition-all ${action.color}`}>
+                          <action.icon size={18} />
+                          {action.label}
+                          <ChevronRight size={14} className="ml-auto" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Platform Overview — read-only stats for this executive */}
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl">
+                    <div className="flex justify-between items-center mb-8">
+                      <div>
+                        <h3 className="text-2xl font-black flex items-center gap-3"><Activity className="text-emerald-500" /> Platform Overview</h3>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Live data across all platform sections</p>
+                      </div>
+                      <button onClick={fetchData} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-emerald-500"><RefreshCw size={14} /></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { label: 'Total Jobs Live', val: dashboardSummary?.totalJobs ?? '—', icon: Briefcase, col: 'text-emerald-500', bg: 'bg-emerald-500/10', desc: 'Active listings on platform' },
+                        { label: 'Total Applicants', val: dashboardSummary?.totalApplications ?? '—', icon: Users, col: 'text-blue-500', bg: 'bg-blue-500/10', desc: 'Candidates applied so far' },
+                        { label: 'Partner Companies', val: dashboardSummary?.totalCompanies ?? '—', icon: Building2, col: 'text-purple-500', bg: 'bg-purple-500/10', desc: 'Companies in the network' },
+                        { label: 'Job Mela Events', val: dashboardSummary?.totalMelas ?? '—', icon: Megaphone, col: 'text-amber-500', bg: 'bg-amber-500/10', desc: 'Upcoming hiring events' },
+                        { label: 'Testimonials', val: dashboardSummary?.totalTestimonials ?? '—', icon: MessageSquareQuote, col: 'text-pink-500', bg: 'bg-pink-500/10', desc: 'Success stories published' },
+                        { label: 'Prep Materials', val: dashboardSummary?.totalPrep ?? '—', icon: BookOpen, col: 'text-teal-500', bg: 'bg-teal-500/10', desc: 'Preparation content items' },
+                      ].map((stat, i) => (
+                        <div key={i} className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-[#0b0f14]/30 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                          <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.col} flex items-center justify-center shrink-0`}><stat.icon size={20} /></div>
+                          <div className="min-w-0">
+                            <p className="text-2xl font-black leading-none">{stat.val}</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1 truncate">{stat.label}</p>
+                            <p className="text-[9px] text-slate-400 mt-0.5 truncate">{stat.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

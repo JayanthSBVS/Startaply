@@ -144,21 +144,10 @@ function mapRow(r) {
 
 // ── ROUTES ────────────────────────────────────────────────────
 
-// Admin list (managers + op-managers + op-executives see all; regular executives see own)
+// Admin list — ALL authenticated admin roles see all companies
 app.get('/api/companies/admin/list', authMiddleware, async (req, res) => {
   try {
-    const role      = req.user.role;
-    const isManager = role === 'manager';
-    const isOpMgr   = role === 'operational_manager';
-    const isOpExec  = role === 'operational_executive';
-    let query = 'SELECT * FROM companies';
-    let params = [];
-    if (!isManager && !isOpMgr && !isOpExec) {
-      query += ' WHERE createdByAdminId = $1';
-      params.push(req.user.id);
-    }
-    query += ' ORDER BY createdat DESC';
-    const { rows } = await pool.query(query, params);
+    const { rows } = await pool.query('SELECT * FROM companies ORDER BY createdat DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) {
     console.error('GET /api/companies/admin/list:', err.message);
