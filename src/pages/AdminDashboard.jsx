@@ -109,6 +109,25 @@ const AdminDashboard = () => {
     const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@startaply.com';
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
+    const compressImage = async (file, maxWidth = 800, quality = 0.7) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.src = ev.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height;
+            if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+        };
+      });
+    };
+
     const safeGet = async (url, cfg, fallback = []) => {
       try {
         const res = await axios.get(url, cfg);
@@ -932,9 +951,7 @@ const AdminDashboard = () => {
                         onChange={e => {
                           const file = e.target.files[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => setCompanyForm({ ...companyForm, logo: ev.target.result });
-                            reader.readAsDataURL(file);
+                            compressImage(file, 400).then(res => setCompanyForm({ ...companyForm, logo: res }));
                           }
                         }} 
                       />
@@ -984,9 +1001,7 @@ const AdminDashboard = () => {
                       onChange={e => {
                         const file = e.target.files[0];
                         if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setMelaForm({ ...melaForm, bannerImage: ev.target.result });
-                          reader.readAsDataURL(file);
+                          compressImage(file, 1200).then(res => setMelaForm({ ...melaForm, bannerImage: res }));
                         }
                       }} 
                     />
@@ -1175,9 +1190,7 @@ const AdminDashboard = () => {
                           <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setTestimonialForm(f => ({ ...f, photo: reader.result }));
-                              reader.readAsDataURL(file);
+                              compressImage(file, 400).then(res => setTestimonialForm(f => ({ ...f, photo: res })));
                             }
                           }} />
                           {testimonialForm.photo ? 'Photo Selected ✓' : 'Upload Image'}
@@ -1187,7 +1200,15 @@ const AdminDashboard = () => {
                         )}
                       </div>
                     </div>
-                    <button onClick={async () => { await axios.post(`${API}/testimonials`, testimonialForm, getConfig()); setTestimonialForm({ name: '', tagline: '', description: '', photo: '' }); fetchData(); showMsg('Testimonial added'); }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full mt-4 transition-all shadow-lg shadow-emerald-500/20">Publish Review</button>
+                    <button onClick={async () => { 
+                      try {
+                        await axios.post(`${API}/testimonials`, testimonialForm, getConfig()); 
+                        setTestimonialForm({ name: '', tagline: '', description: '', photo: '' }); 
+                        fetchData(); showMsg('Testimonial added'); 
+                      } catch (err) {
+                        toast.error(err.response?.status === 413 ? 'Image is too large. Please use a smaller file.' : 'Failed to publish testimonial.');
+                      }
+                    }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full mt-4 transition-all shadow-lg shadow-emerald-500/20">Publish Review</button>
                   </div>
                 </div>
               </div>
@@ -1329,36 +1350,7 @@ const AdminDashboard = () => {
                           try {
                             showMsg('Compressing banner...');
                             // Client-side compression
-                            const compressedBase64 = await new Promise((resolve) => {
-                              const reader = new FileReader();
-                              reader.readAsDataURL(file);
-                              reader.onload = (ev) => {
-                                const img = new Image();
-                                img.src = ev.target.result;
-                                img.onload = () => {
-                                  const canvas = document.createElement('canvas');
-                                  const MAX_WIDTH = 1920;
-                                  const MAX_HEIGHT = 1080;
-                                  let width = img.width;
-                                  let height = img.height;
-
-                                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-                                    if (width / height > MAX_WIDTH / MAX_HEIGHT) {
-                                      height = Math.round((height * MAX_WIDTH) / width);
-                                      width = MAX_WIDTH;
-                                    } else {
-                                      width = Math.round((width * MAX_HEIGHT) / height);
-                                      height = MAX_HEIGHT;
-                                    }
-                                  }
-                                  canvas.width = width;
-                                  canvas.height = height;
-                                  const ctx = canvas.getContext('2d');
-                                  ctx.drawImage(img, 0, 0, width, height);
-                                  resolve(canvas.toDataURL('image/jpeg', 0.8));
-                                };
-                              };
-                            });
+                            const compressedBase64 = await compressImage(file, 1920, 0.8);
 
                             showMsg('Uploading banner...');
                             await axios.post(`${API}/hero-banners`, { image: compressedBase64 }, getConfig());
@@ -2014,9 +2006,7 @@ const AdminDashboard = () => {
                   <input type="file" accept="image/*" className="hidden" id="modal-logo" onChange={e => {
                     const file = e.target.files[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => setCompanyForm({ ...companyForm, logo: ev.target.result });
-                      reader.readAsDataURL(file);
+                      compressImage(file, 400).then(res => setCompanyForm({ ...companyForm, logo: res }));
                     }
                   }} />
                   <label htmlFor="modal-logo" className="flex-1 cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center text-xs font-black text-slate-500 hover:border-emerald-500 hover:text-emerald-500 transition-all uppercase tracking-widest">
