@@ -141,7 +141,7 @@ async function initAuthDb() {
     await pool.query(`UPDATE users SET role = 'executive' WHERE role = 'admin'`).catch(() => {});
 
     // 8. Data attribution migration — link orphaned records to legacy manager
-    const attributionTargets = ['jobs', 'companies', 'prep_data', 'job_mela'];
+    const attributionTargets = ['jobs', 'companies', 'prep_data', 'job_mela', 'testimonials'];
     for (const table of attributionTargets) {
       await pool.query(
         `UPDATE ${table} SET createdByAdminId = 'manager_principal'
