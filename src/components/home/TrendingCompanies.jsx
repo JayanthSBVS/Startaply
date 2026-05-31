@@ -52,7 +52,7 @@ const TrendingCompanies = () => {
   const MobileCompanyPill = ({ company }) => (
     <Link
       to={`/companies`}
-      className="flex-shrink-0 flex items-center gap-3 bg-white/[0.08] border border-white/[0.12] active:bg-white/[0.15] px-4 py-3 rounded-2xl transition-colors w-52 snap-start"
+      className="flex-shrink-0 flex items-center gap-3 bg-white/[0.08] border border-white/[0.12] active:bg-white/[0.15] px-4 py-3 rounded-2xl transition-colors w-52 mr-3"
       style={{ minHeight: '64px' }}
     >
       <div className="w-10 h-10 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1">
@@ -116,18 +116,15 @@ const TrendingCompanies = () => {
         </Link>
       </div>
 
-      {/* ── MOBILE: Swipeable horizontal row ─────────────────────────────── */}
-      <div className="md:hidden relative z-10">
-        <div
-          className="flex overflow-x-auto gap-3 pb-3 no-scrollbar snap-x snap-mandatory"
-          style={{ paddingLeft: '1rem', paddingRight: '1rem', WebkitOverflowScrolling: 'touch' }}
-        >
-          {mobileCompanies.map((company, i) => (
+      {/* ── MOBILE: Auto-scrolling row ─────────────────────────────── */}
+      <div className="md:hidden relative z-10 overflow-hidden pb-4">
+        <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#020617] to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#020617] to-transparent pointer-events-none z-10" />
+        <div className="companies-track" style={{ animationDuration: '25s' }}>
+          {stream1.slice(0, 15).map((company, i) => (
             <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} />
           ))}
         </div>
-        {/* Right fade hint */}
-        <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#020617] to-transparent pointer-events-none z-10" />
       </div>
 
       {/* ── DESKTOP: Marquee tracks (unchanged) ──────────────────────────── */}
