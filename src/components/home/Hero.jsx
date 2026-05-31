@@ -198,12 +198,14 @@ const Hero = () => {
           className="w-full max-w-2xl relative"
           ref={dropdownRef}
         >
-          {/* Mobile: stacked input + button. Desktop: inline */}
-          <div className="flex flex-col sm:flex-row bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-emerald-500/40 focus-within:border-emerald-500/40 transition-all duration-300 overflow-hidden">
-            <div className="flex items-center pl-4 pt-1 sm:pt-0">
-              <Search size={18} className="text-emerald-400 shrink-0" />
-            </div>
-            <div className="relative flex-1">
+          {/* ── MOBILE Search: Premium single-row discovery bar ──────── */}
+          <div className="sm:hidden relative">
+            <div className="relative flex items-center bg-white/12 border border-white/25 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] focus-within:bg-white/18 focus-within:border-emerald-400/60 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_3px_rgba(16,185,129,0.15)] transition-all duration-300">
+              {/* Search icon — left side */}
+              <div className="pl-4 pr-2 shrink-0">
+                <Search size={19} className="text-emerald-400" />
+              </div>
+              {/* Input */}
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -211,20 +213,51 @@ const Hero = () => {
                 onFocus={() => query.length >= 1 && setShowSuggestions(true)}
                 autoComplete="off"
                 spellCheck="false"
-                className="w-full px-3 py-3.5 md:py-4 text-sm md:text-base outline-none text-white placeholder-slate-400 font-medium bg-transparent"
+                className="flex-1 py-4 text-[15px] outline-none text-white placeholder-slate-400/80 font-medium bg-transparent min-w-0"
                 placeholder={PLACEHOLDERS[placeholderIdx]}
-                style={{ minHeight: '44px' }}
+                style={{ minHeight: '52px' }}
               />
+              {/* Search button — right side, always visible */}
+              <div className="pr-2 shrink-0">
+                <button
+                  onClick={() => handleSearch()}
+                  className="bg-emerald-500 active:bg-emerald-600 active:scale-95 text-slate-950 font-black px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-emerald-500/30 flex items-center gap-1.5 whitespace-nowrap"
+                  style={{ minHeight: '44px' }}
+                >
+                  Search
+                  <ArrowRight size={14} />
+                </button>
+              </div>
             </div>
-            <div className="px-2 pb-2 sm:pb-0 sm:py-1.5 sm:pr-1.5">
-              <button
-                onClick={() => handleSearch()}
-                className="w-full sm:w-auto group bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg shadow-emerald-500/25"
-                style={{ minHeight: '44px' }}
-              >
-                Explore Jobs
-                <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
-              </button>
+          </div>
+
+          {/* ── DESKTOP Search: Full inline layout ─────────────────────── */}
+          <div className="hidden sm:block relative">
+            <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-emerald-500/40 focus-within:border-emerald-500/40 transition-all duration-300 overflow-hidden">
+              <div className="flex items-center pl-4">
+                <Search size={18} className="text-emerald-400 shrink-0" />
+              </div>
+              <div className="relative flex-1">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => query.length >= 1 && setShowSuggestions(true)}
+                  autoComplete="off"
+                  spellCheck="false"
+                  className="w-full px-3 py-4 text-base outline-none text-white placeholder-slate-400 font-medium bg-transparent"
+                  placeholder={PLACEHOLDERS[placeholderIdx]}
+                />
+              </div>
+              <div className="py-1.5 pr-1.5">
+                <button
+                  onClick={() => handleSearch()}
+                  className="group bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-all shadow-lg shadow-emerald-500/25 h-full"
+                >
+                  Explore Jobs
+                  <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
           </div>
 
