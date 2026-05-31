@@ -11,7 +11,7 @@ const Footer = () => {
   if (isAdminRoute) return null;
 
   return (
-    <footer className="relative bg-white dark:bg-[#0b0f14] pt-12 md:pt-32 pb-4 md:pb-12 overflow-hidden transition-colors duration-500">
+    <footer className="relative bg-white dark:bg-[#0b0f14] pt-12 md:pt-24 pb-6 md:pb-8 overflow-hidden transition-colors duration-500">
       
       {/* ── Cinematic Background Atmosphere ── */}
       <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50" />
@@ -24,7 +24,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
         
         {/* ── Premium Call to Action ── */}
-        <div className="mb-10 md:mb-24 relative rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 overflow-hidden bg-slate-950 dark:bg-white/5 border border-slate-800 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-2xl group text-center md:text-left">
+        <div className="mb-10 md:mb-16 relative rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 overflow-hidden bg-slate-950 dark:bg-white/5 border border-slate-800 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-2xl group text-center md:text-left">
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/30 rounded-full blur-[80px] pointer-events-none" />
           
@@ -41,7 +41,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-8 mb-10 md:mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-8 mb-10 md:mb-16">
           
           {/* ── Brand & Mission (LEFT) ── */}
           <div className="lg:col-span-5">
@@ -114,7 +114,7 @@ const Footer = () => {
         </div>
 
         {/* ── Legal & Copyright (BOTTOM) ── */}
-        <div className="pt-6 md:pt-8 border-t border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6 pb-20 md:pb-0">
+        <div className="pt-6 border-t border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
           <div className="flex flex-wrap justify-center gap-8 text-sm font-bold text-slate-500 dark:text-slate-400">
             <Link to="/privacy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Terms of Service</Link>
