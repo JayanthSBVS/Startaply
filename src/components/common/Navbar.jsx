@@ -110,8 +110,15 @@ const Navbar = () => {
             </motion.div>
           </div>
 
-          {/* ── Mobile Toggle ── */}
-          <div className="flex lg:hidden items-center gap-3 z-10">
+          {/* ── Mobile Right Side: Browse Jobs + ThemeToggle ── */}
+          <div className="flex lg:hidden items-center gap-2 z-10">
+            <Link
+              to="/jobs"
+              className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold text-xs px-3 py-2 rounded-full transition-all shadow-md shadow-emerald-500/20 active:scale-95"
+              style={{ minHeight: '36px' }}
+            >
+              Browse Jobs
+            </Link>
             <ThemeToggle />
           </div>
 

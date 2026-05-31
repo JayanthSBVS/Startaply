@@ -35,14 +35,14 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="py-24 section-elevated relative overflow-hidden transition-colors duration-500 border-y border-slate-200/50 dark:border-slate-800/50">
+    <section className="py-10 md:py-24 section-elevated relative overflow-hidden transition-colors duration-500 border-y border-slate-200/50 dark:border-slate-800/50">
       {/* Faint background dot grid */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.025] dark:opacity-[0.04]"
         style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       />
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-20">
+        <div className="text-center mb-10 md:mb-20">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -57,7 +57,7 @@ const HowItWorks = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.05 }}
-            className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
+            className="text-2xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3 md:mb-4"
           >
             Your path to <span className="text-gradient-emerald">success</span>
           </motion.h2>

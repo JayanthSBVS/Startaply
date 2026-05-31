@@ -469,8 +469,37 @@ body {
    Mobile Bottom Navigation
 ═══════════════════════════════════════════════════════════════════════════ */
 body.has-mobile-nav {
-  padding-bottom: 72px; /* Prevent content from hiding behind the navbar */
+  /* Account for browser chrome + safe area on notched phones */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
+
+/* Reduce expensive GPU effects on mobile to maintain 60fps */
+@media (max-width: 767px) {
+  /* Disable parallax and heavy transforms */
+  .parallax-disabled { transform: none !important; }
+
+  /* Limit blur layers — they're GPU-expensive on mobile */
+  .mobile-blur-none { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+
+  /* Horizontal swipe row — used in Companies mobile layout */
+  .mobile-swipe-row {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scrollbar-width: none;
+  }
+  .mobile-swipe-row::-webkit-scrollbar { display: none; }
+  .mobile-swipe-row > * { scroll-snap-align: start; flex-shrink: 0; }
+
+  /* Section padding reduction — avoid excessive whitespace on mobile */
+  .mobile-py-compact { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+}
+
 
 /* ── More Sheet Backdrop ── */
 .mobile-nav-backdrop {

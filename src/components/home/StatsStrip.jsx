@@ -69,7 +69,7 @@ const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, bar, 
       className="group relative flex-1 min-w-[220px] max-w-sm mx-auto w-full"
     >
       {/* ── Premium Surface Card ── */}
-      <div className="relative overflow-hidden rounded-3xl premium-surface p-8 md:p-10 flex flex-col gap-4 h-full cursor-default transition-transform duration-500 hover:-translate-y-2">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl premium-surface p-5 md:p-8 flex flex-col gap-3 md:gap-4 h-full cursor-default">
         
         {/* Animated rise line */}
         {started && (
@@ -92,18 +92,16 @@ const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, bar, 
           </span>
         </div>
 
-        {/* Massive Number */}
-        <div className="flex items-end gap-1 relative z-10 mt-2 mb-1">
-          <span className={`text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.85] ${accent}`}>
+        <div className="flex items-end gap-1 relative z-10 mt-1 mb-0.5 md:mt-2 md:mb-1">
+          <span className={`text-4xl md:text-7xl font-black tracking-tighter leading-[0.85] ${accent}`}>
             {display}
           </span>
-          <span className={`text-3xl md:text-4xl lg:text-5xl font-black mb-1 ${accent}`}>
+          <span className={`text-xl md:text-4xl font-black mb-1 ${accent}`}>
             {suffix}
           </span>
         </div>
 
-        {/* Sublabel */}
-        <p className="text-sm text-slate-500 font-medium leading-relaxed relative z-10 mt-auto">
+        <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed relative z-10 mt-auto">
           {sublabel}
         </p>
       </div>
@@ -116,7 +114,7 @@ const StatsStrip = () => {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section className="relative py-20 md:py-28 section-surface border-b border-slate-200/60 dark:border-slate-800/50 transition-colors duration-500 overflow-hidden">
+    <section className="relative py-10 md:py-20 section-surface border-b border-slate-200/60 dark:border-slate-800/50 transition-colors duration-500 overflow-hidden">
       {/* Background atmosphere */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] rounded-full opacity-30 dark:opacity-20 mix-blend-multiply dark:mix-blend-screen"
@@ -142,7 +140,7 @@ const StatsStrip = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
+            className="text-2xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3 md:mb-4"
           >
             Numbers That <span className="text-gradient-emerald">Matter</span>
           </motion.h2>
@@ -151,14 +149,14 @@ const StatsStrip = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-lg mx-auto"
+            className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-lg max-w-lg mx-auto"
           >
             Real data. Real opportunities. Real growth.
           </motion.p>
         </div>
 
         {/* Floating Stat Panels */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-center items-stretch">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 justify-center items-stretch">
           {stats.map((s, i) => (
             <StatPanel key={s.label} {...s} index={i} started={isInView} />
           ))}

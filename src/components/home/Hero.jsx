@@ -21,20 +21,29 @@ const Hero = () => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const dropdownRef = useRef(null);
   const sectionRef = useRef(null);
 
-  // ── Scroll parallax ──────────────────────────────────────────────────
+  // Detect mobile — disable parallax on mobile for 60fps
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Scroll parallax — desktop only
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],
   });
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, -60]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', isMobile ? '0%' : '30%']);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, isMobile ? 1 : 1.08]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 0 : -60]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, isMobile ? 1 : 0]);
 
-  // ── Cycle placeholder & images ─────────────────────────────────────────
+  // Cycle placeholder & images
   useEffect(() => {
     const t = setInterval(() => setPlaceholderIdx(p => (p + 1) % PLACEHOLDERS.length), 3000);
     return () => clearInterval(t);
@@ -46,7 +55,7 @@ const Hero = () => {
     return () => clearInterval(t);
   }, [heroImages]);
 
-  // ── Search suggestions ───────────────────────────────────────────────
+  // Search suggestions
   useEffect(() => {
     if (!query || query.length < 1) { setSuggestions([]); setShowSuggestions(false); return; }
     const q = query.toLowerCase();
@@ -96,7 +105,7 @@ const Hero = () => {
     <section
       ref={sectionRef}
       className="relative overflow-hidden"
-      style={{ minHeight: 'min(96vh, 900px)' }}
+      style={{ minHeight: isMobile ? 'min(78vh, 580px)' : 'min(96vh, 900px)' }}
     >
       {/* ── Cinematic Full-Width Background ──────────────────────────────── */}
       <motion.div
@@ -116,37 +125,42 @@ const Hero = () => {
             loading="eager"
           />
         </AnimatePresence>
-        {/* Dark gradient overlays — ensures type legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/40 via-[#0b0f14]/55 to-[#0b0f14]/90" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/60 via-transparent to-[#0b0f14]/20" />
+        {/* Dark gradient overlays — stronger on mobile for legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/55 via-[#0b0f14]/65 to-[#0b0f14]/92" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/70 via-transparent to-[#0b0f14]/30" />
 
-        {/* Subtle emerald atmospheric glow */}
-        <div className="absolute top-0 right-[20%] w-[600px] h-[400px] rounded-full bg-emerald-500/8 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-[10%] w-[500px] h-[300px] rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
+        {/* Ambient glows — hidden on mobile (GPU cost) */}
+        <div className="hidden md:block absolute top-0 right-[20%] w-[600px] h-[400px] rounded-full bg-emerald-500/8 blur-[100px] pointer-events-none" />
+        <div className="hidden md:block absolute bottom-0 left-[10%] w-[500px] h-[300px] rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
       </motion.div>
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
       <motion.div
-        style={{ y: contentY, opacity: contentOpacity }}
-        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center min-h-[min(96vh,900px)] pt-36 pb-20"
+        style={{
+          y: contentY,
+          opacity: contentOpacity,
+          minHeight: isMobile ? 'min(78vh, 580px)' : 'min(96vh, 900px)',
+        }}
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center pt-24 md:pt-36 pb-10 md:pb-20"
       >
-        {/* Category Pills */}
+        {/* Category Pills — compact on mobile */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="flex flex-wrap gap-2 mb-8"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-wrap gap-1.5 mb-5 md:mb-8"
         >
           {[
-            { icon: <GraduationCap size={12} />, label: 'Freshers', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' },
-            { icon: <Briefcase size={12} />, label: 'Private Jobs', color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' },
-            { icon: <Building2 size={12} />, label: 'Govt Jobs', color: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
-            { icon: <Sparkles size={12} />, label: 'Startups', color: 'bg-purple-500/15 text-purple-300 border-purple-500/25' },
+            { icon: <GraduationCap size={11} />, label: 'Freshers', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' },
+            { icon: <Briefcase size={11} />, label: 'Private Jobs', color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' },
+            { icon: <Building2 size={11} />, label: 'Govt Jobs', color: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
+            { icon: <Sparkles size={11} />, label: 'Startups', color: 'bg-purple-500/15 text-purple-300 border-purple-500/25' },
           ].map((pill) => (
             <button
               key={pill.label}
               onClick={() => navigate('/jobs')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all hover:scale-105 cursor-pointer ${pill.color}`}
+              className={`flex items-center gap-1 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-[11px] font-bold border transition-all active:scale-95 cursor-pointer ${pill.color}`}
+              style={{ minHeight: '28px' }}
             >
               {pill.icon}
               {pill.label}
@@ -156,37 +170,38 @@ const Hero = () => {
 
         {/* ── Main Headline ─────────────────────────────────────────────── */}
         <motion.h1
-          initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="text-white font-black tracking-tight leading-[0.95] mb-6 max-w-4xl"
-          style={{ fontSize: 'clamp(2.6rem, 6.5vw, 5.5rem)' }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="text-white font-black tracking-tight leading-[1.0] mb-4 md:mb-6 max-w-4xl"
+          style={{ fontSize: isMobile ? 'clamp(1.85rem, 8.5vw, 2.6rem)' : 'clamp(2.6rem, 6.5vw, 5.5rem)' }}
         >
           Kickstart Your Career With The{' '}
           <span className="text-gradient-emerald-cyan">Best Early Talent Roles</span>
         </motion.h1>
 
-        {/* ── Subheading ────────────────────────────────────────────────── */}
+        {/* ── Subheading — truncated on mobile ──────────────────────────── */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="text-slate-300 text-lg font-medium leading-relaxed max-w-2xl mb-10"
+          transition={{ duration: 0.7, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          className="text-slate-300 text-sm md:text-lg font-medium leading-relaxed max-w-2xl mb-6 md:mb-10 line-clamp-2 md:line-clamp-none"
         >
           Explore startup hiring drives, verified openings, internships, and fast-growing companies — all verified, all free, all on one platform.
         </motion.p>
 
         {/* ── Search Command Center ─────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-2xl relative"
+          transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-2xl relative"
           ref={dropdownRef}
         >
-          <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-1.5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-emerald-500/40 focus-within:border-emerald-500/40 transition-all duration-300">
-            <div className="flex items-center pl-4 shrink-0">
-              <Search size={20} className="text-emerald-400" />
+          {/* Mobile: stacked input + button. Desktop: inline */}
+          <div className="flex flex-col sm:flex-row bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-emerald-500/40 focus-within:border-emerald-500/40 transition-all duration-300 overflow-hidden">
+            <div className="flex items-center pl-4 pt-1 sm:pt-0">
+              <Search size={18} className="text-emerald-400 shrink-0" />
             </div>
             <div className="relative flex-1">
               <input
@@ -196,17 +211,19 @@ const Hero = () => {
                 onFocus={() => query.length >= 1 && setShowSuggestions(true)}
                 autoComplete="off"
                 spellCheck="false"
-                className="w-full px-4 py-4 text-base outline-none text-white placeholder-slate-400 font-medium bg-transparent"
+                className="w-full px-3 py-3.5 md:py-4 text-sm md:text-base outline-none text-white placeholder-slate-400 font-medium bg-transparent"
                 placeholder={PLACEHOLDERS[placeholderIdx]}
+                style={{ minHeight: '44px' }}
               />
             </div>
-            <div className="flex gap-2 shrink-0">
+            <div className="px-2 pb-2 sm:pb-0 sm:py-1.5 sm:pr-1.5">
               <button
                 onClick={() => handleSearch()}
-                className="group bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-3 rounded-xl flex items-center gap-2 text-sm transition-all shadow-lg shadow-emerald-500/25"
+                className="w-full sm:w-auto group bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-lg shadow-emerald-500/25"
+                style={{ minHeight: '44px' }}
               >
                 Explore Jobs
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
@@ -215,28 +232,29 @@ const Hero = () => {
           <AnimatePresence>
             {showSuggestions && suggestions.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 right-0 mt-3 bg-[#0f1621]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-[100] py-2"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute left-0 right-0 mt-2 bg-[#0f1621]/95 border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-[100] py-2"
               >
-                <div className="px-5 py-2 mb-1 flex items-center justify-between border-b border-white/5">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Suggestions</span>
-                  <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded">↵ to select</span>
+                <div className="px-4 py-2 mb-1 flex items-center justify-between border-b border-white/5">
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Suggestions</span>
+                  <span className="text-[9px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded">↵ to select</span>
                 </div>
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => { setQuery(suggestion); handleSearch(suggestion); }}
                     onMouseEnter={() => setSelectedIndex(index)}
-                    className={`w-full text-left px-5 py-3 flex items-center gap-3 transition-all duration-100 ${
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all duration-100 ${
                       index === selectedIndex
                         ? 'bg-emerald-500/10 text-emerald-400'
                         : 'text-slate-300 hover:bg-white/5'
                     }`}
+                    style={{ minHeight: '44px' }}
                   >
-                    <Search size={14} className={index === selectedIndex ? 'text-emerald-500' : 'text-slate-500'} />
+                    <Search size={13} className={index === selectedIndex ? 'text-emerald-500' : 'text-slate-500'} />
                     <span className="font-semibold text-sm">{suggestion}</span>
                   </button>
                 ))}
@@ -247,45 +265,46 @@ const Hero = () => {
 
         {/* ── CTA Buttons Row ───────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.65 }}
-          className="flex flex-wrap items-center gap-4 mt-6"
+          transition={{ duration: 0.7, delay: 0.6 }}
+          className="flex flex-wrap items-center gap-4 mt-4 md:mt-6"
         >
           <button
             onClick={() => navigate('/job-melas')}
-            className="font-bold text-sm text-white/80 hover:text-white transition-colors"
+            className="font-bold text-sm text-white/80 hover:text-white transition-colors active:opacity-70"
+            style={{ minHeight: '44px' }}
           >
             Upcoming Job Melas →
           </button>
         </motion.div>
 
-        {/* ── Trust Strip ───────────────────────────────────────────────── */}
+        {/* ── Trust Strip — horizontal scroll on mobile ─────────────────── */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.9 }}
-          className="mt-10 flex flex-wrap items-center gap-5 text-[12px] font-semibold text-slate-400"
+          transition={{ duration: 0.9, delay: 0.8 }}
+          className="mt-5 md:mt-10 flex items-center gap-4 text-[11px] md:text-[12px] font-semibold text-slate-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-1"
         >
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck size={14} className="text-emerald-400" />
+          <span className="flex items-center gap-1.5 shrink-0">
+            <ShieldCheck size={13} className="text-emerald-400" />
             100% Verified
           </span>
-          <span className="w-1 h-1 rounded-full bg-slate-600" />
-          <span>Zero Consulting Fees</span>
-          <span className="w-1 h-1 rounded-full bg-slate-600" />
-          <span>Direct Applications</span>
+          <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+          <span className="shrink-0">Zero Consulting Fees</span>
+          <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+          <span className="shrink-0">Direct Applications</span>
           {totalJobs > 0 && (
             <>
-              <span className="w-1 h-1 rounded-full bg-slate-600" />
-              <span className="text-emerald-400 font-bold">{totalJobs}+ Active Jobs</span>
+              <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+              <span className="text-emerald-400 font-bold shrink-0">{totalJobs}+ Active Jobs</span>
             </>
           )}
         </motion.div>
       </motion.div>
 
       {/* Bottom atmospheric fade into next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0b0f14] to-transparent z-20 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-[#0b0f14] to-transparent z-20 pointer-events-none" />
     </section>
   );
 };

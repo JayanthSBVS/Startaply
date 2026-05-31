@@ -13,7 +13,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
   const [imageError, setImageError] = React.useState(false);
 
   if (!job) return (
-    <div className="animate-pulse bg-slate-100 dark:bg-[#121821] border border-slate-200/60 dark:border-white/5 rounded-[2rem] h-[26rem] w-full" />
+    <div className="animate-pulse bg-slate-100 dark:bg-[#121821] border border-slate-200/60 dark:border-white/5 rounded-[2rem] h-64 md:h-[26rem] w-full" />
   );
 
   const companyLogo = useMemo(() => {
@@ -84,13 +84,13 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         whileHover={{ y: -8, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className={`relative rounded-[2rem] bg-white dark:bg-[#0b0f14]/80 backdrop-blur-3xl border border-slate-200/80 dark:border-white/5 group-hover:border-emerald-500/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-7 md:p-8' : 'p-5'}`}
+        className={`relative rounded-[1.75rem] md:rounded-[2rem] bg-white dark:bg-[#0b0f14]/80 border border-slate-200/80 dark:border-white/5 group-hover:border-emerald-500/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-5 md:p-8' : 'p-4 md:p-5'}`}
       >
         <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/0 to-transparent group-hover:via-emerald-400/50 transition-all duration-700 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col h-full">
           {/* ── Header: Logo & Badges ── */}
-        <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex gap-3 min-w-0 flex-1">
             <div className={`shrink-0 ${isHero ? 'w-14 h-14' : 'w-12 h-12'} rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-emerald-500/20 transition-colors`}>
               {companyLogo && !imageError ? (
@@ -124,8 +124,8 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
           </div>
         </div>
 
-        <div className="mb-4">
-          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors duration-300 line-clamp-2 ${isHero ? 'text-xl md:text-[1.75rem]' : 'text-base md:text-lg'}`}>
+        <div className="mb-3">
+          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors duration-300 line-clamp-2 ${isHero ? 'text-lg md:text-[1.75rem]' : 'text-sm md:text-base'}`}>
             {job.title || 'Position Title'}
           </h3>
         </div>
@@ -164,7 +164,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         <div className="flex-1" />
 
         {/* ── Metadata Grid ── */}
-        <div className="grid grid-cols-2 gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
+        <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 md:mb-6">
           {job.location && (
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 text-slate-400"><MapPin size={12} /></div>
@@ -204,13 +204,24 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleShare} className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors" title="Share job">
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onClick={handleShare}
+              className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+              title="Share job"
+              style={{ minWidth: '44px', minHeight: '44px' }}
+            >
               <Share2 size={16} />
             </motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={(e) => { e.stopPropagation(); onViewDetails && onViewDetails(job); }} className={`flex items-center gap-2 font-bold text-sm px-5 py-2.5 rounded-xl transition-all ${job.applyType === 'easy' ? 'bg-emerald-500 text-slate-900 shadow-[0_5px_15px_-3px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_20px_-5px_rgba(16,185,129,0.4)]' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg hover:shadow-xl'}`}>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={(e) => { e.stopPropagation(); onViewDetails && onViewDetails(job); }}
+              className={`flex items-center gap-1.5 font-bold text-xs md:text-sm px-4 md:px-5 py-2.5 rounded-xl transition-all ${job.applyType === 'easy' ? 'bg-emerald-500 text-slate-900 shadow-[0_5px_15px_-3px_rgba(16,185,129,0.3)]' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'}`}
+              style={{ minHeight: '44px' }}
+            >
               {job.applyType === 'easy' ? 'Easy Apply' : 'View Job'}
-              {job.applyType === 'external' ? <ExternalLink size={14} /> : <ChevronRight size={16} />}
+              {job.applyType === 'external' ? <ExternalLink size={13} /> : <ChevronRight size={15} />}
             </motion.button>
           </div>
         </div>

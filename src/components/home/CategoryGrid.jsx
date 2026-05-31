@@ -72,7 +72,7 @@ const CategoryGrid = () => {
   }, [jobs]);
 
   return (
-    <section className="py-16 md:py-20 section-light border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-500">
+    <section className="py-10 md:py-16 section-light border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-500">
       <motion.div
         initial="hidden"
         whileInView="show"
@@ -81,11 +81,11 @@ const CategoryGrid = () => {
         className="max-w-[90rem] mx-auto px-4 md:px-8"
       >
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 md:gap-6 mb-6 md:mb-12">
           <div>
             <motion.h2
               variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-              className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight"
+              className="text-xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight"
             >
               Explore by <span className="text-gradient-emerald">Path</span>
             </motion.h2>
@@ -106,7 +106,7 @@ const CategoryGrid = () => {
         </div>
 
         {/* Cards */}
-        <div className="flex overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-5 no-scrollbar snap-x">
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-4 md:gap-5 no-scrollbar snap-x snap-mandatory">
           {CATEGORY_DEFS.map((cat, i) => {
             const ac = ACCENT_COLORS[cat.accent];
             const count = counts[i];
@@ -119,7 +119,7 @@ const CategoryGrid = () => {
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => navigate(cat.navPath)}
-                className="group relative cursor-pointer premium-surface p-5 rounded-2xl transition-all duration-300 min-w-[220px] md:min-w-0 flex flex-col snap-start hover:shadow-lg"
+                className="group relative cursor-pointer premium-surface p-4 md:p-5 rounded-xl md:rounded-2xl transition-all duration-300 min-w-[172px] md:min-w-0 flex flex-col snap-start active:scale-95"
               >
                 {/* Subtle hover glow */}
                 <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none bg-gradient-to-br ${cat.gradient} opacity-0 group-hover:opacity-[0.04]`} />
@@ -150,8 +150,8 @@ const CategoryGrid = () => {
                   {cat.desc}
                 </p>
 
-                {/* Arrow CTA on hover */}
-                <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-500 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 relative z-10">
+                {/* Arrow CTA — hidden on mobile (hover-only, no hover on touch) */}
+                <div className="hidden md:flex mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-500 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 relative z-10">
                   Explore <ArrowRight size={11} />
                 </div>
               </motion.div>
