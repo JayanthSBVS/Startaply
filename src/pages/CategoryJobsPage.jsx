@@ -188,15 +188,15 @@ const CategoryJobsPage = () => {
       <div className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-12 -mt-4 md:-mt-6 relative z-20">
 
         {/* CONTROL BAR */}
-        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl md:rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 px-4 py-3 md:px-5 md:py-4 mb-6 md:mb-8 space-y-3 md:space-y-0 md:flex md:flex-row md:justify-between md:items-center md:gap-5">
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl md:rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 px-4 py-3 md:px-5 md:py-4 mb-6 md:mb-8 flex flex-col xl:flex-row xl:justify-between xl:items-center gap-4 md:gap-5 min-w-0 overflow-hidden">
           
-          {/* Back + Live count row on mobile */}
-          <div className="flex items-center justify-between md:contents">
+          {/* Back + Live count row */}
+          <div className="flex items-center justify-between xl:contents shrink-0">
             <Link to="/" className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 transition-colors shrink-0" style={{ minHeight: '36px' }}>
               <ArrowLeft size={15} /> Back
             </Link>
             {/* Live count — visible on mobile too */}
-            <div className="flex items-center gap-2 md:order-last md:shrink-0">
+            <div className="flex items-center gap-2 xl:order-last shrink-0">
               <span className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${theme.glow}`} />
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${theme.glow}`} />

@@ -58,14 +58,7 @@
       "src": "/api/job-mela",
       "dest": "/api/job-mela.js"
     },
-    {
-      "src": "/api/feedback/(.*)",
-      "dest": "/api/feedback.js"
-    },
-    {
-      "src": "/api/feedback",
-      "dest": "/api/feedback.js"
-    },
+
     {
       "src": "/api/auth/(.*)",
       "dest": "/api/auth.js"

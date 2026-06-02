@@ -9,7 +9,6 @@ import TrendingCompanies from '../components/home/TrendingCompanies';
 import HowItWorks from '../components/home/HowItWorks';
 import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 import Testimonials from '../components/home/Testimonials';
-import FeedbackForm from '../components/home/FeedbackForm';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import JobMelaPopup from '../components/home/JobMelaPopup';
 
@@ -51,9 +50,6 @@ const Home = () => {
 
       {/* Career Transformations — admin-controlled testimonials */}
       <Testimonials />
-
-      {/* Feedback Form */}
-      <FeedbackForm />
 
       {/* Slide-over Job Details Panel */}
       <JobDetailsPanel
