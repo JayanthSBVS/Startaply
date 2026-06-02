@@ -43,8 +43,15 @@ export const AuthProvider = ({ children }) => {
         setPermissions(res.data);
       }
     } catch (err) {
-      // Non-fatal: permissions will fall back to defaults
-      console.warn('[Permissions fetch failed]', err?.response?.status);
+      if (err?.response?.status === 401) {
+        // Token is expired or invalid — clear auth state gracefully
+        localStorage.removeItem('startaply_token');
+        localStorage.removeItem('startaply_user');
+        setUser(null);
+      } else {
+        // Non-fatal: permissions will fall back to defaults
+        console.warn('[Permissions fetch failed]', err?.response?.status);
+      }
     }
   };
 

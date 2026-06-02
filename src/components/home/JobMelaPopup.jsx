@@ -78,23 +78,27 @@ const JobMelaPopup = () => {
             {/* Scrollable content */}
             <div className="overflow-y-auto" style={{ maxHeight: 'calc(88vh - 40px)' }}>
               {/* Banner image — compact on mobile */}
-              {mela.image && (
-                <div className="relative h-36 overflow-hidden">
+              <div className="relative h-36 overflow-hidden">
+                {mela.image ? (
                   <img
                     src={mela.image}
                     alt="Job Mela Banner"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute top-3 left-4">
-                    <span className="inline-flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.15em] shadow-lg">
-                      <BellRing size={11} className="animate-bounce" /> Mega Event
-                    </span>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-emerald-950/30">
+                    <Building2 size={40} className="text-emerald-500/30" />
                   </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute top-3 left-4">
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.15em] shadow-lg">
+                    <BellRing size={11} className="animate-bounce" /> Mega Event
+                  </span>
                 </div>
-              )}
+              </div>
 
-              <div className="px-5 pt-4 pb-6">
+              <div className="px-5 pt-4 pb-24">
                 {/* Title */}
                 <h2 className="text-lg font-black text-slate-900 dark:text-white mb-3 leading-tight pr-8">
                   {mela.title}
