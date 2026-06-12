@@ -468,9 +468,11 @@ body {
 /* ═══════════════════════════════════════════════════════════════════════════
    Mobile Bottom Navigation
 ═══════════════════════════════════════════════════════════════════════════ */
-body.has-mobile-nav {
-  /* Account for browser chrome + safe area on notched phones */
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+@media (max-width: 1023px) {
+  body.has-mobile-nav {
+    /* Account for browser chrome + safe area on notched phones */
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Reduce expensive GPU effects on mobile to maintain 60fps */
