@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 
-// Singleton socket — created once, shared across hook calls
+// Singleton socket - created once, shared across hook calls
 const socketUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/' : 'http://localhost:5000');
 const socket = io(socketUrl, {
   autoConnect: false,
@@ -51,7 +51,7 @@ export const useSocket = (onUpdate) => {
       socket.off('DATA_UPDATED', handleUpdate);
       socket.disconnect();
     };
-  // Empty deps: runs once on mount, uses ref for callback — no reconnect storm
+  // Empty deps: runs once on mount, uses ref for callback - no reconnect storm
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return socket;

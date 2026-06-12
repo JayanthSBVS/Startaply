@@ -168,7 +168,7 @@ const CategoryJobsPage = () => {
           <h1 className="text-2xl md:text-6xl font-black tracking-tight mb-2 md:mb-3">{decoded}</h1>
           <p className="text-sm md:text-lg text-slate-400 font-medium">{theme.desc}</p>
 
-          {/* Quick stat pills — compact on mobile */}
+          {/* Quick stat pills - compact on mobile */}
           {decoded === 'IT & Non-IT Jobs' && (
             <div className="flex justify-center gap-2 mt-4 flex-wrap">
               <span className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-xs font-bold">{itCount} IT Jobs</span>
@@ -195,7 +195,7 @@ const CategoryJobsPage = () => {
             <Link to="/" className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 transition-colors shrink-0" style={{ minHeight: '36px' }}>
               <ArrowLeft size={15} /> Back
             </Link>
-            {/* Live count — visible on mobile too */}
+            {/* Live count - visible on mobile too */}
             <div className="flex items-center gap-2 xl:order-last shrink-0">
               <span className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${theme.glow}`} />
@@ -207,10 +207,10 @@ const CategoryJobsPage = () => {
             </div>
           </div>
 
-          {/* Government Filters — horizontal scrollable chips on mobile */}
+          {/* Government Filters - horizontal scrollable chips on mobile */}
           {decoded === 'Government Jobs' && (
             <div className="space-y-2 md:flex md:flex-row md:flex-wrap md:gap-3 md:items-center md:space-y-0">
-              {/* Central / State / All — always shown as a chip row */}
+              {/* Central / State / All - always shown as a chip row */}
               <ChipRow>
                 {['All', 'Central', 'State'].map(t => (
                   <Chip
@@ -224,7 +224,7 @@ const CategoryJobsPage = () => {
                 ))}
               </ChipRow>
 
-              {/* State selector — appears as a chip with dropdown toggle on mobile */}
+              {/* State selector - appears as a chip with dropdown toggle on mobile */}
               {govtType === 'State' && (
                 <div className="relative">
                   {/* Mobile: tap-to-toggle native select */}
@@ -270,7 +270,7 @@ const CategoryJobsPage = () => {
                 </div>
               )}
 
-              {/* Department chips — horizontal scroll on mobile */}
+              {/* Department chips - horizontal scroll on mobile */}
               <ChipRow>
                 {GOVT_DEPARTMENTS.map(d => (
                   <Chip
@@ -286,7 +286,7 @@ const CategoryJobsPage = () => {
             </div>
           )}
 
-          {/* IT / Non-IT Tabs — horizontal scroll on mobile */}
+          {/* IT / Non-IT Tabs - horizontal scroll on mobile */}
           {decoded === 'IT & Non-IT Jobs' && (
             <ChipRow>
               {[

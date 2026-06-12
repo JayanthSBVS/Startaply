@@ -30,7 +30,7 @@ const CollegeCollabBanner = () => {
             </h2>
 
             <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed mb-10">
-              Startaply partners with Degree & Engineering Colleges across India. We bring verified corporate recruitment drives and freshers job melas directly to campus networks — giving students early access before public listing.
+              Startaply partners with Degree & Engineering Colleges across India. We bring verified corporate recruitment drives and freshers job melas directly to campus networks - giving students early access before public listing.
             </p>
 
             {/* Real stats badges */}

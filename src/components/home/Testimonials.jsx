@@ -40,7 +40,7 @@ const Avatar = ({ t, size = 'md' }) => {
   );
 };
 
-// Desktop floating bubble — unchanged from original
+// Desktop floating bubble - unchanged from original
 const DesktopBubble = ({ t, className, index }) => {
   const shouldReduceMotion = useReducedMotion();
   const floatY = index % 2 === 0 ? [-8, 8, -8] : [8, -8, 8];
@@ -106,7 +106,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="relative bg-white dark:bg-slate-800/95 rounded-[2rem] p-6 shadow-[0_10px_40px_rgb(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700/60"
       >
-        {/* Avatar — offset top-left like desktop bubbles */}
+        {/* Avatar - offset top-left like desktop bubbles */}
         <div className="absolute -top-5 -left-2 w-14 h-14 rounded-full border-[3px] border-slate-50 dark:border-[#0b0f14] shadow-md overflow-hidden bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
           {featured.photo ? (
             <img src={featured.photo} alt={featured.name} className="w-full h-full object-cover" />
@@ -272,7 +272,7 @@ const Testimonials = () => {
           </div>
         )}
 
-        {/* Loading State — desktop only */}
+        {/* Loading State - desktop only */}
         {loading && (
           <div className="absolute inset-0 z-20">
             <SkeletonBubble className={ORBIT_POSITIONS[0]} />

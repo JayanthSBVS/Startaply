@@ -21,7 +21,7 @@ const Home = () => {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-slate-50 dark:bg-[#0b0f14] transition-colors duration-300">
-      {/* Hero Section — with backend banner carousel */}
+      {/* Hero Section - with backend banner carousel */}
       <Hero />
 
       {/* Live Job Mela Ticker */}
@@ -33,7 +33,7 @@ const Home = () => {
       {/* Job Categories */}
       <CategoryGrid />
 
-      {/* Live Opportunities — Today's Jobs (backend-connected) */}
+      {/* Live Opportunities - Today's Jobs (backend-connected) */}
       <TodaysJobsSection onViewDetails={setSelectedJob} />
 
       {/* Featured Jobs (backend-connected, admin-controlled isFeatured flag) */}
@@ -42,13 +42,13 @@ const Home = () => {
       {/* The Startaply Network */}
       <TrendingCompanies />
 
-      {/* How It Works — real platform flow */}
+      {/* How It Works - real platform flow */}
       <HowItWorks />
 
-      {/* Campus to Corporate — college partnerships */}
+      {/* Campus to Corporate - college partnerships */}
       <CollegeCollabBanner />
 
-      {/* Career Transformations — admin-controlled testimonials */}
+      {/* Career Transformations - admin-controlled testimonials */}
       <Testimonials />
 
       {/* Slide-over Job Details Panel */}
@@ -58,7 +58,7 @@ const Home = () => {
         onClose={() => setSelectedJob(null)}
       />
 
-      {/* Job Mela Popup — backend-connected, shows after 5s if admin enabled showPopup */}
+      {/* Job Mela Popup - backend-connected, shows after 5s if admin enabled showPopup */}
       <JobMelaPopup />
     </div>
   );

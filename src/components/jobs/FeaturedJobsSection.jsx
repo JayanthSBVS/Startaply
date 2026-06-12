@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 const FeaturedJobsSection = ({ onJobClick }) => {
   const { jobs, loading } = useJobs();
 
-  // ── ONLY admin-marked isFeatured jobs sorted so isHeroFeatured is first — strictly capped at 5 ──
+  // ── ONLY admin-marked isFeatured jobs sorted so isHeroFeatured is first - strictly capped at 5 ──
   const featuredJobs = React.useMemo(() => {
     if (!jobs) return [];
     const featured = jobs.filter(job => job.isFeatured === true);

@@ -11,7 +11,7 @@ const API = '/api';
 // ── Cache helpers ────────────────────────────────────────────────────────────
 // IMPORTANT: We use a SHORT TTL (30s) so that admin changes to isFeatured/isToday
 // reflect quickly on the public site after a page refresh.
-const CACHE_TTL_MS = 30 * 1000; // 30 seconds — was 5 minutes (caused stale featured/today)
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds - was 5 minutes (caused stale featured/today)
 
 function readCache(key, fallback = []) {
   try {
@@ -19,7 +19,7 @@ function readCache(key, fallback = []) {
     if (!raw) return { data: fallback, stale: true };
     const parsed = JSON.parse(raw);
     // Support both plain arrays (legacy) and stamped objects
-    if (Array.isArray(parsed)) return { data: parsed, stale: true }; // legacy – treat as stale
+    if (Array.isArray(parsed)) return { data: parsed, stale: true }; // legacy - treat as stale
     const stale = !parsed.ts || (Date.now() - parsed.ts) > CACHE_TTL_MS;
     return { data: Array.isArray(parsed.data) ? parsed.data : fallback, stale };
   } catch {
@@ -31,7 +31,7 @@ function writeCache(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
   } catch {
-    // Storage quota exceeded — try sessionStorage
+    // Storage quota exceeded - try sessionStorage
     try { sessionStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })); } catch { /* silent */ }
   }
 }
@@ -88,7 +88,7 @@ export const JobsProvider = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        // Fetch core data in parallel — use limit=100 to cap data volume
+        // Fetch core data in parallel - use limit=100 to cap data volume
         const [jobsRes, compRes, melasRes, prepRes] = await Promise.all([
           axios.get(`${API}/jobs?limit=100`).catch(err => ({ error: true, err })),
           axios.get(`${API}/companies?limit=100`).catch(err => ({ error: true, err })),
@@ -136,7 +136,7 @@ export const JobsProvider = ({ children }) => {
         const imagesOnly = banners.map(b => b.image).filter(Boolean);
         setHeroImages(imagesOnly);
 
-        // Store with TTL stamp — cap at first 3 to stay within localStorage limits
+        // Store with TTL stamp - cap at first 3 to stay within localStorage limits
         const toStore = { images: imagesOnly.slice(0, 3), ts: Date.now() };
         try {
           localStorage.setItem('cache_hero_data', JSON.stringify(toStore));

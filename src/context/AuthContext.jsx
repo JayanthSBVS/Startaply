@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
-// Role normalization — mirrors the server-side helper
+// Role normalization - mirrors the server-side helper
 const normalizeRole = (role) => {
   if (!role) return 'operational_executive';
   if (role === 'admin' || role === 'executive') return 'operational_executive';
@@ -24,9 +24,9 @@ export const AuthProvider = ({ children }) => {
         const parsed = JSON.parse(storedUser);
         parsed.role = normalizeRole(parsed.role);
         setUser(parsed);
-        // Fetch permissions in background — non-blocking
+        // Fetch permissions in background - non-blocking
         fetchPermissions(storedToken).catch(() => {});
-      } catch { /* corrupt storage — ignore */ }
+      } catch { /* corrupt storage - ignore */ }
     }
     setLoading(false);
   }, []);
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       if (err?.response?.status === 401) {
-        // Token is expired or invalid — clear auth state gracefully
+        // Token is expired or invalid - clear auth state gracefully
         localStorage.removeItem('startaply_token');
         localStorage.removeItem('startaply_user');
         setUser(null);

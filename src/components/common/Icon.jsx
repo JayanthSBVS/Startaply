@@ -1,5 +1,5 @@
 /**
- * Central icon resolver — maps iconName strings to Lucide components.
+ * Central icon resolver - maps iconName strings to Lucide components.
  * All icons are professional SVG icons from lucide-react.
  */
 import {

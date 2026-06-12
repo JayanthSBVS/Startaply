@@ -113,7 +113,7 @@ const AdminDashboard = () => {
   const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'operational_executive', department: '', mobile: '', joinedAt: '' });
   const [showTeamModal, setShowTeamModal] = useState(false);
 
-  // Role Permissions state — keyed by role name
+  // Role Permissions state - keyed by role name
   const [permForm, setPermForm] = useState({});
   const [permSaving, setPermSaving] = useState({});
   // Track if permForm has been seeded from server data for each role
@@ -251,7 +251,7 @@ const AdminDashboard = () => {
     }
     fetchData();
 
-    // Fallback polling every 45s — optimized for activeTab targeted fetching
+    // Fallback polling every 45s - optimized for activeTab targeted fetching
     const pollInterval = setInterval(() => {
       fetchData();
     }, 45000);
@@ -746,7 +746,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Platform Overview — read-only stats for this executive */}
+                  {/* Platform Overview - read-only stats for this executive */}
                   <div className="lg:col-span-2 bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl">
                     <div className="flex justify-between items-center mb-8">
                       <div>
@@ -757,12 +757,12 @@ const AdminDashboard = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       {[
-                        { label: 'Total Jobs Live', val: dashboardSummary?.totalJobs ?? '—', icon: Briefcase, col: 'text-emerald-500', bg: 'bg-emerald-500/10', desc: 'Active listings on platform' },
-                        { label: 'Total Applicants', val: dashboardSummary?.totalApplications ?? '—', icon: Users, col: 'text-blue-500', bg: 'bg-blue-500/10', desc: 'Candidates applied so far' },
-                        { label: 'Partner Companies', val: dashboardSummary?.totalCompanies ?? '—', icon: Building2, col: 'text-purple-500', bg: 'bg-purple-500/10', desc: 'Companies in the network' },
-                        { label: 'Job Mela Events', val: dashboardSummary?.totalMelas ?? '—', icon: Megaphone, col: 'text-amber-500', bg: 'bg-amber-500/10', desc: 'Upcoming hiring events' },
-                        { label: 'Testimonials', val: dashboardSummary?.totalTestimonials ?? '—', icon: MessageSquareQuote, col: 'text-pink-500', bg: 'bg-pink-500/10', desc: 'Success stories published' },
-                        { label: 'Prep Materials', val: dashboardSummary?.totalPrep ?? '—', icon: BookOpen, col: 'text-teal-500', bg: 'bg-teal-500/10', desc: 'Preparation content items' },
+                        { label: 'Total Jobs Live', val: dashboardSummary?.totalJobs ?? '-', icon: Briefcase, col: 'text-emerald-500', bg: 'bg-emerald-500/10', desc: 'Active listings on platform' },
+                        { label: 'Total Applicants', val: dashboardSummary?.totalApplications ?? '-', icon: Users, col: 'text-blue-500', bg: 'bg-blue-500/10', desc: 'Candidates applied so far' },
+                        { label: 'Partner Companies', val: dashboardSummary?.totalCompanies ?? '-', icon: Building2, col: 'text-purple-500', bg: 'bg-purple-500/10', desc: 'Companies in the network' },
+                        { label: 'Job Mela Events', val: dashboardSummary?.totalMelas ?? '-', icon: Megaphone, col: 'text-amber-500', bg: 'bg-amber-500/10', desc: 'Upcoming hiring events' },
+                        { label: 'Testimonials', val: dashboardSummary?.totalTestimonials ?? '-', icon: MessageSquareQuote, col: 'text-pink-500', bg: 'bg-pink-500/10', desc: 'Success stories published' },
+                        { label: 'Prep Materials', val: dashboardSummary?.totalPrep ?? '-', icon: BookOpen, col: 'text-teal-500', bg: 'bg-teal-500/10', desc: 'Preparation content items' },
                       ].map((stat, i) => (
                         <div key={i} className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-[#0b0f14]/30 border border-slate-100 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
                           <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.col} flex items-center justify-center shrink-0`}><stat.icon size={20} /></div>
@@ -1660,7 +1660,7 @@ const AdminDashboard = () => {
                               <div className="space-y-1">
                                 {member.mobile && <p className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><Phone size={10} className="text-slate-400" />{member.mobile}</p>}
                                 {member.department && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{member.department}</p>}
-                                {!member.mobile && !member.department && <p className="text-[10px] text-slate-400 italic">—</p>}
+                                {!member.mobile && !member.department && <p className="text-[10px] text-slate-400 italic">-</p>}
                               </div>
                             </td>
                             {/* Role badge */}
@@ -1679,7 +1679,7 @@ const AdminDashboard = () => {
                             {/* Joined */}
                             <td className="px-8 py-6">
                               <p className="text-xs font-bold text-slate-500">
-                                {member.joinedat ? new Date(parseInt(member.joinedat)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : member.createdat ? new Date(parseInt(member.createdat)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                {member.joinedat ? new Date(parseInt(member.joinedat)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : member.createdat ? new Date(parseInt(member.createdat)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                               </p>
                             </td>
                             {/* Actions */}
@@ -1864,7 +1864,7 @@ const AdminDashboard = () => {
                       {/* Permission toggles */}
                       <div className="p-6 space-y-3">
                         {PERMS.map(({ key, label, desc }) => {
-                          // isOn always reads from fully-seeded local object — guaranteed boolean
+                          // isOn always reads from fully-seeded local object - guaranteed boolean
                           const isOn = local[key] === true;
                           return (
                             <div key={key} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 dark:bg-[#0b0f14]/30 border border-slate-200/50 dark:border-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
@@ -1900,7 +1900,7 @@ const AdminDashboard = () => {
               <div className="bg-purple-500/5 border border-purple-500/20 rounded-[2rem] p-6 flex items-start gap-4">
                 <Crown size={20} className="text-purple-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-black text-purple-400 mb-1">Manager Role — Always Full Access</p>
+                  <p className="text-sm font-black text-purple-400 mb-1">Manager Role - Always Full Access</p>
                   <p className="text-xs font-bold text-slate-500">Managers bypass all permission restrictions and have full system control. This cannot be modified for security reasons.</p>
                 </div>
               </div>

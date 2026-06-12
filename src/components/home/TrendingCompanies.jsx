@@ -48,7 +48,7 @@ const TrendingCompanies = () => {
     </div>
   );
 
-  // Mobile company pill — compact, touch-friendly
+  // Mobile company pill - compact, touch-friendly
   const MobileCompanyPill = ({ company }) => (
     <Link
       to={`/companies`}
@@ -81,7 +81,7 @@ const TrendingCompanies = () => {
 
   return (
     <section className="py-12 md:py-24 relative overflow-hidden section-dark transition-colors duration-500">
-      {/* Network background effect — hidden on mobile */}
+      {/* Network background effect - hidden on mobile */}
       <svg className="hidden md:block absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
         <pattern id="network" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
           <circle cx="50" cy="50" r="1" fill="#fff" />
@@ -90,7 +90,7 @@ const TrendingCompanies = () => {
         <rect x="0" y="0" width="100%" height="100%" fill="url(#network)" />
       </svg>
 
-      {/* Glow — reduced on mobile */}
+      {/* Glow - reduced on mobile */}
       <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] rounded-full opacity-20 pointer-events-none mix-blend-screen"
         style={{ backgroundImage: 'var(--orb-indigo)', filter: 'blur(80px)' }}
       />

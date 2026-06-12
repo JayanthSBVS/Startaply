@@ -77,7 +77,7 @@ const JobMelaPopup = () => {
 
             {/* Scrollable content */}
             <div className="overflow-y-auto" style={{ maxHeight: 'calc(88vh - 40px)' }}>
-              {/* Banner image — compact on mobile */}
+              {/* Banner image - compact on mobile */}
               <div className="relative h-36 overflow-hidden">
                 {mela.image ? (
                   <img
@@ -123,7 +123,7 @@ const JobMelaPopup = () => {
                   {mela.description}
                 </p>
 
-                {/* When & Where — compact row */}
+                {/* When & Where - compact row */}
                 <div className="grid grid-cols-2 gap-2 mb-5">
                   <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/8 rounded-xl p-3">
                     <Clock size={14} className="text-emerald-500 shrink-0" />

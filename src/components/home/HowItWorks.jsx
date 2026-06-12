@@ -6,7 +6,7 @@ const steps = [
   {
     icon: <Search size={26} />,
     title: 'Discover Opportunities',
-    desc: 'Search across Government, IT, Non-IT, Fresher and Startup jobs — all verified, zero consulting fees.',
+    desc: 'Search across Government, IT, Non-IT, Fresher and Startup jobs - all verified, zero consulting fees.',
     number: '01',
     color: 'emerald',
   },
@@ -20,7 +20,7 @@ const steps = [
   {
     icon: <MousePointerClick size={26} />,
     title: 'Apply Directly',
-    desc: 'Click Apply and go straight to the company portal or use Easy Apply — no middlemen, no hidden steps.',
+    desc: 'Click Apply and go straight to the company portal or use Easy Apply - no middlemen, no hidden steps.',
     number: '03',
     color: 'indigo',
   },

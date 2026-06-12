@@ -4,7 +4,7 @@ const pdf = require('pdf-parse');
 
 const files = [
   path.join(__dirname, '..', '..', 'STARTAPLY_ WEBSITE _  BLUEPRINT.pdf'),
-  path.join(__dirname, '..', '..', 'STARTAPLY – COMPANY OVERVIEW.pdf')
+  path.join(__dirname, '..', '..', 'STARTAPLY - COMPANY OVERVIEW.pdf')
 ];
 
 async function extract() {

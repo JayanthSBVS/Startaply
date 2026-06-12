@@ -26,7 +26,7 @@ const lazyRetry = (componentImport) => {
   });
 };
 
-// ── Lazy-load everything else – saves ~200KB+ from initial bundle ──────────
+// ── Lazy-load everything else - saves ~200KB+ from initial bundle ──────────
 const CompaniesPage     = lazyRetry(() => import('./pages/CompaniesPage'));
 const CompanyProfilePage = lazyRetry(() => import('./pages/CompanyProfilePage'));
 const CategoryJobsPage  = lazyRetry(() => import('./pages/CategoryJobsPage'));
@@ -36,7 +36,7 @@ const PreparationPage   = lazyRetry(() => import('./pages/PreparationPage'));
 const AboutUs           = lazyRetry(() => import('./pages/AboutUs'));
 const PrivacyPolicy     = lazyRetry(() => import('./pages/PrivacyPolicy'));
 const TermsOfService    = lazyRetry(() => import('./pages/TermsOfService'));
-// Admin is the biggest win – 110KB kept out of every user's bundle
+// Admin is the biggest win - 110KB kept out of every user's bundle
 const AdminDashboard    = lazyRetry(() => import('./pages/AdminDashboard'));
 const AdminLogin        = lazyRetry(() => import('./pages/AdminLogin'));
 
@@ -74,7 +74,7 @@ function App() {
         </Suspense>
         <Footer />
         <ScrollToTopButton />
-        {/* Mobile-only bottom navigation — hidden on desktop via CSS/Tailwind */}
+        {/* Mobile-only bottom navigation - hidden on desktop via CSS/Tailwind */}
         <MobileBottomNav />
       </Router>
     </JobsProvider>

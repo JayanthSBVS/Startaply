@@ -2,7 +2,7 @@ const fs = require('fs');
 const pdfjsLib = require('pdfjs-dist');
 
 const files = [
-  'c:\\Users\\jayan\\OneDrive\\Documents\\Startaply\\Startaply\\STARTAPLY – COMPANY OVERVIEW.pdf',
+  'c:\\Users\\jayan\\OneDrive\\Documents\\Startaply\\Startaply\\STARTAPLY - COMPANY OVERVIEW.pdf',
   'c:\\Users\\jayan\\OneDrive\\Documents\\Startaply\\Startaply\\STARTAPLY_doc.pdf'
 ];
 

@@ -25,7 +25,7 @@ const Hero = () => {
   const dropdownRef = useRef(null);
   const sectionRef = useRef(null);
 
-  // Detect mobile — disable parallax on mobile for 60fps
+  // Detect mobile - disable parallax on mobile for 60fps
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -33,7 +33,7 @@ const Hero = () => {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Scroll parallax — desktop only
+  // Scroll parallax - desktop only
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],
@@ -125,11 +125,11 @@ const Hero = () => {
             loading="eager"
           />
         </AnimatePresence>
-        {/* Dark gradient overlays — stronger on mobile for legibility */}
+        {/* Dark gradient overlays - stronger on mobile for legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/55 via-[#0b0f14]/65 to-[#0b0f14]/92" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/70 via-transparent to-[#0b0f14]/30" />
 
-        {/* Ambient glows — hidden on mobile (GPU cost) */}
+        {/* Ambient glows - hidden on mobile (GPU cost) */}
         <div className="hidden md:block absolute top-0 right-[20%] w-[600px] h-[400px] rounded-full bg-emerald-500/8 blur-[100px] pointer-events-none" />
         <div className="hidden md:block absolute bottom-0 left-[10%] w-[500px] h-[300px] rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
       </motion.div>
@@ -143,7 +143,7 @@ const Hero = () => {
         }}
         className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center pt-24 md:pt-36 pb-10 md:pb-20"
       >
-        {/* Category Pills — compact on mobile */}
+        {/* Category Pills - compact on mobile */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -180,14 +180,14 @@ const Hero = () => {
           <span className="text-gradient-emerald-cyan">Best Early Talent Roles</span>
         </motion.h1>
 
-        {/* ── Subheading — truncated on mobile ──────────────────────────── */}
+        {/* ── Subheading - truncated on mobile ──────────────────────────── */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
           className="text-slate-300 text-sm md:text-lg font-medium leading-relaxed max-w-2xl mb-6 md:mb-10 line-clamp-2 md:line-clamp-none"
         >
-          Explore startup hiring drives, verified openings, internships, and fast-growing companies — all verified, all free, all on one platform.
+          Explore startup hiring drives, verified openings, internships, and fast-growing companies - all verified, all free, all on one platform.
         </motion.p>
 
         {/* ── Search Command Center ─────────────────────────────────────── */}
@@ -201,7 +201,7 @@ const Hero = () => {
           {/* ── MOBILE Search: Premium single-row discovery bar ──────── */}
           <div className="sm:hidden relative">
             <div className="relative flex items-center bg-white/12 border border-white/25 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] focus-within:bg-white/18 focus-within:border-emerald-400/60 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_3px_rgba(16,185,129,0.15)] transition-all duration-300">
-              {/* Search icon — left side */}
+              {/* Search icon - left side */}
               <div className="pl-4 pr-2 shrink-0">
                 <Search size={19} className="text-emerald-400" />
               </div>
@@ -217,7 +217,7 @@ const Hero = () => {
                 placeholder={PLACEHOLDERS[placeholderIdx]}
                 style={{ minHeight: '52px' }}
               />
-              {/* Search button — right side, always visible */}
+              {/* Search button - right side, always visible */}
               <div className="pr-2 shrink-0">
                 <button
                   onClick={() => handleSearch()}
@@ -312,7 +312,7 @@ const Hero = () => {
           </button>
         </motion.div>
 
-        {/* ── Trust Strip — horizontal scroll on mobile ─────────────────── */}
+        {/* ── Trust Strip - horizontal scroll on mobile ─────────────────── */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

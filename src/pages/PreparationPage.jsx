@@ -193,7 +193,7 @@ const PreparationPage = () => {
             Interview & Exam<br /><span className="text-emerald-400">Preparation</span>
           </h1>
           <p className="text-slate-400 font-medium max-w-xl mx-auto text-sm md:text-base">
-            Curated study materials, interview Q&As, and previous year papers — all in one place.
+            Curated study materials, interview Q&As, and previous year papers - all in one place.
           </p>
         </div>
       </motion.div>

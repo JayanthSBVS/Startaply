@@ -1,5 +1,5 @@
 /**
- * CompanyLogo — renders a professional Lucide SVG icon for a given company name.
+ * CompanyLogo - renders a professional Lucide SVG icon for a given company name.
  * Use this instead of emoji logos throughout the app.
  */
 import React from 'react';

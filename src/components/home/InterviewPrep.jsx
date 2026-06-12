@@ -49,7 +49,7 @@ const InterviewPrep = () => {
           </Link>
         </div>
 
-        {/* Category Cards — always stacked on mobile, 3-col on md+ */}
+        {/* Category Cards - always stacked on mobile, 3-col on md+ */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {CATEGORIES.map((cat, i) => {
             const count = i === 0 ? counts.IT : i === 1 ? counts.NonIT : counts.Gov;

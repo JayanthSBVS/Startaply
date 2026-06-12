@@ -212,7 +212,7 @@ const JobMelaDetailPage = () => {
                   'Direct interaction with top recruiters',
                   'On-the-spot interview opportunities',
                   'Network with industry professionals',
-                  'Free entry — walk in with your resume',
+                  'Free entry - walk in with your resume',
                   'Multiple companies under one roof',
                 ].map((point, i) => (
                   <li key={i} className="flex items-start gap-3 text-slate-600 dark:text-slate-300 font-medium text-sm">

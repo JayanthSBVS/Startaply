@@ -26,7 +26,7 @@ const CATEGORY_DEFS = [
   },
   {
     name: 'Freshers',
-    desc: '0–1 yr experience welcome',
+    desc: '0-1 yr experience welcome',
     icon: GraduationCap,
     navPath: '/jobs?section=freshers',
     accent: 'emerald',
@@ -150,7 +150,7 @@ const CategoryGrid = () => {
                   {cat.desc}
                 </p>
 
-                {/* Arrow CTA — hidden on mobile (hover-only, no hover on touch) */}
+                {/* Arrow CTA - hidden on mobile (hover-only, no hover on touch) */}
                 <div className="hidden md:flex mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-500 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 relative z-10">
                   Explore <ArrowRight size={11} />
                 </div>
