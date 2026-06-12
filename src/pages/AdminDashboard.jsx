@@ -7,7 +7,7 @@ import {
   MessageSquareQuote, BookOpen, Search, Eye, Image as ImageIcon,
   BarChart3, ShieldCheck, Activity, TrendingUp, PieChart, Users2,
   Bell, History, Settings, CheckCircle2, AlertCircle, FileText, RefreshCw,
-  Lock, Unlock, UserPlus, Phone, Mail, Sliders, Crown, BadgeCheck, UserCheck, ChevronRight
+  Lock, Unlock, UserPlus, Phone, Mail, Sliders, Crown, BadgeCheck, UserCheck, ChevronRight, Handshake
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -100,6 +100,7 @@ const AdminDashboard = () => {
   const [logs, setLogs] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
   const [dashboardSummary, setDashboardSummary] = useState(null);
+  const [collabRequests, setCollabRequests] = useState([]);
 
   const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', isHeroFeatured: false });
   const [editingJobId, setEditingJobId] = useState(null);
@@ -216,6 +217,9 @@ const AdminDashboard = () => {
           if (adminsRes?.data) setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
           if (heroRes?.data) setHeroBanners(Array.isArray(heroRes.data) ? heroRes.data : []);
         }
+      } else if (activeTab === 'collabs') {
+        const res = await safeGet(`${API}/collabs`, config);
+        setCollabRequests(Array.isArray(res.data) ? res.data : []);
       }
     } catch (err) {
       if (err.response?.status !== 401 && err.response?.status !== 403) {
@@ -318,13 +322,14 @@ const AdminDashboard = () => {
       { id: 'liveticker',  label: 'Live Ticker',     icon: Zap },
     ] : []),
     { id: 'add',          label: 'Post Job',     icon: PlusCircle },
-    { id: 'manage',       label: 'Jobs List',    icon: Briefcase },
-    { id: 'applications', label: 'Applicants',   icon: Users },
+    { id: 'manage',       label: 'Manage Jobs',  icon: Briefcase },
+    { id: 'applications', label: 'Applications', icon: FileText },
     { id: 'companies',    label: 'Companies',    icon: Building2 },
-    { id: 'jobmela',      label: 'Job Mela',     icon: Megaphone },
-    { id: 'prep',         label: 'Preparation',  icon: BookOpen },
+    { id: 'jobmela',      label: 'Job Mela',     icon: MapPin },
+    { id: 'prep',         label: 'Prep Data',    icon: BookOpen },
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
-    { id: 'feedback',     label: 'Feedbacks',    icon: MessageSquare },
+    { id: 'collabs',      label: 'Collab Requests', icon: Handshake },
+    { id: 'feedback',     label: 'Feedback',     icon: MessageSquare },
   ];
 
   return (
@@ -2089,6 +2094,56 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
+          )}
+
+          {activeTab === 'collabs' && (
+            <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-200">College Collaboration Requests</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {collabRequests.map((req) => (
+                  <div key={req.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all flex flex-col gap-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-slate-900 dark:text-white line-clamp-2">{req.college_name || req.collegeName}</h3>
+                        <p className="text-xs font-bold text-slate-500 mt-1">{new Date(req.created_at || req.createdAt).toLocaleString()}</p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                        <Handshake className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <Mail className="w-4 h-4 text-emerald-500" /> <a href={`mailto:${req.email}`} className="hover:underline font-medium break-all">{req.email}</a>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <Phone className="w-4 h-4 text-emerald-500" /> <a href={`tel:${req.phone}`} className="hover:underline font-medium">{req.phone}</a>
+                      </div>
+                    </div>
+                    {req.message && (
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 mt-2 flex-1">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{req.message}</p>
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => confirmAction('Delete this request?', async () => {
+                        await axios.delete(`${API}/collabs/${req.id}`, getConfig());
+                        fetchData(); showMsg('Request deleted');
+                      })}
+                      className="mt-2 w-full py-2.5 rounded-xl border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 font-bold text-sm hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete Request
+                    </button>
+                  </div>
+                ))}
+                {collabRequests.length === 0 && (
+                  <div className="col-span-full py-16 text-center text-slate-500 dark:text-slate-400 font-bold bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 border-dashed">
+                    No collaboration requests found.
+                  </div>
+                )}
+              </div>
+            </motion.div>
           )}
 
         </main>

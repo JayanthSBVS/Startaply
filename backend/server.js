@@ -43,6 +43,7 @@ app.use('/api/hero-banners', require('./routes/heroBanners'));
 app.use('/api/testimonials', require('./routes/testimonials'));
 app.use('/api/prep-data', require('./routes/prepData'));
 app.use('/api/live-ticker', require('./routes/liveTicker'));
+app.use('/api/collabs', require('./routes/collabs'));
 
 app.get('/', (req, res) => {
   res.send('Startaply Operational API Running');

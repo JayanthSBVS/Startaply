@@ -105,7 +105,15 @@
     },
     {
       "src": "/api/live-ticker",
-      "dest": "/api/live-ticker.js"
+      "dest": "/backend/server.js"
+    },
+    {
+      "src": "/api/collabs/(.*)",
+      "dest": "/api/collabs.js"
+    },
+    {
+      "src": "/api/collabs",
+      "dest": "/api/collabs.js"
     },
     {
       "handle": "filesystem"
