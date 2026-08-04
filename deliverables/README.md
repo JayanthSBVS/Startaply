@@ -1,15 +1,13 @@
 # Antigravity plugin deliverable
 
-This folder contains the standalone Windows installer package for the lean UI/UX Pro Max Antigravity plugin rebuild.
+Download the standalone Windows package for the lean UI/UX Pro Max Antigravity plugin:
 
-## File
-
-`ui-ux-pro-max-antigravity-v1.0.0.zip`
+`ui-ux-pro-max-antigravity-v1.0.1.zip`
 
 SHA-256:
 
 ```text
-10a76a06d2b3c7c88ffa21365835a1061527140e52eac73d99a42c9ce2803fa1
+1c72f8d20220e754dd721029ccf687cd959641db6cfe28f5503688e8c4d80bdf
 ```
 
-The archive contains `Install.cmd`, `Doctor.cmd`, `Restore.cmd`, two native focused skills, local design data/search tools, documentation, tests, and checksums. It does not change Startaply application source code.
+Version 1.0.1 fixes the Windows PowerShell helper-name collision with `py.exe` found during the first live health check. The archive contains `Install.cmd`, corrected `Doctor.cmd`, `Restore.cmd`, two focused skills, local design tools, tests, and checksums. It does not change Startaply application source code.
