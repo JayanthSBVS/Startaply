@@ -26,9 +26,7 @@ export const useSocket = (onUpdate) => {
     socket.connect();
 
     const handleConnect = () => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('WebSocket Connected');
-      }
+      // Intentionally left blank for production
     };
 
     const handleError = (err) => {

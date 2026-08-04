@@ -59,6 +59,10 @@ const JobsPage = () => {
 
   const [debouncedSearch, setDebouncedSearch] = useState(init.search);
 
+  useEffect(() => {
+    document.title = "Search Jobs | Startaply";
+  }, []);
+
   // Sync typing search with state after a snappy 300ms debounce
   useEffect(() => {
     const timer = setTimeout(() => {

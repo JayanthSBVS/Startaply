@@ -210,6 +210,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
               onClick={handleShare}
               className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
               title="Share job"
+              aria-label="Share this job"
               style={{ minWidth: '44px', minHeight: '44px' }}
             >
               <Share2 size={16} />

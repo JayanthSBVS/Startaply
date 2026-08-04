@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Target, Eye, CheckCircle2, Award, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -6,6 +6,9 @@ import CategoryGrid from '../components/home/CategoryGrid';
 import CollegeCollabBanner from '../components/home/CollegeCollabBanner';
 
 const AboutUs = () => {
+  useEffect(() => {
+    document.title = "About Us | Startaply";
+  }, []);
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white font-sans transition-colors duration-300">
 

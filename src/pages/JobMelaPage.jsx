@@ -8,6 +8,7 @@ const JobMelaPage = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        document.title = "Job Melas | Startaply";
         axios.get('/api/job-mela')
             .then(res => {
                 const data = Array.isArray(res.data) ? res.data : [];

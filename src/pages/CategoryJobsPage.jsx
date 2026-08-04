@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Monitor, Building2, Briefcase, Zap, ChevronDown, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -89,6 +89,9 @@ const Chip = ({ active, onClick, color = 'amber', children, count }) => {
 };
 
 const CategoryJobsPage = () => {
+  useEffect(() => {
+    document.title = "Job Categories | Startaply";
+  }, []);
   const { categoryName } = useParams();
   const { jobs } = useJobs();
   const decoded = decodeURIComponent(categoryName);

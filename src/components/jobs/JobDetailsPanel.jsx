@@ -27,7 +27,13 @@ const JobDetailsPanel = ({ job, onClose }) => {
       url: window.location.origin + `/jobs?id=${displayJob.id}`,
     };
     if (navigator.share) {
-      try { await navigator.share(shareData); } catch (err) { }
+      try { await navigator.share(shareData); } catch (err) {
+        // User cancelled sharing - not an error, but if it's a real error, copy to clipboard as fallback
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+          toast.success("Link copied to clipboard!");
+        }
+      }
     } else {
       navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
       toast.success("Job details copied to clipboard!");
@@ -118,7 +124,12 @@ const JobDetailsPanel = ({ job, onClose }) => {
   if (!job) return null;
 
   return (
-    <div className={`fixed inset-0 z-[2000] flex justify-end transition-opacity duration-300 ${isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+    <div 
+      className={`fixed inset-0 z-[2000] flex justify-end transition-opacity duration-300 ${isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+      role="dialog" 
+      aria-modal="true" 
+      aria-label="Job details"
+    >
       <div className="absolute inset-0 bg-slate-900/60 dark:bg-[#0b0f14]/80 backdrop-blur-sm" onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} />
 
       <div className={`relative w-full max-w-[500px] bg-white dark:bg-slate-900 h-full flex flex-col shadow-2xl transition-transform duration-300 transform ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -130,8 +141,8 @@ const JobDetailsPanel = ({ job, onClose }) => {
             <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">{displayJob.company}</p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={handleShare} className="p-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full text-emerald-600 dark:text-emerald-400 transition-colors border border-emerald-100 dark:border-emerald-800"><Share2 size={18} /></button>
-            <button onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 transition-colors"><X size={20} /></button>
+            <button onClick={handleShare} className="p-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full text-emerald-600 dark:text-emerald-400 transition-colors border border-emerald-100 dark:border-emerald-800" aria-label="Share this job"><Share2 size={18} /></button>
+            <button onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 transition-colors" aria-label="Close job details"><X size={20} /></button>
           </div>
         </div>
 

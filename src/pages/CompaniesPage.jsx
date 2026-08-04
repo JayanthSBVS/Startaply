@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, X, Briefcase, Building2, ChevronRight, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useJobs } from '../context/JobsContext';
@@ -37,6 +37,10 @@ const CompaniesPage = () => {
   const [search, setSearch] = useState('');
   const [industry, setIndustry] = useState('All');
   const [companyType, setCompanyType] = useState('All Types');
+
+  useEffect(() => {
+    document.title = "Companies | Startaply";
+  }, []);
 
   const filtered = useMemo(() => {
     return companies

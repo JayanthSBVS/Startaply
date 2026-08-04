@@ -89,7 +89,11 @@ const CollegeCollabBanner = () => {
       {/* Collaboration Form Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            role="dialog"
+            aria-modal="true"
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -112,6 +116,7 @@ const CollegeCollabBanner = () => {
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  aria-label="Close form"
                 >
                   <X size={20} />
                 </button>

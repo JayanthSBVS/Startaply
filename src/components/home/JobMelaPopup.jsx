@@ -42,6 +42,9 @@ const JobMelaPopup = () => {
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
           style={{ padding: 'env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px)' }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Job Mela notification"
         >
           {/* Backdrop */}
           <motion.div
@@ -71,6 +74,7 @@ const JobMelaPopup = () => {
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 z-20 bg-slate-100 dark:bg-white/10 p-2 rounded-full text-slate-500 dark:text-slate-400 active:scale-90 transition-transform"
               style={{ minWidth: '36px', minHeight: '36px' }}
+              aria-label="Close popup"
             >
               <X size={18} />
             </button>
@@ -208,6 +212,7 @@ const JobMelaPopup = () => {
                 <button
                   onClick={() => setIsOpen(false)}
                   className="absolute top-5 right-5 z-20 bg-slate-100/80 dark:bg-white/5 backdrop-blur-md hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-600 dark:hover:text-emerald-400 p-2.5 rounded-full text-slate-500 dark:text-slate-400 transition-all active:scale-95"
+                  aria-label="Close popup"
                 >
                   <X size={20} />
                 </button>

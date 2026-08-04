@@ -28,7 +28,8 @@ const TrendingCompanies = () => {
         {company.logo ? (
           <img
             src={company.logo.startsWith('http') || company.logo.startsWith('//') ? company.logo : `https://${company.logo}`}
-            alt={company.name}
+            alt={`${company.name} logo`}
+            loading="lazy"
             className="w-full h-full object-contain"
             onError={(e) => {
               e.target.onerror = null;
@@ -59,7 +60,8 @@ const TrendingCompanies = () => {
         {company.logo ? (
           <img
             src={company.logo.startsWith('http') || company.logo.startsWith('//') ? company.logo : `https://${company.logo}`}
-            alt={company.name}
+            alt={`${company.name} logo`}
+            loading="lazy"
             className="w-full h-full object-contain"
             onError={(e) => {
               e.target.onerror = null;

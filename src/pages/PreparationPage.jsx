@@ -146,6 +146,9 @@ const Skeleton = () => (
 
 // --- Main Page ---
 const PreparationPage = () => {
+  useEffect(() => {
+    document.title = "Preparation Materials | Startaply";
+  }, []);
   const [activeCategory, setActiveCategory] = useState('IT Jobs');
   const [activeContentTab, setActiveContentTab] = useState('article');
   const [prepData, setPrepData] = useState([]);
