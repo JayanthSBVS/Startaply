@@ -1,13 +1,17 @@
 # Antigravity plugin deliverable
 
-Download the standalone Windows package for the lean UI/UX Pro Max Antigravity plugin:
+Current package:
 
-`ui-ux-pro-max-antigravity-v1.0.1.zip`
+`ui-ux-pro-max-antigravity-v1.1.0.zip`
 
 SHA-256:
 
 ```text
-1c72f8d20220e754dd721029ccf687cd959641db6cfe28f5503688e8c4d80bdf
+b20c2f115724f258c73c3cd7a6a36049e23bfb994ca94cf21641944a16119a3a
 ```
 
-Version 1.0.1 fixes the Windows PowerShell helper-name collision with `py.exe` found during the first live health check. The archive contains `Install.cmd`, corrected `Doctor.cmd`, `Restore.cmd`, two focused skills, local design tools, tests, and checksums. It does not change Startaply application source code.
+Version 1.1.0 replaces the PowerShell automation layer with Python 3 and small CMD launchers, eliminating Windows PowerShell's case-insensitive command and variable collisions.
+
+The Python installer was exercised end-to-end with a simulated legacy plugin: exact backup (including the old `.env`), replacement, 14 health checks, secret exclusion, standalone doctor, manual restore, intentionally failed validation, and automatic rollback all passed.
+
+The archive contains `Install.cmd`, `Doctor.cmd`, `Restore.cmd`, two focused skills, local design tools, tests, and checksums. It does not modify Startaply application source code.
