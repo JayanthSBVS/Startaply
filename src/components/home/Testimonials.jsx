@@ -42,27 +42,16 @@ const Avatar = ({ t, size = 'md' }) => {
 
 // Desktop floating bubble - unchanged from original
 const DesktopBubble = ({ t, className, index }) => {
-  const shouldReduceMotion = useReducedMotion();
-  const floatY = index % 2 === 0 ? [-8, 8, -8] : [8, -8, 8];
-  const floatX = index % 3 === 0 ? [-4, 4, -4] : [4, -4, 4];
-  const duration = 5 + (index % 3) * 1.5;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      animate={shouldReduceMotion ? {} : {
-        y: floatY,
-        x: floatX,
-        rotateZ: index % 2 === 0 ? [-1, 1, -1] : [1, -1, 1]
-      }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{
         opacity: { duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] },
         scale: { duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] },
-        y: { duration, repeat: Infinity, ease: "easeInOut" },
-        x: { duration: duration + 1, repeat: Infinity, ease: "easeInOut" },
-        rotateZ: { duration: duration + 2, repeat: Infinity, ease: "easeInOut" }
+        y: { duration: 0.8, delay: Math.min(index * 0.1, 0.5), ease: [0.16, 1, 0.3, 1] }
       }}
       className={`group relative p-6 md:p-7 lg:p-8 rounded-[2.5rem] bg-white dark:bg-slate-800/95 shadow-[0_10px_40px_rgb(0,0,0,0.06)] dark:shadow-[0_10px_40px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700/60 hover:shadow-[0_20px_50px_rgb(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgb(0,0,0,0.6)] flex flex-col hover:z-30 w-full ${className}`}
     >
@@ -87,8 +76,8 @@ const DesktopBubble = ({ t, className, index }) => {
   );
 };
 
-// ─── Mobile: bubble composition (NOT a carousel) ───────────────────────────
-// Layout: Featured bubble (full-width, prominent) + 2×2 mini bubbles below
+// â”€â”€â”€ Mobile: bubble composition (NOT a carousel) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Layout: Featured bubble (full-width, prominent) + 2Ã—2 mini bubbles below
 // Preserves the "floating social proof" identity in a mobile-native composition
 const MobileBubbleComposition = ({ testimonials }) => {
   const [activeFeatured, setActiveFeatured] = useState(0);
@@ -98,7 +87,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
 
   return (
     <div className="md:hidden px-4 pb-8 pt-4 space-y-4 relative z-20">
-      {/* ── Featured Bubble ── */}
+      {/* â”€â”€ Featured Bubble â”€â”€ */}
       <motion.div
         key={activeFeatured}
         initial={{ opacity: 0, y: 12 }}
@@ -124,7 +113,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
               <p className="font-bold text-slate-900 dark:text-white text-sm">{featured.name}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {featured.tagline && <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400">{featured.tagline}</span>}
-                {featured.tagline && featured.company && <span className="text-slate-300 dark:text-slate-600">·</span>}
+                {featured.tagline && featured.company && <span className="text-slate-300 dark:text-slate-600">Â·</span>}
                 {featured.company && <span className="text-[11px] font-black uppercase tracking-wide text-slate-400">{featured.company}</span>}
               </div>
             </div>
@@ -132,7 +121,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
         </div>
       </motion.div>
 
-      {/* ── 2×2 Mini Bubble Grid ── */}
+      {/* â”€â”€ 2Ã—2 Mini Bubble Grid â”€â”€ */}
       <div className="grid grid-cols-2 gap-3">
         {secondaries.map((t, i) => {
           const realIndex = testimonials.indexOf(t);
@@ -169,7 +158,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
         })}
       </div>
 
-      {/* ── Tap-to-feature hint ── */}
+      {/* â”€â”€ Tap-to-feature hint â”€â”€ */}
       <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pt-1">
         Tap a card to read more
       </p>
@@ -228,12 +217,12 @@ const Testimonials = () => {
         </motion.p>
       </div>
 
-      {/* ── MOBILE: Bubble Composition ──────────────────────────────────── */}
+      {/* â”€â”€ MOBILE: Bubble Composition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {!loading && testimonials.length > 0 && (
         <MobileBubbleComposition testimonials={testimonials} />
       )}
 
-      {/* ── DESKTOP: Original orbit layout ──────────────────────────────── */}
+      {/* â”€â”€ DESKTOP: Original orbit layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="hidden md:block relative max-w-[1400px] mx-auto px-4 md:px-8 min-h-[900px]">
         {/* Central Headline Anchor */}
         <motion.div

@@ -40,7 +40,7 @@ const CollegeCollabBanner = () => {
   return (
     <section className="relative py-24 section-light overflow-hidden border-b border-slate-200/50 dark:border-slate-900 transition-colors duration-500">
       {/* Background Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-emerald-400/8 dark:bg-emerald-600/15 blur-[100px] rounded-full pointer-events-none" />
+      <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-emerald-400/8 dark:bg-emerald-600/15 blur-[100px] rounded-full pointer-events-none" />
       <div className="absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
         style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       />
@@ -89,7 +89,7 @@ const CollegeCollabBanner = () => {
       {/* Collaboration Form Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
             role="dialog"
             aria-modal="true"
@@ -101,7 +101,7 @@ const CollegeCollabBanner = () => {
               onClick={() => setIsModalOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -138,7 +138,7 @@ const CollegeCollabBanner = () => {
                         {error}
                       </div>
                     )}
-                    
+
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">College/Institution Name <span className="text-red-500">*</span></label>
                       <input

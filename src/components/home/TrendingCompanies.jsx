@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useJobs } from '../../context/JobsContext';
 import { Users, Building2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { usePageActivity } from '../../hooks/usePageActivity';
+import { getBoundedRepeatCount } from '../../utils/motionPolicy';
+
+const COMPANY_TRACK_MIN = 8;
+const COMPANY_TRACK_MAX = 12;
 
 const TrendingCompanies = () => {
   const { companies } = useJobs();
+  const sectionRef = useRef(null);
+  const { shouldAnimate, isReducedMotion } = usePageActivity(sectionRef);
 
   if (!companies || companies.length === 0) return null;
 
@@ -16,14 +22,20 @@ const TrendingCompanies = () => {
     return res.slice(0, count);
   };
 
-  const stream1 = repeatToCount(companies, 20);
-  const stream2 = repeatToCount(companies, 20).reverse();
-
   // Mobile: show unique companies, max 12
   const mobileCompanies = companies.slice(0, 12);
 
-  const DesktopCompanyCard = ({ company }) => (
-    <div className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72">
+  // Desktop: we need enough cards to cover large screens.
+  // Each card is ~312px wide. 15 cards = ~4680px width, more than enough for a loop on ultrawides.
+  const targetDesktopCards = getBoundedRepeatCount(companies.length, COMPANY_TRACK_MIN, COMPANY_TRACK_MAX);
+  const stream1 = repeatToCount(companies, targetDesktopCards);
+  const stream2 = repeatToCount(companies, targetDesktopCards).reverse();
+
+  const DesktopCompanyCard = ({ company, isDuplicate }) => (
+    <div
+      className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0"
+      aria-hidden={isDuplicate ? "true" : undefined}
+    >
       <div className="w-12 h-12 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1">
         {company.logo ? (
           <img
@@ -43,18 +55,20 @@ const TrendingCompanies = () => {
       <div className="min-w-0">
         <h4 className="text-white font-bold text-sm truncate group-hover:text-emerald-400 transition-colors">{company.name}</h4>
         <p className="text-slate-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Actively Hiring
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Actively Hiring
         </p>
       </div>
     </div>
   );
 
   // Mobile company pill - compact, touch-friendly
-  const MobileCompanyPill = ({ company }) => (
+  const MobileCompanyPill = ({ company, isDuplicate }) => (
     <Link
       to={`/companies`}
       className="flex-shrink-0 flex items-center gap-3 bg-white/[0.08] border border-white/[0.12] active:bg-white/[0.15] px-4 py-3 rounded-2xl transition-colors w-52 mr-3"
       style={{ minHeight: '64px' }}
+      aria-hidden={isDuplicate ? "true" : undefined}
+      tabIndex={isDuplicate ? -1 : undefined}
     >
       <div className="w-10 h-10 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1">
         {company.logo ? (
@@ -75,14 +89,14 @@ const TrendingCompanies = () => {
       <div className="min-w-0 flex-1">
         <h4 className="text-white font-bold text-sm truncate">{company.name}</h4>
         <p className="text-emerald-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Hiring
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Hiring
         </p>
       </div>
     </Link>
   );
 
   return (
-    <section className="py-12 md:py-24 relative overflow-hidden section-dark transition-colors duration-500">
+    <section ref={sectionRef} className="py-12 md:py-24 relative overflow-hidden section-dark transition-colors duration-500">
       {/* Network background effect - hidden on mobile */}
       <svg className="hidden md:block absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
         <pattern id="network" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
@@ -118,34 +132,63 @@ const TrendingCompanies = () => {
         </Link>
       </div>
 
-      {/* ── MOBILE: Auto-scrolling row ─────────────────────────────── */}
+      {/* â”€â”€ MOBILE: Auto-scrolling row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="md:hidden relative z-10 overflow-hidden pb-4">
         <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#020617] to-transparent pointer-events-none z-10" />
         <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#020617] to-transparent pointer-events-none z-10" />
-        <div className="companies-track" style={{ animationDuration: '25s' }}>
-          {stream1.slice(0, 15).map((company, i) => (
-            <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} />
-          ))}
+        <div
+          className={isReducedMotion ? "flex overflow-x-auto no-scrollbar" : "companies-track"}
+          style={{
+            animationDuration: '25s',
+            animationPlayState: shouldAnimate ? 'running' : 'paused',
+            animation: isReducedMotion ? 'none' : undefined
+          }}
+        >
+          {isReducedMotion
+            ? mobileCompanies.map((company, i) => (
+                <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} isDuplicate={false} />
+              ))
+            : stream1.slice(0, 15).map((company, i) => (
+                <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} isDuplicate={i >= companies.length} />
+              ))}
         </div>
       </div>
 
-      {/* ── DESKTOP: Marquee tracks (unchanged) ──────────────────────────── */}
+      {/* â”€â”€ DESKTOP: Marquee tracks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="hidden md:flex relative z-10 flex-col gap-5 pb-10">
-        {/* Left and Right Fade Overlays */}
         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#020617] to-transparent z-20 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#020617] to-transparent z-20 pointer-events-none" />
+
         {/* Track 1 - LTR */}
         <div className="overflow-hidden">
-          <div className="companies-track">
-            {stream1.map((company, i) => <DesktopCompanyCard key={`${company.id}-1-${i}`} company={company} />)}
+          <div
+            className={isReducedMotion ? "flex overflow-x-auto no-scrollbar" : "companies-track"}
+            style={{
+              animationPlayState: shouldAnimate ? 'running' : 'paused',
+              animation: isReducedMotion ? 'none' : undefined
+            }}
+          >
+            {isReducedMotion
+              ? companies.map((company, i) => <DesktopCompanyCard key={`${company.id}-1-${i}`} company={company} isDuplicate={false} />)
+              : stream1.map((company, i) => <DesktopCompanyCard key={`${company.id}-1-${i}`} company={company} isDuplicate={i >= companies.length} />)
+            }
           </div>
         </div>
+
         {/* Track 2 - RTL */}
-        <div className="overflow-hidden">
-          <div className="companies-track-reverse" style={{ transform: 'translateX(-50%)' }}>
-            {stream2.map((company, i) => <DesktopCompanyCard key={`${company.id}-2-${i}`} company={company} />)}
+        {!isReducedMotion && (
+          <div className="overflow-hidden">
+            <div
+              className="companies-track-reverse"
+              style={{
+                transform: 'translateX(-50%)',
+                animationPlayState: shouldAnimate ? 'running' : 'paused'
+              }}
+            >
+              {stream2.map((company, i) => <DesktopCompanyCard key={`${company.id}-2-${i}`} company={company} isDuplicate={i >= companies.length} />)}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

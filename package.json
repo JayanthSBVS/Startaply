@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:freshness": "node --test tests/dataFreshness.test.js"
+    "test:freshness": "node --test tests/dataFreshness.test.js",
+    "test:motion": "node --test tests/motionPolicy.test.js"
   },
   "dependencies": {
     "axios": "^1.14.0",
