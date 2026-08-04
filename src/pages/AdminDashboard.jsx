@@ -18,6 +18,7 @@ import AdminPermissions from '../components/admin/AdminPermissions';
 import AdminActivityLogs from '../components/admin/AdminActivityLogs';
 import AdminGlobalStats from '../components/admin/AdminGlobalStats';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { publishFreshness } from '../utils/dataFreshness';
 import axios from 'axios';
 import {
   LayoutDashboard, PlusCircle, Briefcase, Trash2, Edit2,
@@ -262,8 +263,11 @@ const AdminDashboard = () => {
     const updatedJob = { ...job, [field]: !job[field] };
     setJobs(prev => prev.map(j => j.id === job.id ? updatedJob : j));
     axios.put(`${API}/jobs/${job.id}`, updatedJob, getConfig()).then(() => {
-      localStorage.removeItem('cache_jobs');
-      sessionStorage.removeItem('cache_jobs');
+      let mutationType = 'update';
+      if (field === 'isFeatured') mutationType = 'feature';
+      if (field === 'isToday') mutationType = 'today';
+      if (field === 'isVisible') mutationType = 'visibility';
+      publishFreshness('jobs', mutationType, job.id);
     }).catch(() => {
       setJobs(prev => prev.map(j => j.id === job.id ? job : j));
       toast.error("Database sync failed.");
@@ -279,26 +283,26 @@ const AdminDashboard = () => {
       }
       // Ensure category maps perfectly to DB schema
       const payload = { ...jobForm, category: jobForm.jobCategory };
+      let newJobId = editingJobId;
       if (editingJobId) {
         await axios.put(`${API}/jobs/${editingJobId}`, payload, getConfig());
         showMsg('Job Updated');
       } else {
-        await axios.post(`${API}/jobs`, payload, getConfig());
+        const res = await axios.post(`${API}/jobs`, payload, getConfig());
+        newJobId = res.data?.id || res.data?.job?.id || null;
         showMsg('Job Published');
       }
       setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null, isHeroFeatured: false }); 
       setEditingJobId(null); 
       setActiveTab('manage'); 
-      localStorage.removeItem('cache_jobs');
-      sessionStorage.removeItem('cache_jobs');
+      publishFreshness('jobs', editingJobId ? 'update' : 'create', newJobId);
       fetchData();
     } catch (err) { toast.error('Error saving job data'); }
   };
   const handleJobDelete = async (id) => {
     confirmAction('Permanently delete this job?', async () => {
       await axios.delete(`${API}/jobs/${id}`, getConfig());
-      localStorage.removeItem('cache_jobs');
-      sessionStorage.removeItem('cache_jobs');
+      publishFreshness('jobs', 'delete', id);
       fetchData(); showMsg('Job Removed');
     });
   };

@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import axios from 'axios';
+import { subscribeToFreshness } from '../utils/dataFreshness';
 
 const JobsContext = createContext();
 
@@ -11,7 +12,7 @@ const API = '/api';
 // ── Cache helpers ────────────────────────────────────────────────────────────
 // IMPORTANT: We use a SHORT TTL (30s) so that admin changes to isFeatured/isToday
 // reflect quickly on the public site after a page refresh.
-const CACHE_TTL_MS = 30 * 1000; // 30 seconds - was 5 minutes (caused stale featured/today)
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds
 
 function readCache(key, fallback = []) {
   try {
@@ -54,53 +55,133 @@ function readHeroCache() {
 
 // ── Provider ─────────────────────────────────────────────────────────────────
 export const JobsProvider = ({ children }) => {
-  const jobsCache     = readCache('cache_jobs');
   const companiesCache = readCache('cache_companies');
   const melasCache    = readCache('cache_melas');
   const prepCache     = readCache('cache_prep');
   const heroCache     = readHeroCache();
 
-  const [jobs,       setJobs]       = useState(jobsCache.data);
+  // Freshness-critical Jobs State
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState(null);
+  const [isRefreshingJobs, setIsRefreshingJobs] = useState(false);
+  const [jobsLastUpdated, setJobsLastUpdated] = useState(0);
+
+
+  // Other Domain State (Legacy Cache)
   const [companies,  setCompanies]  = useState(companiesCache.data);
   const [heroImages, setHeroImages] = useState(heroCache.images);
   const [melas,      setMelas]      = useState(melasCache.data);
   const [prepData,   setPrepData]   = useState(prepCache.data);
 
-  // Expose loading so components can show skeletons
-  const [loading, setLoading] = useState(
-    jobsCache.stale || companiesCache.stale || melasCache.stale
+  // Expose loading so components can show skeletons (Legacy for non-jobs)
+  const [otherLoading, setOtherLoading] = useState(
+    companiesCache.stale || melasCache.stale
   );
-  const [error, setError] = useState(null);
+  const [otherError, setOtherError] = useState(null);
+  // Refs for request concurrency and deduplication
+  const requestSequenceRef = useRef(0);
+  const abortControllerRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
+
+  // ── JOBS FRESHNESS ──────────────────────────────────────────────────────────
+  const refreshJobs = useCallback(async (isBackground = false) => {
+    // Increment sequence for strict latest-wins semantics
+    const currentSequence = ++requestSequenceRef.current;
+
+    // Cancel any previous pending request
+    if (abortControllerRef.current) {
+      requestSequenceRef.current++;
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      if (!isBackground && isInitialLoadRef.current) {
+        setJobsLoading(true);
+      }
+      setIsRefreshingJobs(true);
+
+      const res = await axios.get(`${API}/jobs?limit=100`, {
+        signal: controller.signal
+      });
+
+      // Only apply if this is still the active request and not aborted
+      if (!controller.signal.aborted && requestSequenceRef.current === currentSequence) {
+        const finalJobs = Array.isArray(res.data) ? res.data : [];
+        setJobs(finalJobs);
+        setJobsError(null);
+        setJobsLastUpdated(Date.now());
+        isInitialLoadRef.current = false;
+      }
+    } catch (err) {
+      if (!axios.isCancel(err) && !controller.signal.aborted && requestSequenceRef.current === currentSequence) {
+        console.error('Jobs API Error:', err);
+        setJobsError('Failed to load jobs. Check network connection.');
+      }
+    } finally {
+      if (requestSequenceRef.current === currentSequence) {
+        setJobsLoading(false);
+        setIsRefreshingJobs(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    // Skip full refetch if everything is fresh
+    // 1. One-time cleanup of legacy jobs payload cache
+    try {
+      localStorage.removeItem('cache_jobs');
+      sessionStorage.removeItem('cache_jobs');
+    } catch (e) {}
+
+    // 2. Initial fetch for Jobs
+    refreshJobs(false);
+
+    // 3. Listen for cross-tab mutations
+    const unsubscribe = subscribeToFreshness('jobs', () => {
+      refreshJobs(true); // background refresh
+    });
+
+    // 4. Listen for reconnect and focus
+    const handleFocus = () => refreshJobs(true);
+    const handleOnline = () => refreshJobs(true);
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleOnline);
+      if (abortControllerRef.current) {
+        requestSequenceRef.current++;
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [refreshJobs]);
+
+  // ── LEGACY NON-JOBS FETCH ──────────────────────────────────────────────────
+  useEffect(() => {
     const allFresh =
-      !jobsCache.stale && !companiesCache.stale &&
+      !companiesCache.stale &&
       !melasCache.stale && !prepCache.stale && !heroCache.stale;
 
     if (allFresh) {
-      setLoading(false);
+      setOtherLoading(false);
       return;
     }
 
     const fetchPublicData = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setOtherLoading(true);
+        setOtherError(null);
 
-        // Fetch core data in parallel - use limit=100 to cap data volume
-        const [jobsRes, compRes, melasRes, prepRes] = await Promise.all([
-          axios.get(`${API}/jobs?limit=100`).catch(err => ({ error: true, err })),
+        const [compRes, melasRes, prepRes] = await Promise.all([
           axios.get(`${API}/companies?limit=100`).catch(err => ({ error: true, err })),
           axios.get(`${API}/job-mela`).catch(err => ({ error: true, err })),
           axios.get(`${API}/prep-data`).catch(err => ({ error: true, err })),
         ]);
-
-        if (!jobsRes.error) {
-          const finalJobs = Array.isArray(jobsRes.data) ? jobsRes.data : [];
-          setJobs(finalJobs);
-          writeCache('cache_jobs', finalJobs);
-        }
 
         if (!compRes.error) {
           const finalComps = Array.isArray(compRes.data) ? compRes.data : [];
@@ -119,12 +200,11 @@ export const JobsProvider = ({ children }) => {
           setPrepData(finalPrep);
           writeCache('cache_prep', finalPrep);
         }
-
       } catch (err) {
-        console.error('Public API Error:', err);
-        setError('Failed to load data. Showing cached results.');
+        console.error('Public API Error (Non-Jobs):', err);
+        setOtherError('Failed to load data. Showing cached results.');
       } finally {
-        setLoading(false);
+        setOtherLoading(false);
       }
     };
 
@@ -136,7 +216,6 @@ export const JobsProvider = ({ children }) => {
         const imagesOnly = banners.map(b => b.image).filter(Boolean);
         setHeroImages(imagesOnly);
 
-        // Store with TTL stamp - cap at first 3 to stay within localStorage limits
         const toStore = { images: imagesOnly.slice(0, 3), ts: Date.now() };
         try {
           localStorage.setItem('cache_hero_data', JSON.stringify(toStore));
@@ -151,6 +230,7 @@ export const JobsProvider = ({ children }) => {
     fetchPublicData();
     fetchHeroBanners();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fetchCompanyById = async (id) => {
     try {
       const res = await axios.get(`${API}/companies/${id}`);
@@ -172,22 +252,34 @@ export const JobsProvider = ({ children }) => {
   };
 
   const refreshPublicData = async () => {
-    // Clear cache timestamps to force refetch
-    localStorage.removeItem('cache_jobs');
+    // Legacy full-page refresh for non-job data
     localStorage.removeItem('cache_companies');
     localStorage.removeItem('cache_melas');
     localStorage.removeItem('cache_prep');
-    window.location.reload(); // Simplest way to ensure all providers and components sync
+    window.location.reload();
   };
 
+  // Provide memoized value for identity stability
+  const contextValue = useMemo(() => ({
+    jobs, companies, heroImages, melas, prepData,
+    loading: jobsLoading || otherLoading,
+    error: jobsError || otherError,
+    jobsLoading,
+    jobsError,
+    isRefreshingJobs,
+    jobsLastUpdated,
+    refreshJobs,
+    fetchCompanyById,
+    fetchJobsByCompanyId,
+    refreshPublicData,
+  }), [
+    jobs, companies, heroImages, melas, prepData,
+    jobsLoading, otherLoading, jobsError, otherError,
+    isRefreshingJobs, jobsLastUpdated, refreshJobs
+  ]);
+
   return (
-    <JobsContext.Provider value={{
-      jobs, companies, heroImages, melas, prepData,
-      loading, error,
-      fetchCompanyById,
-      fetchJobsByCompanyId,
-      refreshPublicData,
-    }}>
+    <JobsContext.Provider value={contextValue}>
       {children}
     </JobsContext.Provider>
   );

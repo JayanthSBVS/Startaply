@@ -1,6 +1,6 @@
 const express = require('express');
 const cors    = require('cors');
-const { getPool, getMemCache, setMemCache, clearMemCachePrefix, setEdgeCache } = require('./db');
+const { getPool, clearMemCachePrefix } = require('./db');
 
 const { recordActivity } = require('./_shared');
 const cloudinary = require('cloudinary').v2;
@@ -269,9 +269,8 @@ const authMiddleware = (req, res, next) => {
   } catch (err) { res.status(401).json({ error: 'Auth failed' }); }
 };
 
-// ── SET CACHE HEADERS ─────────────────────────────────────────────────────────
-const setCache = (res, sMaxAge = 60, stale = 300) => {
-  res.setHeader('Cache-Control', `s-maxage=${sMaxAge}, stale-while-revalidate=${stale}`);
+const setDynamicNoStore = (res) => {
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
 };
 
 // ── JOBS SELECT (light — excludes heavy text blobs) ───────────────────────────
@@ -296,20 +295,14 @@ function processPublicJobs(rows) {
 }
 
 // ── PAGINATED JOBS HELPER ─────────────────────────────────────────────────────
-async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cacheKeyPrefix = 'jobs_list') {
+async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
   try {
     const page   = Math.max(1, parseInt(req.query.page) || 1);
     const limit  = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
     const search = (req.query.search || '');
     const offset = (page - 1) * limit;
 
-    // Fast 30-second query caching to avoid overloading serverless database connections
-    const cacheKey = `${cacheKeyPrefix}_${page}_${limit}_${search.trim()}_${req.url.replace(/\W/g, '_')}`;
-    const cached   = getMemCache(cacheKey, 30);
-    if (cached) {
-      setEdgeCache(res, 30, 120);
-      return res.json(cached);
-    }
+    setDynamicNoStore(res);
 
     let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
@@ -360,10 +353,6 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
 
     const cleaned = processPublicJobs(rows);
     
-    // Cache the cleaned results for 30s
-    setMemCache(cacheKey, cleaned);
-    setEdgeCache(res, 30, 120);
-    
     res.json(cleaned);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);
@@ -378,15 +367,10 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = [], cac
 // GET search suggestions
 app.get('/api/jobs/search/suggestions', async (req, res) => {
   try {
+    setDynamicNoStore(res);
+
     const { q } = req.query;
     if (!q || q.length < 1) return res.json([]);
-
-    const cacheKey = `sq_${q.toLowerCase()}`;
-    const cached   = getMemCache(cacheKey, 600);
-    if (cached) {
-      setEdgeCache(res, 600, 3600);
-      return res.json(cached);
-    }
 
     const searchTerm = `%${q}%`;
     const { rows } = await pool.query(`
@@ -397,8 +381,6 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
     `, [searchTerm]);
 
     const result = rows.map(r => r.suggestion);
-    setMemCache(cacheKey, result);
-    setEdgeCache(res, 600, 3600);
     res.json(result);
   } catch (err) {
     console.error('[suggestions]', err);
@@ -410,6 +392,7 @@ app.get('/api/jobs/search/suggestions', async (req, res) => {
 // Managers + Op-Managers see ALL jobs. Executives see ALL jobs but get canEdit/canDelete flags.
 app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
   try {
+    setDynamicNoStore(res);
     const role      = req.user.role;
     const isManager = role === 'manager';
     const isOpMgr   = role === 'operational_manager';
@@ -442,10 +425,10 @@ app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
 });
 
 // Split public routes — each hits a specific optimized query
-app.get('/api/jobs/latest',     (req, res) => getPaginatedJobs(req, res, '', [], 'latest'));
-app.get('/api/jobs/featured',   (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', [], 'featured'));
-app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, "isFresh::text = 'true' OR isToday = true", [], 'freshers'));
-app.get('/api/jobs/today',      (req, res) => getPaginatedJobs(req, res, 'isToday = true', [], 'today'));
+app.get('/api/jobs/latest',     (req, res) => getPaginatedJobs(req, res, '', []));
+app.get('/api/jobs/featured',   (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', []));
+app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, "isFresh::text = 'true' OR isToday = true", []));
+app.get('/api/jobs/today',      (req, res) => getPaginatedJobs(req, res, 'isToday = true', []));
 
 app.get('/api/jobs/government', (req, res) => {
   const govtFilter = req.query.govtFilter;
@@ -455,20 +438,20 @@ app.get('/api/jobs/government', (req, res) => {
     addlt += ` AND (govtJobType = $1 OR govtjobtype = $1)`;
     p.push(govtFilter);
   }
-  return getPaginatedJobs(req, res, addlt, p, 'govt');
+  return getPaginatedJobs(req, res, addlt, p);
 });
 
 app.get('/api/jobs/it', (req, res) => {
-  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, [], 'it');
+  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, []);
 });
 
 app.get('/api/jobs/non-it', (req, res) => {
-  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, [], 'nonit');
+  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, []);
 });
 
 // GET all jobs (public paginated — legacy fallback)
 app.get('/api/jobs', (req, res) => {
-  return getPaginatedJobs(req, res, '', [], 'all');
+  return getPaginatedJobs(req, res, '', []);
 });
 
 // GET single job full details

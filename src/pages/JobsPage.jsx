@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Briefcase, Building2, Monitor, GraduationCap,
   Star, Zap, X
@@ -7,6 +7,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
+import { subscribeToFreshness } from '../utils/dataFreshness';
 import axios from 'axios';
 
 // ─── Section definitions ───────────────────────────────────────────────────
@@ -56,8 +57,58 @@ const JobsPage = () => {
   const [loading, setLoading]     = useState(true);
   const [hasMore, setHasMore]     = useState(true);
   const [failed, setFailed]       = useState(false);
+  const [jobsUpdateAvailable, setJobsUpdateAvailable] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [manualRefreshSuccessToken, setManualRefreshSuccessToken] = useState(0);
+
+  const resultsHeadingRef = useRef(null);
+  const isManualRef = useRef(false);
+
+  const requestSequenceRef = useRef(0);
+  const pageRef = useRef(page);
+
+  // Sync page ref
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   const [debouncedSearch, setDebouncedSearch] = useState(init.search);
+
+  // Cross-tab freshness and focus/reconnect listeners
+  useEffect(() => {
+    const triggerRefresh = () => {
+      if (pageRef.current > 1) {
+        setJobsUpdateAvailable(true);
+      } else {
+        setRefreshCounter(c => c + 1);
+      }
+    };
+
+    const unsubscribe = subscribeToFreshness('jobs', triggerRefresh);
+    window.addEventListener('focus', triggerRefresh);
+    window.addEventListener('online', triggerRefresh);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('focus', triggerRefresh);
+      window.removeEventListener('online', triggerRefresh);
+    };
+  }, []);
+
+  // Deterministic post-render focus for manual refresh success
+  useEffect(() => {
+    if (manualRefreshSuccessToken > 0) {
+      if (resultsHeadingRef.current) {
+        try {
+          resultsHeadingRef.current.focus({ preventScroll: true });
+        } catch (e) {
+          resultsHeadingRef.current.focus();
+        }
+      }
+    }
+  }, [manualRefreshSuccessToken]);
 
   useEffect(() => {
     document.title = "Search Jobs | Startaply";
@@ -120,19 +171,32 @@ const JobsPage = () => {
     setDebouncedSearch(search);
   };
 
-  // Reset list when filters change
+  const handleManualRefresh = useCallback(() => {
+    isManualRef.current = true;
+    setIsManualRefreshing(true);
+    setStatusMessage('Refreshing job listings.');
+    setPage(1);
+    setRefreshCounter(c => c + 1);
+  }, []);
+
+  // Reset list when filters change (but NOT on refreshCounter)
   useEffect(() => {
     setPage(1);
     setLocalJobs([]);
     setHasMore(true);
+    setJobsUpdateAvailable(false);
   }, [activeSection, govtFilter, debouncedSearch]);
 
   // Server fetch effect
   useEffect(() => {
-    let isCancelled = false;
+    const currentSequence = ++requestSequenceRef.current;
+    const abortController = new AbortController();
+
     const fetchJobs = async () => {
       if (!hasMore && page > 1) return;
-      setLoading(true);
+      if (page === 1 && localJobs.length === 0) {
+        setLoading(true);
+      }
       setFailed(false);
       try {
         const routeMap = {
@@ -153,21 +217,53 @@ const JobsPage = () => {
           queryParams += `&search=${encodeURIComponent(debouncedSearch)}`;
         }
 
-        const res = await axios.get(`${endpoint}${queryParams}`);
-        if (!isCancelled) {
+        const res = await axios.get(`${endpoint}${queryParams}`, {
+          signal: abortController.signal
+        });
+
+        if (!abortController.signal.aborted && requestSequenceRef.current === currentSequence) {
           const newJobs = Array.isArray(res.data) ? res.data : [];
           if (newJobs.length < 20) setHasMore(false);
-          setLocalJobs(prev => page === 1 ? newJobs : [...prev, ...newJobs]);
+
+          setLocalJobs(prev => {
+            if (page === 1) return newJobs;
+            // Prevent duplicates when appending
+            const existingIds = new Set(prev.map(j => j.id));
+            const uniqueNew = newJobs.filter(j => !existingIds.has(j.id));
+            return [...prev, ...uniqueNew];
+          });
+          setJobsUpdateAvailable(false);
+
+          if (isManualRef.current) {
+            isManualRef.current = false;
+            setIsManualRefreshing(false);
+            setStatusMessage(`Job listings refreshed. Showing ${newJobs.length} results.`);
+            setManualRefreshSuccessToken(t => t + 1);
+          }
         }
       } catch (err) {
-        if (!isCancelled) setFailed(true);
+        if (!axios.isCancel(err) && !abortController.signal.aborted && requestSequenceRef.current === currentSequence) {
+          setFailed(true);
+          if (isManualRef.current) {
+            isManualRef.current = false;
+            setIsManualRefreshing(false);
+            setStatusMessage('Job listings could not be refreshed. Previously loaded results are still shown.');
+          }
+        }
       } finally {
-        if (!isCancelled) setLoading(false);
+        if (requestSequenceRef.current === currentSequence) {
+          setLoading(false);
+        }
       }
     };
     fetchJobs();
-    return () => { isCancelled = true; };
-  }, [activeSection, govtFilter, debouncedSearch, page]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      if (requestSequenceRef.current === currentSequence) {
+        requestSequenceRef.current++;
+      }
+      abortController.abort();
+    };
+  }, [activeSection, govtFilter, debouncedSearch, page, refreshCounter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     return localJobs.filter(job => {
@@ -284,7 +380,11 @@ const JobsPage = () => {
         {/* ── MODE FILTER ─────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-1">
           <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+            <h2
+              ref={resultsHeadingRef}
+              tabIndex={-1}
+              className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"
+            >
               <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
                 <IconComp size={16} />
               </span>
@@ -320,6 +420,45 @@ const JobsPage = () => {
           </div>
         )}
 
+        {/* ── NON-BLOCKING ERROR (WITH EXISTING JOBS) ────────────────── */}
+        {failed && localJobs.length > 0 && (
+          <div role="alert" className="mb-8 p-4 bg-rose-50 dark:bg-rose-900/20 text-rose-800 dark:text-rose-300 rounded-xl border border-rose-200 dark:border-rose-800/40 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4">
+            <span className="text-sm font-medium">We couldn’t refresh job listings. Previously loaded results are still shown.</span>
+            <button
+              onClick={handleManualRefresh}
+              disabled={isManualRefreshing}
+              className="px-4 py-2 min-h-[44px] bg-rose-100 hover:bg-rose-200 dark:bg-rose-800 dark:hover:bg-rose-700 text-rose-800 dark:text-rose-100 text-sm font-bold rounded-lg transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50"
+            >
+              {isManualRefreshing ? 'Retrying...' : 'Retry'}
+            </button>
+          </div>
+        )}
+
+        {/* ── UPDATE AVAILABLE ALERT ────────────────────────────────── */}
+        {jobsUpdateAvailable && (
+          <div
+            className="mb-8 p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 rounded-xl border border-emerald-200 dark:border-emerald-800/40 flex justify-between items-center shadow-sm"
+          >
+            <span className="text-sm font-medium">Listings have changed</span>
+            <button
+              onClick={() => {
+                setJobsUpdateAvailable(false);
+                handleManualRefresh();
+              }}
+              disabled={isManualRefreshing}
+              className="px-4 py-2 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+              aria-label="Refresh job results"
+            >
+              {isManualRefreshing ? 'Refreshing...' : 'Refresh results'}
+            </button>
+          </div>
+        )}
+
+        {/* ── ARIA LIVE STATUS ── */}
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {statusMessage}
+        </div>
+
         {/* ── RESULTS ─────────────────────────────────────────────── */}
         {loading && localJobs.length === 0 ? (
           <div className="flex justify-center items-center py-24">
@@ -352,38 +491,42 @@ const JobsPage = () => {
                 <motion.div
                   key={job.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <JobCard job={job} onViewDetails={setSelectedJob} />
+                  <JobCard job={job} onClick={() => setSelectedJob(job)} />
                 </motion.div>
               ))}
             </AnimatePresence>
           </motion.div>
         )}
 
-        {/* ── PAGINATION ─────────────────────────────────────────────── */}
-        {hasMore && !loading && localJobs.length > 0 && (
-          <div className="mt-12 text-center">
+        {/* ── LOAD MORE ───────────────────────────────────────────── */}
+        {hasMore && localJobs.length > 0 && !loading && (
+          <div className="mt-12 flex justify-center">
             <button
               onClick={() => setPage(p => p + 1)}
-              className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white font-bold py-3 px-8 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm transition-all"
+              className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-8 py-3 rounded-full font-bold shadow-sm border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-2 min-h-[44px]"
             >
-              Load More {activeConfig.label}
+              Load More
             </button>
           </div>
         )}
         {loading && localJobs.length > 0 && (
-          <div className="mt-8 text-center text-emerald-500 font-bold flex justify-center uppercase tracking-widest text-sm items-center gap-2">
-            <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-            Loading...
+          <div className="mt-12 flex justify-center py-4">
+            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </div>
 
-      <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
+      {/* ── DETAILS PANEL ───────────────────────────────────────── */}
+      <AnimatePresence>
+        {selectedJob && (
+          <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
