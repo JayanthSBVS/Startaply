@@ -223,7 +223,11 @@ const JobsPage = () => {
 
         if (!abortController.signal.aborted && requestSequenceRef.current === currentSequence) {
           const newJobs = Array.isArray(res.data) ? res.data : [];
-          if (newJobs.length < 20) setHasMore(false);
+          if (page === 1) {
+            setHasMore(newJobs.length >= 20);
+          } else {
+            if (newJobs.length < 20) setHasMore(false);
+          }
 
           setLocalJobs(prev => {
             if (page === 1) return newJobs;
@@ -442,7 +446,6 @@ const JobsPage = () => {
             <span className="text-sm font-medium">Listings have changed</span>
             <button
               onClick={() => {
-                setJobsUpdateAvailable(false);
                 handleManualRefresh();
               }}
               disabled={isManualRefreshing}

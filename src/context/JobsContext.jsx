@@ -86,14 +86,13 @@ export const JobsProvider = ({ children }) => {
 
   // ── JOBS FRESHNESS ──────────────────────────────────────────────────────────
   const refreshJobs = useCallback(async (isBackground = false) => {
-    // Increment sequence for strict latest-wins semantics
-    const currentSequence = ++requestSequenceRef.current;
-
     // Cancel any previous pending request
     if (abortControllerRef.current) {
-      requestSequenceRef.current++;
       abortControllerRef.current.abort();
     }
+
+    // Increment sequence exactly once for the new request
+    const currentSequence = ++requestSequenceRef.current;
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
@@ -124,6 +123,7 @@ export const JobsProvider = ({ children }) => {
       if (requestSequenceRef.current === currentSequence) {
         setJobsLoading(false);
         setIsRefreshingJobs(false);
+        abortControllerRef.current = null;
       }
     }
   }, []);
@@ -157,6 +157,7 @@ export const JobsProvider = ({ children }) => {
       if (abortControllerRef.current) {
         requestSequenceRef.current++;
         abortControllerRef.current.abort();
+        abortControllerRef.current = null;
       }
     };
   }, [refreshJobs]);

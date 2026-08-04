@@ -458,19 +458,12 @@ app.get('/api/jobs', (req, res) => {
 app.get('/api/jobs/:id/view', async (req, res) => {
   try {
     const { id } = req.params;
-    const cacheKey = `job_full_${id}`;
-    const cached   = getMemCache(cacheKey, 60);
-    if (cached) {
-      setEdgeCache(res, 60, 300);
-      return res.json(cached);
-    }
+    setDynamicNoStore(res);
 
     const { rows } = await pool.query('SELECT * FROM jobs WHERE id = $1', [id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Not found' });
 
     const maxJob = mapRow(rows[0]);
-    setMemCache(cacheKey, maxJob);
-    setEdgeCache(res, 60, 300);
     res.json(maxJob);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

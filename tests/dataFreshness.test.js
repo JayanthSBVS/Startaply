@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   createFreshnessMessage,
   isValidFreshnessMessage,
@@ -260,4 +263,18 @@ test('dataFreshness pure router', async (t) => {
 
     assert.ok(deduper._getSize() <= 5);
   });
+});
+
+test('api jobs freshness routes contain no legacy cache calls', async () => {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const apiPath = path.join(__dirname, '../api/jobs.js');
+  const content = fs.readFileSync(apiPath, 'utf8');
+
+  const noComments = content.replace(/\/\/.*$/gm, '');
+
+  assert.equal(noComments.includes('getMemCache('), false);
+  assert.equal(noComments.includes('setMemCache('), false);
+  assert.equal(noComments.includes('setEdgeCache('), false);
+  assert.equal(noComments.includes('stale-while-revalidate'), false);
 });
