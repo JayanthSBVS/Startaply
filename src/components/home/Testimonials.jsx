@@ -76,8 +76,8 @@ const DesktopBubble = ({ t, className, index }) => {
   );
 };
 
-// â”€â”€â”€ Mobile: bubble composition (NOT a carousel) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Layout: Featured bubble (full-width, prominent) + 2Ã—2 mini bubbles below
+// ─── Mobile: bubble composition (NOT a carousel) ───────────────────────────
+// Layout: Featured bubble (full-width, prominent) + 2×2 mini bubbles below
 // Preserves the "floating social proof" identity in a mobile-native composition
 const MobileBubbleComposition = ({ testimonials }) => {
   const [activeFeatured, setActiveFeatured] = useState(0);
@@ -87,7 +87,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
 
   return (
     <div className="md:hidden px-4 pb-8 pt-4 space-y-4 relative z-20">
-      {/* â”€â”€ Featured Bubble â”€â”€ */}
+      {/* ── Featured Bubble ── */}
       <motion.div
         key={activeFeatured}
         initial={{ opacity: 0, y: 12 }}
@@ -121,7 +121,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
         </div>
       </motion.div>
 
-      {/* â”€â”€ 2Ã—2 Mini Bubble Grid â”€â”€ */}
+      {/* ── 2×2 Mini Bubble Grid ── */}
       <div className="grid grid-cols-2 gap-3">
         {secondaries.map((t, i) => {
           const realIndex = testimonials.indexOf(t);
@@ -158,7 +158,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
         })}
       </div>
 
-      {/* â”€â”€ Tap-to-feature hint â”€â”€ */}
+      {/* ── Tap-to-feature hint ── */}
       <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pt-1">
         Tap a card to read more
       </p>
@@ -217,12 +217,12 @@ const Testimonials = () => {
         </motion.p>
       </div>
 
-      {/* â”€â”€ MOBILE: Bubble Composition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── MOBILE: Bubble Composition ──────────────────────────────────── */}
       {!loading && testimonials.length > 0 && (
         <MobileBubbleComposition testimonials={testimonials} />
       )}
 
-      {/* â”€â”€ DESKTOP: Original orbit layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── DESKTOP: Original orbit layout ─────────────────────────────── */}
       <div className="hidden md:block relative max-w-[1400px] mx-auto px-4 md:px-8 min-h-[900px]">
         {/* Central Headline Anchor */}
         <motion.div

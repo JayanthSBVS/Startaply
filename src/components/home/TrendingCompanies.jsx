@@ -32,6 +32,8 @@ const TrendingCompanies = () => {
   const stream2 = repeatToCount(companies, targetDesktopCards).reverse();
 
   const DesktopCompanyCard = ({ company, isDuplicate }) => (
+    // Note: DesktopCompanyCard has no focusable interactive children (no <a href> or <button>),
+    // so no tab-index correction is necessary when it's rendered in an aria-hidden duplicate track.
     <div
       className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0"
       aria-hidden={isDuplicate ? "true" : undefined}
@@ -132,29 +134,18 @@ const TrendingCompanies = () => {
         </Link>
       </div>
 
-      {/* â”€â”€ MOBILE: Auto-scrolling row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── MOBILE: Manual scrolling unique companies ── */}
       <div className="md:hidden relative z-10 overflow-hidden pb-4">
         <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#020617] to-transparent pointer-events-none z-10" />
         <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#020617] to-transparent pointer-events-none z-10" />
-        <div
-          className={isReducedMotion ? "flex overflow-x-auto no-scrollbar" : "companies-track"}
-          style={{
-            animationDuration: '25s',
-            animationPlayState: shouldAnimate ? 'running' : 'paused',
-            animation: isReducedMotion ? 'none' : undefined
-          }}
-        >
-          {isReducedMotion
-            ? mobileCompanies.map((company, i) => (
-                <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} isDuplicate={false} />
-              ))
-            : stream1.slice(0, 15).map((company, i) => (
-                <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} isDuplicate={i >= companies.length} />
-              ))}
+        <div className="flex overflow-x-auto no-scrollbar">
+          {mobileCompanies.map((company, i) => (
+            <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} isDuplicate={false} />
+          ))}
         </div>
       </div>
 
-      {/* â”€â”€ DESKTOP: Marquee tracks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── DESKTOP: Marquee tracks ── */}
       <div className="hidden md:flex relative z-10 flex-col gap-5 pb-10">
         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#020617] to-transparent z-20 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#020617] to-transparent z-20 pointer-events-none" />
@@ -175,9 +166,9 @@ const TrendingCompanies = () => {
           </div>
         </div>
 
-        {/* Track 2 - RTL */}
+        {/* Track 2 - RTL (Entire track is decorative) */}
         {!isReducedMotion && (
-          <div className="overflow-hidden">
+          <div className="overflow-hidden" aria-hidden="true">
             <div
               className="companies-track-reverse"
               style={{
@@ -185,7 +176,7 @@ const TrendingCompanies = () => {
                 animationPlayState: shouldAnimate ? 'running' : 'paused'
               }}
             >
-              {stream2.map((company, i) => <DesktopCompanyCard key={`${company.id}-2-${i}`} company={company} isDuplicate={i >= companies.length} />)}
+              {stream2.map((company, i) => <DesktopCompanyCard key={`${company.id}-2-${i}`} company={company} isDuplicate={true} />)}
             </div>
           </div>
         )}

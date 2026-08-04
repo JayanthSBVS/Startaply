@@ -24,14 +24,14 @@ Duplicate DOM nodes are expensive for styling and layout calculations.
 
 ### Trending Companies
 - **Before:** Unconditionally duplicated the `companies` array to 20 items per track (40 items total), even if the array already contained many items.
-- **After:** Duplication is bounded. The target is explicitly set to `Math.max(15, companies.length)` items to ensure enough coverage for ultrawide screens (approx 4680px width) without unbounded bloat. 
+- **After:** Duplication is bounded using `COMPANY_TRACK_MIN=8` and `COMPANY_TRACK_MAX=12`. For the current 6-company dataset, this produces 8 items per track, resulting in 16 animated desktop cards total. Mobile uses a unique manually scrollable list with no marquee tracking or duplication.
 - **Accessibility:** Duplicated visual copies are explicitly marked with `aria-hidden="true"`.
 
 ### Job Mela Ticker
 - **Before (Secondary Ticker):** Unconditionally duplicated to 30 copies, regardless of the array size.
-- **After (Secondary Ticker):** Bounded to `Math.max(15, tickerArray.length)`.
+- **After (Secondary Ticker):** Bounded using `TICKER_SECONDARY_MIN=8` and `TICKER_SECONDARY_MAX=16`. Mobile/Reduced-Motion uses `staticMode`, disabling all animations, marquees, pinging dots, and showing a unique horizontal list.
 - **Before (Primary Ticker):** 4 copies unconditionally.
-- **After (Primary Ticker):** 1 copy (no animation) for reduced-motion, otherwise 4 copies.
+- **After (Primary Ticker):** 1 copy (no animation) for reduced-motion/mobile, otherwise 2 copies for animated desktop.
 - **Accessibility:** Duplicated visual copies are explicitly marked with `aria-hidden="true"`.
 
 ## Remaining Risks

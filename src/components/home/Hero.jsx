@@ -181,7 +181,7 @@ const Hero = () => {
         ))}
       </motion.div>
 
-      {/* â”€â”€ Main Headline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Main Headline ────────────────────────────────────── */}
       <motion.h1
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -193,7 +193,7 @@ const Hero = () => {
         <span className="text-gradient-emerald-cyan">Best Early Talent Roles</span>
       </motion.h1>
 
-      {/* â”€â”€ Subheading - truncated on mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Subheading - truncated on mobile ────────────────────────── */}
       <motion.p
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -203,7 +203,7 @@ const Hero = () => {
         Explore startup hiring drives, verified openings, internships, and fast-growing companies - all verified, all free, all on one platform.
       </motion.p>
 
-      {/* â”€â”€ Search Command Center â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Search Command Center ───────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -211,7 +211,7 @@ const Hero = () => {
         className="w-full max-w-2xl relative"
         ref={dropdownRef}
       >
-        {/* â”€â”€ MOBILE Search: Premium single-row discovery bar â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── MOBILE Search: Premium single-row discovery bar ──────── */}
         <div className="sm:hidden relative">
           <div className="relative flex items-center bg-white/12 border border-white/25 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] focus-within:bg-white/18 focus-within:border-emerald-400/60 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_3px_rgba(16,185,129,0.15)] transition-all duration-300">
             {/* Search icon - left side */}
@@ -244,7 +244,7 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* â”€â”€ DESKTOP Search: Full inline layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── DESKTOP Search: Full inline layout ─────────────────────── */}
         <div className="hidden sm:block relative">
           <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-emerald-500/40 focus-within:border-emerald-500/40 transition-all duration-300 overflow-hidden">
             <div className="flex items-center pl-4">
@@ -286,7 +286,7 @@ const Hero = () => {
             >
               <div className="px-4 py-2 mb-1 flex items-center justify-between border-b border-white/5">
                 <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Suggestions</span>
-                <span className="text-[9px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded">â†µ to select</span>
+                <span className="text-[9px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded">↵ to select</span>
               </div>
               {suggestions.map((suggestion, index) => (
                 <button
@@ -309,7 +309,7 @@ const Hero = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* â”€â”€ CTA Buttons Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── CTA Buttons Row ───────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -321,11 +321,11 @@ const Hero = () => {
           className="font-bold text-sm text-white/80 hover:text-white transition-colors active:opacity-70"
           style={{ minHeight: '44px' }}
         >
-          Upcoming Job Melas â†’
+          Upcoming Job Melas →
         </button>
       </motion.div>
 
-      {/* â”€â”€ Trust Strip - horizontal scroll on mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Trust Strip - horizontal scroll on mobile ─────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { shouldRunContinuousMotion } from '../utils/motionPolicy';
 
 function useMediaQuery(query) {
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia(query).matches;
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
@@ -30,7 +33,7 @@ export function usePageActivity(sectionRef) {
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
   
   const isReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   // Track document visibility
   useEffect(() => {
