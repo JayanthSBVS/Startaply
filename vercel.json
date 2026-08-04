@@ -105,7 +105,7 @@
     },
     {
       "src": "/api/live-ticker",
-      "dest": "/backend/server.js"
+      "dest": "/api/live-ticker.js"
     },
     {
       "src": "/api/collabs/(.*)",
