@@ -2,7 +2,7 @@
 
 ## APPROVED: Authoritative Momentum with Human Warmth
 
-**Design Thesis:** 
+**Design Thesis:**
 Startaply is a serious career-building platform, not a flashy crypto product, but it must remain welcoming to early-career seekers. This hybrid direction merges structural clarity with reassuring human touches. It projects both speed and safety.
 
 **Direction A supplies:**
@@ -38,9 +38,9 @@ Premium quality must come from hierarchy, typography, spacing, alignment, conten
 
 ## Explored Alternative: Direction A (Pure Authoritative Momentum)
 
-**Design Thesis:** 
+**Design Thesis:**
 Relies purely on high-contrast typography, sharp structural containers, and deep blacks to communicate authority and trust, akin to a premium fintech application.
-*(Status: Superceded by the hybrid approach)*
+*(Status: Superseded by the hybrid approach)*
 
 ---
 
@@ -48,4 +48,4 @@ Relies purely on high-contrast typography, sharp structural containers, and deep
 
 **Design Thesis:**
 Uses softer edges, warmer off-white backgrounds, and gentle tonal elevations to create a welcoming, less intimidating environment akin to modern productivity tools.
-*(Status: Superceded by the hybrid approach)*
+*(Status: Superseded by the hybrid approach)*

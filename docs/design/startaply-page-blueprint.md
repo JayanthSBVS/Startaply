@@ -78,7 +78,7 @@
 ## 3. Batch 3A Blueprint (Global visual foundation and shell)
 
 **Scope:**
-Batch 3A focuses strictly on the global visual foundation and shell. It must not redesign Homepage sections yet. 
+Batch 3A focuses strictly on the global visual foundation and shell. It must not redesign Homepage sections yet.
 *(Batch 3B will be Homepage sections; Batch 3C will be Jobs discovery and job details).*
 
 **Files likely affected:**
