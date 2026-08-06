@@ -12,6 +12,9 @@ import { compressImage } from '../../utils/imageCompression';
 const AdminPermissions = React.memo(({ 
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
+  const { ROLE_CONFIG, permissions } = data || {};
+  const { permForm, setPermForm, permSaving, setPermSaving, permSeeded, setPermSeeded } = formState || {};
+  const { fetchData, showMsg, refreshPermissions } = handlers || {};
   return (
     <>
             <div className="animate-in fade-in slide-in-from-bottom-5 space-y-8">

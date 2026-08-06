@@ -1,8 +1,8 @@
 import React from 'react';
 import { 
-  Plus, Edit3, Trash2, CheckCircle, XCircle, Search, Settings, FileText, 
-  Users, Briefcase, Calendar, MessageSquare, ArrowRight, Activity, Handshake, 
-  Mail, X, Image as ImageIcon, MapPin, DollarSign, Building, AlertCircle, RefreshCw, Eye, MoveUp, MoveDown, Info, Shield, ShieldAlert, Key, Loader, Unlock, UploadCloud, PlayCircle, BarChart2
+  Plus, Edit3, Trash2, CheckCircle, CheckCircle2, XCircle, Search, Settings, FileText, 
+  Users, Users2, Briefcase, Calendar, MessageSquare, ArrowRight, Activity, Handshake, 
+  Mail, X, Image as ImageIcon, MapPin, DollarSign, Building, Building2, AlertCircle, RefreshCw, Eye, MoveUp, MoveDown, Info, Shield, ShieldAlert, ShieldCheck, Key, Loader, Unlock, UploadCloud, PlayCircle, BarChart2, TrendingUp, History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { inputCls, selectCls, textareaCls, ROLE_CONFIG } from './adminConstants';
@@ -12,6 +12,7 @@ import { compressImage } from '../../utils/imageCompression';
 const AdminGlobalStats = React.memo(({ 
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
+  const { globalStats, jobs = [], applications = [], companies = [], admins = [] } = data || {};
   return (
     <>
             <div className="animate-in fade-in slide-in-from-bottom-5 space-y-10">

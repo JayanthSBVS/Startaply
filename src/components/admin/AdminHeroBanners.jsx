@@ -12,6 +12,8 @@ import { compressImage } from '../../utils/imageCompression';
 const AdminHeroBanners = React.memo(({ 
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
+  const { heroBanners } = data || {};
+  const { fetchData, confirmAction, showMsg, handleImageCompression } = handlers || {};
   return (
     <>
             <div className="animate-in fade-in slide-in-from-bottom-5 max-w-4xl mx-auto space-y-8">

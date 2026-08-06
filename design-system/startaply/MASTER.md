@@ -42,7 +42,7 @@
 - **Warm-Neutral Surface:** `Off-White:#FAFAFA`
 - **Emerald Brand:** `50:#ECFDF5`, `400:#34D399`, `500:#10B981`, `600:#059669`, `700:#047857`, `800:#065F46`
 - **Blue (Info/Focus):** `50:#EFF6FF`, `500:#3B82F6`, `600:#2563EB`
-- **Amber (Warning):** `50:#FFFBEB`, `500:#F59E0B`, `600:#D97706`
+- **Amber (Warning):** `50:#FFFBEB`, `500:#F59E0B`, `600:#D97706`, `700:#B45309`
 - **Rose/Red (Error):** `50:#FEF2F2`, `500:#EF4444`, `600:#DC2626`
 
 ### B. Semantic Light Tokens
@@ -55,13 +55,13 @@
 - `--color-text-muted`: `#64748B`
 - `--color-border`: `#E2E8F0`
 - `--color-border-strong`: `#CBD5E1`
-- `--color-brand`: `#059669`
-- `--color-brand-hover`: `#047857`
+- `--color-brand`: `#047857`
+- `--color-brand-hover`: `#065F46`
 - `--color-brand-soft`: `#ECFDF5`
 - `--color-on-brand`: `#FFFFFF`
 - `--color-focus`: `#3B82F6`
-- `--color-success`: `#10B981`
-- `--color-warning`: `#F59E0B`
+- `--color-success`: `#047857`
+- `--color-warning`: `#B45309`
 - `--color-error`: `#DC2626`
 - `--color-info`: `#2563EB`
 - `--color-overlay`: `rgba(15, 23, 42, 0.4)`
@@ -90,13 +90,15 @@
 ### Contrast Intent Table
 | Pairing | Intent | Calculated Ratio | WCAG 2.1 Result |
 |---|---|---|---|
-| Light: text on bg | Primary Body | ~15.9:1 (Slate 900 / White) | Pass AAA |
-| Light: text-secondary on bg | Secondary Text | ~5.1:1 (Slate 600 / White) | Pass AA |
-| Light: text-muted on bg | Muted Text | ~4.5:1 (Slate 500 / White) | Pass AA |
-| Light: on-brand on brand | Primary Button | ~3.5:1 (White / Emerald 600) | Fail AA Normal, Pass AA Large. *(Note: Use Emerald 700 for 5.09:1 if strict AA normal is required)* |
-| Dark: text on bg | Primary Body | ~17.5:1 (Slate 50 / Black) | Pass AAA |
-| Dark: text-muted on bg | Muted Text | ~4.7:1 (Slate 400 / Black) | Pass AA |
-| Dark: on-brand on brand | Primary Button | ~10.4:1 (Slate 950 / Emerald 500) | Pass AAA |
+| Light: text on bg | Primary Body | 17.85:1 (Slate-900 / White) | Pass AAA |
+| Light: text-secondary on bg | Secondary Text | 7.58:1 (Slate-600 / White) | Pass AAA |
+| Light: text-muted on bg | Muted Text | 4.76:1 (Slate-500 / White) | Pass AA |
+| Light: on-brand on brand | Primary Button | 5.48:1 (White / Emerald-700) | Pass AA |
+| Light: warning on bg | Warning Text | 4.90:1 (Amber-700 / White) | Pass AA |
+| Dark: text on bg | Primary Body | 20.07:1 (Slate-50 / Black) | Pass AAA |
+| Dark: text-muted on bg | Muted Text | 8.19:1 (Slate-400 / Black) | Pass AAA |
+| Dark: on-brand on brand | Primary Button | 7.95:1 (Slate-950 / Emerald-500) | Pass AAA |
+
 
 ## 4. Typography Tokens
 

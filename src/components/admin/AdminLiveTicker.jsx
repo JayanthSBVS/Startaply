@@ -12,6 +12,9 @@ import { compressImage } from '../../utils/imageCompression';
 const AdminLiveTicker = React.memo(({ 
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
+  const { liveTickerItems } = data || {};
+  const { tickerForm, setTickerForm } = formState || {};
+  const { fetchData, confirmAction, showMsg } = handlers || {};
   return (
     <>
             <div className="animate-in fade-in slide-in-from-bottom-5 max-w-4xl mx-auto space-y-8">

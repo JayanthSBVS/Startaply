@@ -12,6 +12,8 @@ import { compressImage } from '../../utils/imageCompression';
 const AdminActivityLogs = React.memo(({ 
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
+  const { logs } = data || {};
+  const { fetchData, confirmAction } = handlers || {};
   return (
     <>
             <div className="animate-in fade-in slide-in-from-bottom-5">

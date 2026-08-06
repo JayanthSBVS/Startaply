@@ -12,6 +12,8 @@ import { compressImage } from '../../utils/imageCompression';
 const AdminCollabs = React.memo(({ 
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
+  const { collabRequests } = data || {};
+  const { fetchData, confirmAction } = handlers || {};
   return (
     <>
             <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="space-y-6">
