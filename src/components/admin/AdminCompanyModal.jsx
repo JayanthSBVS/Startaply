@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, X, Zap } from 'lucide-react';
+import { Building2, X, Zap, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { inputCls, selectCls } from './adminConstants';
 import axios from 'axios';

@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   Plus, Edit3, Trash2, CheckCircle, XCircle, Search, Settings, FileText, 
   Users, Briefcase, Calendar, MessageSquare, ArrowRight, Activity, Handshake, 
-  Mail, X, Image as ImageIcon, MapPin, DollarSign, Building, AlertCircle, RefreshCw, Eye, MoveUp, MoveDown, Info, Shield, ShieldAlert, Key, Loader, Unlock, UploadCloud, PlayCircle, BarChart2
+  Mail, X, Image as ImageIcon, MapPin, DollarSign, Building, AlertCircle, RefreshCw, Eye, MoveUp, MoveDown, Info, Shield, ShieldAlert, Key, Loader, Unlock, UploadCloud, PlayCircle, BarChart2, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { inputCls, selectCls, textareaCls, ROLE_CONFIG } from './adminConstants';
