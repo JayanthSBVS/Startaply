@@ -378,7 +378,7 @@ const AdminDashboard = () => {
             <AdminCollabs 
               data={{ collabRequests }}
               formState={{}}
-              handlers={{}}
+              handlers={{ fetchData, confirmAction, showMsg }}
               API={API} userProfile={user} getConfig={getConfig} toast={toast} safeGet={null} isManager={isManager}
             />
           )}
@@ -386,7 +386,7 @@ const AdminDashboard = () => {
             <AdminFeedback 
               data={{ feedbacks }}
               formState={{}}
-              handlers={{ fetchData, confirmAction }}
+              handlers={{ fetchData, confirmAction, showMsg }}
               API={API} userProfile={user} getConfig={getConfig} toast={toast} safeGet={null} isManager={isManager}
             />
           )}
@@ -410,7 +410,7 @@ const AdminDashboard = () => {
             <AdminActivityLogs 
               data={{ logs }}
               formState={{}}
-              handlers={{}}
+              handlers={{ fetchData, confirmAction, showMsg }}
               API={API} userProfile={user} getConfig={getConfig} toast={toast} safeGet={null} isManager={isManager}
             />
           )}
@@ -434,7 +434,7 @@ const AdminDashboard = () => {
             <AdminGlobalStats 
               data={{ globalStats }}
               formState={{}}
-              handlers={{}}
+              handlers={{ fetchData, confirmAction, showMsg }}
               API={API} userProfile={user} getConfig={getConfig} toast={toast} safeGet={null} isManager={isManager}
             />
           )}
