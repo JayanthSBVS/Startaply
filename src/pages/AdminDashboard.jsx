@@ -50,7 +50,7 @@ const getRoleConfig  = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.operational_ex
 const getRoleLabel   = (role) => getRoleConfig(role).label;
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, logout, isManager, isOpManager, isExecutive, canDo, permissions, refreshPermissions } = useAuth();
+  const { user, logout, isManager, isOpManager, isExecutive, canDo, permissions, refreshPermissions: authRefreshPermissions } = useAuth();
   const getConfig = () => {
     const token = localStorage.getItem('startaply_token');
     // Guard: never send Authorization header with null/undefined token (avoids 401 spam)
@@ -124,20 +124,32 @@ const AdminDashboard = () => {
   // Team Management state
   const [teamForm, setTeamForm] = useState({ name: '', email: '', password: '', role: 'operational_executive', department: '', mobile: '', joinedAt: '' });
   const [showTeamModal, setShowTeamModal] = useState(false);
-  // Role Permissions state - keyed by role name
   const [permForm, setPermForm] = useState({});
   const [permSaving, setPermSaving] = useState({});
-  // Track if permForm has been seeded from server data for each role
   const [permSeeded, setPermSeeded] = useState({});
+  const [myPermissions, setMyPermissions] = useState(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [companySearch, setCompanySearch] = useState('');
   const [showCompanyList, setShowCompanyList] = useState(false);
+
+  const fetchMyPermissions = useCallback(async () => {
+    const token = localStorage.getItem('startaply_token');
+    if (!token || token === 'null' || token === 'undefined') return;
+    try {
+      const res = await axios.get(`${API}/auth/my-permissions`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res?.data) setMyPermissions(res.data);
+    } catch (err) {
+      console.error('[fetchMyPermissions]', err);
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem('startaply_token');
     if (!token || token === 'null' || token === 'undefined') {
       navigate('/admin-login');
       return;
     }
+    fetchMyPermissions();
     const storedUser = JSON.parse(localStorage.getItem('startaply_user') || '{}');
     const currentIsManager = storedUser?.role === 'manager' || storedUser?.email === 'manager@startaply.com';
     const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -174,8 +186,8 @@ const AdminDashboard = () => {
           safeGet(`${API}/jobs/admin/list`, config),
           safeGet(`${API}/companies/admin/list`, config)
         ]);
-        setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
-        setCompanies(Array.isArray(compsRes.data) ? compsRes.data : []);
+        if (jobsRes?.data) setJobs(Array.isArray(jobsRes.data) ? jobsRes.data : []);
+        if (compsRes?.data) setCompanies(Array.isArray(compsRes.data) ? compsRes.data : []);
       } else if (activeTab === 'applications') {
         const res = await safeGet(`${API}/jobs/applications/all`, config);
         setApplications(Array.isArray(res.data) ? res.data : []);
@@ -189,16 +201,14 @@ const AdminDashboard = () => {
         const res = await safeGet(`${API}/prep-data/admin/list`, config);
         setPrepData(Array.isArray(res.data) ? res.data : []);
       } else if (activeTab === 'testimonials') {
-        const res = await safeGet(`${API}/testimonials/admin/list`, config);
+        const res = await safeGet(`${API}/testimonials`, config);
         setTestimonials(Array.isArray(res.data) ? res.data : []);
       } else if (activeTab === 'support') {
-        const res = await safeGet(`${API}/support`, config);
+        const res = await safeGet(`${API}/support/tickets`, config);
         setSupportTickets(Array.isArray(res.data) ? res.data : []);
       } else if (activeTab === 'liveticker') {
-        // Ticker is accessible to all admin roles
-        const tickerRes = await safeGet(`${API}/live-ticker`, config).catch(() => ({ data: [] }));
+        const tickerRes = await safeGet(`${API}/live-ticker`, config);
         if (tickerRes?.data) setLiveTickerItems(Array.isArray(tickerRes.data) ? tickerRes.data : []);
-        // Also fetch manager-only data in parallel if manager
         if (currentIsManager) {
           const [statsRes, logsRes, adminsRes] = await Promise.all([
             safeGet(`${API}/auth/stats`, config, null),
@@ -231,9 +241,14 @@ const AdminDashboard = () => {
         console.error('[Dashboard fetch error]', err.message);
       }
     }
-  }, [activeTab, navigate, logout]);
+  }, [activeTab, navigate, logout, fetchMyPermissions]);
+
+  const refreshPermissions = useCallback(() => {
+    fetchData();
+    fetchMyPermissions();
+  }, [fetchData, fetchMyPermissions]);
+
   useEffect(() => {
-    // Global axios interceptor for 401/403 responses
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -256,7 +271,6 @@ const AdminDashboard = () => {
       return;
     }
     fetchData();
-    // Fallback polling every 45s - optimized for activeTab targeted fetching
     const pollInterval = setInterval(() => {
       fetchData();
     }, 45000);
@@ -276,22 +290,19 @@ const AdminDashboard = () => {
       toast.error("Database sync failed.");
     });
   };
-  const handleJobSubmit = async () => {
+  const handleJobSubmit = async (e) => {
+    e.preventDefault();
+    if (!jobForm.title || !jobForm.company) {
+      toast.error('Job Title and Company are required');
+      return;
+    }
     try {
-      // Validation
-      if (!jobForm.title) return toast.error('Job Title is required');
-      if (!jobForm.jobCategory) return toast.error('Category is required');
-      if (jobForm.jobCategory !== 'Government Jobs' && !jobForm.companyId) {
-        return toast.error('Please select or create a company');
-      }
-      // Ensure category maps perfectly to DB schema
-      const payload = { ...jobForm, category: jobForm.jobCategory };
       let newJobId = editingJobId;
       if (editingJobId) {
-        await axios.put(`${API}/jobs/${editingJobId}`, payload, getConfig());
+        await axios.put(`${API}/jobs/${editingJobId}`, jobForm, getConfig());
         showMsg('Job Updated');
       } else {
-        const res = await axios.post(`${API}/jobs`, payload, getConfig());
+        const res = await axios.post(`${API}/jobs`, jobForm, getConfig());
         newJobId = res.data?.id || res.data?.job?.id || null;
         showMsg('Job Published');
       }
@@ -310,11 +321,24 @@ const AdminDashboard = () => {
     });
   };
   
+  const isMgr = isManager();
+  const perms = myPermissions || {};
+
+  const renderAccessDenied = (featureTitle) => (
+    <div className="bg-white dark:bg-slate-900/40 border border-amber-500/20 rounded-[2.5rem] p-12 text-center space-y-4 max-w-xl mx-auto mt-10 shadow-2xl">
+      <div className="w-16 h-16 bg-amber-500/10 rounded-3xl flex items-center justify-center mx-auto text-amber-500">
+        <Lock size={32} />
+      </div>
+      <h3 className="text-2xl font-black text-slate-900 dark:text-white">{featureTitle} Access Restricted</h3>
+      <p className="text-sm font-bold text-slate-500">
+        Your role does not currently have permission to access {featureTitle.toLowerCase()}. Please contact a Manager to grant access in Role Permissions.
+      </p>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#0b0f14] flex text-slate-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300">
-      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} />
-      {/* Main Content */}
-{/* Main Content */}
+      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} myPermissions={myPermissions} />
       <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-[#0b0f14]">
         <AdminHeader 
           activeTab={activeTab} setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -329,13 +353,15 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'add' && (
-            <AdminJobForm 
-              jobForm={jobForm} setJobForm={setJobForm} editingJobId={editingJobId}
-              companySearch={companySearch} setCompanySearch={setCompanySearch}
-              showCompanyList={showCompanyList} setShowCompanyList={setShowCompanyList}
-              companies={companies} setIsCompanyModalOpen={setIsCompanyModalOpen}
-              handleJobSubmit={handleJobSubmit}
-            />
+            (!isMgr && perms.can_post_job === false) ? renderAccessDenied('Post Job') : (
+              <AdminJobForm 
+                jobForm={jobForm} setJobForm={setJobForm} editingJobId={editingJobId}
+                companySearch={companySearch} setCompanySearch={setCompanySearch}
+                showCompanyList={showCompanyList} setShowCompanyList={setShowCompanyList}
+                companies={companies} setIsCompanyModalOpen={setIsCompanyModalOpen}
+                handleJobSubmit={handleJobSubmit}
+              />
+            )
           )}
           {activeTab === 'manage' && (
             <AdminManageJobs 
@@ -345,32 +371,40 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'applications' && (
-            <AdminApplications 
-              applications={applications} confirmAction={confirmAction}
-              fetchData={fetchData} showMsg={showMsg} getConfig={getConfig}
-            />
+            (!isMgr && perms.can_view_applicants === false) ? renderAccessDenied('Applications') : (
+              <AdminApplications 
+                applications={applications} confirmAction={confirmAction}
+                fetchData={fetchData} showMsg={showMsg} getConfig={getConfig}
+              />
+            )
           )}
           {activeTab === 'companies' && (
-            <AdminCompanies 
-              companies={companies} companyForm={companyForm} setCompanyForm={setCompanyForm}
-              getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
-              confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
-              userProfile={user} isManager={isManager}
-            />
+            (!isMgr && perms.can_manage_companies === false) ? renderAccessDenied('Companies') : (
+              <AdminCompanies 
+                companies={companies} companyForm={companyForm} setCompanyForm={setCompanyForm}
+                getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
+                confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
+                userProfile={user} isManager={isManager}
+              />
+            )
           )}
           {activeTab === 'jobmela' && (
-            <AdminJobMela 
-              melas={melas} melaForm={melaForm} setMelaForm={setMelaForm}
-              getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
-              confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
-            />
+            (!isMgr && perms.can_manage_mela === false) ? renderAccessDenied('Job Fair') : (
+              <AdminJobMela 
+                melas={melas} melaForm={melaForm} setMelaForm={setMelaForm}
+                getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
+                confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
+              />
+            )
           )}
           {activeTab === 'prep' && (
-            <AdminPrepData 
-              prepData={prepData} prepForm={prepForm} setPrepForm={setPrepForm}
-              getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
-              confirmAction={confirmAction} API={API}
-            />
+            (!isMgr && perms.can_manage_prep === false) ? renderAccessDenied('Preparation Material') : (
+              <AdminPrepData 
+                prepData={prepData} prepForm={prepForm} setPrepForm={setPrepForm}
+                getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
+                confirmAction={confirmAction} API={API}
+              />
+            )
           )}
           {activeTab === 'testimonials' && (
             <AdminTestimonials 

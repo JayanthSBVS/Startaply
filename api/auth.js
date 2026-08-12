@@ -306,17 +306,25 @@ app.get('/api/auth/logs', authMiddleware, managerMiddleware, async (req, res) =>
   } catch (err) { res.status(500).json({ error: 'Server error' }); }
 });
 
+// GET active user's permissions
+app.get('/api/auth/my-permissions', authMiddleware, async (req, res) => {
+  try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.json(perms);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch permissions' });
+  }
+});
+
 // GET role permissions (any authenticated user — each sees their own role's config)
 app.get('/api/auth/permissions', authMiddleware, async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     await initAuthDb(); // Ensure tables are ready
-    const cacheKey = 'role_perms_all';
-    const cached = getMemCache(cacheKey, 30);
-    if (cached) return res.json(cached);
-
     const { rows } = await pool.query('SELECT * FROM role_permissions ORDER BY role');
     const result = Array.isArray(rows) ? rows : [];
-    setMemCache(cacheKey, result);
     res.json(result);
   } catch (err) {
     console.error('[Permissions fetch error]', err);

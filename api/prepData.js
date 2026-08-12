@@ -93,6 +93,12 @@ app.get('/api/prep-data', async (req, res) => {
 
 app.post('/api/prep-data', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_prep) {
+      return res.status(403).json({ error: 'Access denied: Manage Prep Content permission is disabled for your role.' });
+    }
+
     const { heading, jobType, content, contentType, fileUrl, question, answer } = req.body;
     const id = String(Date.now());
     const type = contentType || 'article';
@@ -112,6 +118,12 @@ app.post('/api/prep-data', authMiddleware, async (req, res) => {
 
 app.delete('/api/prep-data/:id', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_prep) {
+      return res.status(403).json({ error: 'Access denied: Manage Prep Content permission is disabled for your role.' });
+    }
+
     const { id } = req.params;
     const role    = req.user.role;
     const isManager = role === 'manager' || role === 'operational_manager';

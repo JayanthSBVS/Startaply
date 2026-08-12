@@ -4,11 +4,14 @@ import ThemeToggle from '../common/ThemeToggle';
 
 const AdminSidebar = ({
   isMobileMenuOpen, setIsMobileMenuOpen, activeTab, setActiveTab,
-  logout, navigate, isManager
+  logout, navigate, isManager, myPermissions
 }) => {
+  const perms = myPermissions || {};
+  const isMgr = isManager ? isManager() : false;
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    ...(isManager() ? [
+    ...(isMgr ? [
       { id: 'team',        label: 'Team Management', icon: Users2 },
       { id: 'permissions', label: 'Role Permissions', icon: Sliders },
       { id: 'logs',        label: 'Activity Logs',   icon: History },
@@ -16,12 +19,12 @@ const AdminSidebar = ({
       { id: 'herobanners', label: 'Hero Banners',    icon: ImageIcon },
     ] : []),
     { id: 'liveticker',   label: 'Live Ticker',      icon: Zap },
-    { id: 'add',          label: 'Post Job',         icon: PlusCircle },
-    { id: 'manage',       label: 'Manage Jobs',      icon: Briefcase },
-    { id: 'applications', label: 'Applications',     icon: FileText },
-    { id: 'companies',    label: 'Companies',        icon: Building2 },
-    { id: 'jobmela',      label: 'Job Mela',         icon: MapPin },
-    { id: 'prep',         label: 'Prep Data',        icon: BookOpen },
+    ...(isMgr || perms.can_post_job !== false ? [{ id: 'add', label: 'Post Job', icon: PlusCircle }] : []),
+    ...(isMgr || perms.can_post_job !== false || perms.can_edit_job !== false || perms.can_delete_job !== false ? [{ id: 'manage', label: 'Manage Jobs', icon: Briefcase }] : []),
+    ...(isMgr || perms.can_view_applicants !== false ? [{ id: 'applications', label: 'Applications', icon: FileText }] : []),
+    ...(isMgr || perms.can_manage_companies !== false ? [{ id: 'companies', label: 'Companies', icon: Building2 }] : []),
+    ...(isMgr || perms.can_manage_mela !== false ? [{ id: 'jobmela', label: 'Job Mela', icon: MapPin }] : []),
+    ...(isMgr || perms.can_manage_prep !== false ? [{ id: 'prep', label: 'Prep Data', icon: BookOpen }] : []),
     { id: 'testimonials', label: 'Testimonials',     icon: MessageSquareQuote },
     { id: 'collabs',      label: 'Collab Requests',  icon: Handshake },
     { id: 'support',      label: 'Support Tickets',  icon: Ticket },

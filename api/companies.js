@@ -239,6 +239,12 @@ app.get('/api/companies/:id/jobs', async (req, res) => {
 // Create company
 app.post('/api/companies', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_companies) {
+      return res.status(403).json({ error: 'Access denied: Manage Companies permission is disabled for your role.' });
+    }
+
     const { name, logo, website, location, description, industry, companyType } = req.body;
     if (!name) return res.status(400).json({ message: 'Company name is required' });
     const id = String(Date.now());
@@ -265,6 +271,12 @@ app.post('/api/companies', authMiddleware, async (req, res) => {
 // Update company
 app.put('/api/companies/:id', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_companies) {
+      return res.status(403).json({ error: 'Access denied: Manage Companies permission is disabled for your role.' });
+    }
+
     const { id } = req.params;
     const { rows: ex } = await pool.query('SELECT * FROM companies WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Not found' });
@@ -307,6 +319,12 @@ app.put('/api/companies/:id', authMiddleware, async (req, res) => {
 // Delete company
 app.delete('/api/companies/:id', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_companies) {
+      return res.status(403).json({ error: 'Access denied: Manage Companies permission is disabled for your role.' });
+    }
+
     const { id } = req.params;
     const { rows: ex } = await pool.query('SELECT * FROM companies WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Company not found' });

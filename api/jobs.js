@@ -670,6 +670,11 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
 app.get('/api/jobs/applications/all', authMiddleware, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_view_applicants) {
+      return res.status(403).json({ error: 'Access denied: View Applicants permission is disabled for your role.' });
+    }
     const { rows } = await pool.query(
       `SELECT a.* FROM applications a ORDER BY a.appliedAt DESC`
     );

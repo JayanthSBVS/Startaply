@@ -92,6 +92,12 @@ app.get('/api/job-mela/active', async (req, res) => {
 
 app.post('/api/job-mela', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_mela) {
+      return res.status(403).json({ error: 'Access denied: Manage Job Mela permission is disabled for your role.' });
+    }
+
     const { title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, bannerImage, googleMapLink } = req.body;
     const { rows } = await pool.query(
       `INSERT INTO job_mela (title,description,venue,date,time,image,tickerText,isActive,showPopup,company,registrationLink,bannerImage,googleMapLink,createdAt,createdByAdminId)
@@ -106,6 +112,12 @@ app.post('/api/job-mela', authMiddleware, async (req, res) => {
 
 app.put('/api/job-mela/:id/set-active', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_mela) {
+      return res.status(403).json({ error: 'Access denied: Manage Job Mela permission is disabled for your role.' });
+    }
+
     const { id } = req.params;
     // 1. Deactivate all melas
     await pool.query('UPDATE job_mela SET isActive = false, showPopup = false');
@@ -126,6 +138,12 @@ app.put('/api/job-mela/:id/set-active', authMiddleware, async (req, res) => {
 
 app.put('/api/job-mela/:id', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_mela) {
+      return res.status(403).json({ error: 'Access denied: Manage Job Mela permission is disabled for your role.' });
+    }
+
     const { id } = req.params;
     const { rows: ex } = await pool.query('SELECT * FROM job_mela WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Mela not found' });
@@ -144,6 +162,12 @@ app.put('/api/job-mela/:id', authMiddleware, async (req, res) => {
 
 app.delete('/api/job-mela/:id', authMiddleware, async (req, res) => {
   try {
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_mela) {
+      return res.status(403).json({ error: 'Access denied: Manage Job Mela permission is disabled for your role.' });
+    }
+
     const { id } = req.params;
     const { rows: ex } = await pool.query('SELECT * FROM job_mela WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Mela not found' });
