@@ -1,7 +1,7 @@
 const CHANNEL_NAME = 'startaply_data_freshness_v2';
 const FALLBACK_KEY = 'startaply_freshness_fallback_v2';
 
-const VALID_DOMAINS = new Set(['jobs']);
+const VALID_DOMAINS = new Set(['jobs', 'mela', 'companies', 'prep', 'permissions']);
 const VALID_MUTATIONS = new Set(['create', 'update', 'delete', 'feature', 'today', 'visibility', 'refresh']);
 const MAX_AGE_MS = 10000;
 const FUTURE_TOLERANCE_MS = 10000;
@@ -209,4 +209,9 @@ export function publishFreshness(domain, mutationType, entityId = null) {
   } catch (e) {
     // Ignore quota errors
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.subscribeToFreshness = subscribeToFreshness;
+  window.publishFreshness = publishFreshness;
 }

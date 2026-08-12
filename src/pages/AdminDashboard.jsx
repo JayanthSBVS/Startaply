@@ -271,12 +271,13 @@ const AdminDashboard = () => {
       return;
     }
     fetchData();
-    const unSubPerms = subscribeToFreshness('permissions', () => refreshPermissions());
+    const subFn = typeof subscribeToFreshness === 'function' ? subscribeToFreshness : (typeof window !== 'undefined' ? window.subscribeToFreshness : null);
+    const unSubPerms = typeof subFn === 'function' ? subFn('permissions', () => refreshPermissions()) : (() => {});
     const pollInterval = setInterval(() => {
       fetchData();
     }, 45000);
     return () => {
-      unSubPerms();
+      if (typeof unSubPerms === 'function') unSubPerms();
       clearInterval(pollInterval);
     };
   }, [fetchData, navigate, refreshPermissions]);
