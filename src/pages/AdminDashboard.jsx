@@ -1,6 +1,7 @@
 import AdminSidebar from '../components/admin/AdminSidebar';
 import AdminHeader from '../components/admin/AdminHeader';
 import AdminCompanyModal from '../components/admin/AdminCompanyModal';
+import ConfirmDeleteModal from '../components/common/ConfirmDeleteModal';
 import AdminDashboardTab from '../components/admin/AdminDashboardTab';
 import AdminJobForm from '../components/admin/AdminJobForm';
 import AdminManageJobs from '../components/admin/AdminManageJobs';
@@ -86,17 +87,19 @@ const AdminDashboard = () => {
   useSocket(() => {
     fetchData();
   });
-  const confirmAction = (message, onConfirm) => {
-    toast((t) => (
-      <div className="flex flex-col gap-3 p-2">
-        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{message}</p>
-        <div className="flex gap-2 justify-end">
-          <button onClick={() => toast.dismiss(t.id)} className="px-3 py-1.5 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md">Cancel</button>
-          <button onClick={() => { toast.dismiss(t.id); onConfirm(); }} className="px-3 py-1.5 text-xs font-bold bg-rose-500 text-white rounded-md shadow-md">Confirm</button>
-        </div>
-      </div>
-    ), { duration: 5000 });
-  };
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: 'Confirm Deletion', message: '', onConfirm: null });
+
+  const confirmAction = useCallback((message, onConfirm, title = "Confirm Deletion") => {
+    setDeleteModal({
+      isOpen: true,
+      title,
+      message: typeof message === 'string' ? message : 'Are you sure you want to delete this? This action cannot be undone.',
+      onConfirm: () => {
+        setDeleteModal({ isOpen: false, title: '', message: '', onConfirm: null });
+        if (typeof onConfirm === 'function') onConfirm();
+      }
+    });
+  }, []);
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -451,6 +454,14 @@ const AdminDashboard = () => {
           fetchData={fetchData} showMsg={showMsg} getConfig={getConfig} API={API}
         />
       )}
+      {/* Global Custom Delete Confirmation Modal */}
+      <ConfirmDeleteModal 
+        isOpen={deleteModal.isOpen}
+        title={deleteModal.title}
+        message={deleteModal.message}
+        onConfirm={deleteModal.onConfirm}
+        onCancel={() => setDeleteModal({ isOpen: false, title: '', message: '', onConfirm: null })}
+      />
     </div>
   );
 };
