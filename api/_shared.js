@@ -23,6 +23,8 @@ async function recordActivity(pool, user, module, action, targetId = null) {
   } catch (err) {
     console.error(`LOGGING ERROR [${module}]:`, err.message);
   }
+}
+
 async function getPermissions(pool, role) {
   const normalizeRole = (r) => (!r || r === 'admin') ? 'executive' : r;
   const normalized = normalizeRole(role);
