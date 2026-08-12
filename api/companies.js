@@ -275,14 +275,8 @@ app.post('/api/companies', authMiddleware, async (req, res) => {
 app.put('/api/companies/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const role      = req.user.role;
-    const isManager = role === 'manager';
-    const isOpMgr   = role === 'operational_manager';
     const { rows: ex } = await pool.query('SELECT * FROM companies WHERE id=$1', [id]);
     if (!ex.length) return res.status(404).json({ error: 'Not found' });
-    if (!isManager && !isOpMgr && ex[0].createdbyadminid !== req.user.id) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
 
     const { name, logo, website, location, description, industry, companyType } = req.body;
     
@@ -315,7 +309,7 @@ app.put('/api/companies/:id', authMiddleware, async (req, res) => {
     res.json(mapRow(rows[0]));
   } catch (err) {
     console.error('PUT /api/companies/:id:', err.message);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -323,20 +317,16 @@ app.put('/api/companies/:id', authMiddleware, async (req, res) => {
 app.delete('/api/companies/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const role      = req.user.role;
-    const isManager = role === 'manager';
-    const isOpMgr   = role === 'operational_manager';
     const { rows: ex } = await pool.query('SELECT * FROM companies WHERE id=$1', [id]);
-    if (ex.length && !isManager && !isOpMgr && ex[0].createdbyadminid !== req.user.id) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
+    if (!ex.length) return res.status(404).json({ error: 'Company not found' });
+
     await pool.query('DELETE FROM companies WHERE id=$1', [id]);
     clearMemCachePrefix('comp_');
     recordActivity(pool, req.user, 'Companies', `Removed company: ${ex[0]?.name || id}`, id).catch(() => {});
     res.json({ message: 'Deleted' });
   } catch (err) {
     console.error('DELETE /api/companies/:id:', err.message);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
