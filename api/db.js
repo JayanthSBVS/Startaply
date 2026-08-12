@@ -59,10 +59,15 @@ const setEdgeCache = (res, sMaxAge = 60, stale = 300) => {
   res.setHeader('Cache-Control', `public, s-maxage=${sMaxAge}, stale-while-revalidate=${stale}`);
 };
 
-module.exports = {
-  getPool,
-  getMemCache,
-  setMemCache,
-  clearMemCachePrefix,
-  setEdgeCache,
-};
+function dbHandler(req, res) {
+  if (res && typeof res.status === 'function') {
+    res.status(404).json({ error: 'DB helper module is not an API endpoint' });
+  }
+}
+dbHandler.getPool = getPool;
+dbHandler.getMemCache = getMemCache;
+dbHandler.setMemCache = setMemCache;
+dbHandler.clearMemCachePrefix = clearMemCachePrefix;
+dbHandler.setEdgeCache = setEdgeCache;
+
+module.exports = dbHandler;
