@@ -112,6 +112,7 @@ async function initAuthDb() {
     const defaultPerms = [
       ['manager',              true,  true,  true,  true,  true,  true,  true],
       ['operational_manager',  true,  true,  true,  true,  true,  true,  true],
+      ['operational_executive',true,  true,  false, true,  true,  true,  true],
       ['executive',            true,  true,  false, true,  true,  true,  true],
     ];
     for (const [role, post, edit, del, apps, companies, mela, prep] of defaultPerms) {
@@ -344,14 +345,20 @@ app.put('/api/auth/permissions', authMiddleware, managerMiddleware, async (req, 
     if (!role || !VALID_ROLES.includes(role)) return res.status(400).json({ error: 'Invalid role' });
     if (role === 'manager') return res.status(400).json({ error: 'Cannot restrict manager permissions' });
 
-    await pool.query(
-      `INSERT INTO role_permissions (role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       ON CONFLICT (role) DO UPDATE SET
-         can_post_job=$2, can_edit_job=$3, can_delete_job=$4, can_view_applicants=$5,
-         can_manage_companies=$6, can_manage_mela=$7, can_manage_prep=$8, updated_at=$9`,
-      [role, !!can_post_job, !!can_edit_job, !!can_delete_job, !!can_view_applicants, !!can_manage_companies, !!can_manage_mela, !!can_manage_prep, Date.now()]
-    );
+    const rolesToUpdate = (role === 'operational_executive' || role === 'executive') 
+      ? ['operational_executive', 'executive'] 
+      : [role];
+
+    for (const r of rolesToUpdate) {
+      await pool.query(
+        `INSERT INTO role_permissions (role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep, updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+         ON CONFLICT (role) DO UPDATE SET
+           can_post_job=$2, can_edit_job=$3, can_delete_job=$4, can_view_applicants=$5,
+           can_manage_companies=$6, can_manage_mela=$7, can_manage_prep=$8, updated_at=$9`,
+        [r, !!can_post_job, !!can_edit_job, !!can_delete_job, !!can_view_applicants, !!can_manage_companies, !!can_manage_mela, !!can_manage_prep, Date.now()]
+      );
+    }
     clearMemCachePrefix('role_perms');
     recordActivity(pool, req.user, 'Auth', `Updated permissions for role: ${role}`, role).catch(() => {});
     res.json({ success: true });

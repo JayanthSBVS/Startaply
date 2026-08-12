@@ -25,8 +25,13 @@ async function recordActivity(pool, user, module, action, targetId = null) {
   }
 }
 
+function normalizeRole(r) {
+  if (!r) return 'operational_executive';
+  if (r === 'admin' || r === 'executive' || r === 'operational_executive') return 'operational_executive';
+  return r;
+}
+
 async function getPermissions(pool, role) {
-  const normalizeRole = (r) => (!r || r === 'admin') ? 'executive' : r;
   const normalized = normalizeRole(role);
   if (normalized === 'manager') {
     return {
@@ -40,17 +45,20 @@ async function getPermissions(pool, role) {
     };
   }
   try {
-    const { rows } = await pool.query('SELECT * FROM role_permissions WHERE role = $1', [normalized]);
+    const { rows } = await pool.query(
+      'SELECT * FROM role_permissions WHERE role = $1 OR role = $2 ORDER BY updated_at DESC LIMIT 1',
+      [normalized, normalized === 'operational_executive' ? 'executive' : normalized]
+    );
     if (rows && rows.length) {
       const r = rows[0];
       return {
-        can_post_job:        r.can_post_job        !== false,
-        can_edit_job:        r.can_edit_job        !== false,
-        can_delete_job:      r.can_delete_job      === true,
-        can_view_applicants: r.can_view_applicants !== false,
-        can_manage_companies:r.can_manage_companies!== false,
-        can_manage_mela:     r.can_manage_mela     !== false,
-        can_manage_prep:     r.can_manage_prep     !== false
+        can_post_job:        r.can_post_job        === true || r.can_post_job        === 'true',
+        can_edit_job:        r.can_edit_job        === true || r.can_edit_job        === 'true',
+        can_delete_job:      r.can_delete_job      === true || r.can_delete_job      === 'true',
+        can_view_applicants: r.can_view_applicants === true || r.can_view_applicants === 'true',
+        can_manage_companies:r.can_manage_companies=== true || r.can_manage_companies=== 'true',
+        can_manage_mela:     r.can_manage_mela     === true || r.can_manage_mela     === 'true',
+        can_manage_prep:     r.can_manage_prep     === true || r.can_manage_prep     === 'true'
       };
     }
   } catch (e) {
@@ -74,5 +82,6 @@ function sharedHandler(req, res) {
 }
 sharedHandler.recordActivity = recordActivity;
 sharedHandler.getPermissions = getPermissions;
+sharedHandler.normalizeRole = normalizeRole;
 
 module.exports = sharedHandler;

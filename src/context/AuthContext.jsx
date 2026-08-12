@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
     const row = permissions.find(p => p.role === myRole);
     // Defaults if not loaded yet
     return row || {
-      can_post_job: true, can_edit_job: true, can_delete_job: true,
+      can_post_job: true, can_edit_job: true, can_delete_job: false,
       can_view_applicants: true, can_manage_companies: true,
       can_manage_mela: true, can_manage_prep: true
     };

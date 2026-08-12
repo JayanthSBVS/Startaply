@@ -271,11 +271,15 @@ const AdminDashboard = () => {
       return;
     }
     fetchData();
+    const unSubPerms = subscribeToFreshness('permissions', () => refreshPermissions());
     const pollInterval = setInterval(() => {
       fetchData();
     }, 45000);
-    return () => clearInterval(pollInterval);
-  }, [fetchData, navigate]);
+    return () => {
+      unSubPerms();
+      clearInterval(pollInterval);
+    };
+  }, [fetchData, navigate, refreshPermissions]);
   const handleToggle = (job, field) => {
     const updatedJob = { ...job, [field]: !job[field] };
     setJobs(prev => prev.map(j => j.id === job.id ? updatedJob : j));
