@@ -17,18 +17,30 @@ const AdminApplications = ({
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const roles = useMemo(() => [...new Set(applications.map(a => a.jobTitle).filter(Boolean))].sort(), [applications]);
-  const companies = useMemo(() => [...new Set(applications.map(a => a.companyName).filter(Boolean))].sort(), [applications]);
+  const getRole = (a) => a.jobtitle || a.jobTitle;
+  const getCompany = (a) => a.companyname || a.companyName;
+
+  const roles = useMemo(() => [...new Set(applications.map(a => getRole(a)).filter(Boolean))].sort(), [applications]);
+  const companies = useMemo(() => [...new Set(applications.map(a => getCompany(a)).filter(Boolean))].sort(), [applications]);
 
   const filteredApps = useMemo(() => {
     return applications.filter(app => {
       const term = searchTerm.toLowerCase();
-      const matchesSearch = !term || (app.name?.toLowerCase().includes(term) || app.email?.toLowerCase().includes(term) || app.jobTitle?.toLowerCase().includes(term));
-      const matchesRole = !roleFilter || app.jobTitle === roleFilter;
-      const matchesCompany = !companyFilter || app.companyName === companyFilter;
+      const role = getRole(app);
+      const company = getCompany(app);
+      
+      const matchesSearch = !term || (
+        app.name?.toLowerCase().includes(term) || 
+        app.email?.toLowerCase().includes(term) || 
+        app.phone?.toLowerCase().includes(term) ||
+        role?.toLowerCase().includes(term)
+      );
+      
+      const matchesRole = !roleFilter || role === roleFilter;
+      const matchesCompany = !companyFilter || company === companyFilter;
       
       let matchesDate = true;
-      const appTime = parseInt(app.createdAt || app.appliedAt || Date.now());
+      const appTime = parseInt(app.appliedat || app.createdAt || app.appliedAt || Date.now());
       if (fromDate) {
         matchesDate = matchesDate && (appTime >= new Date(fromDate).getTime());
       }
@@ -110,17 +122,21 @@ const AdminApplications = ({
                     <div className="font-bold text-slate-900 dark:text-slate-100 text-base">{app.name}</div>
                   </td>
                   <td className="px-8 py-6">
-                    <div className="font-bold text-emerald-400">{app.jobTitle || 'General Application'}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-black tracking-widest uppercase mt-1">
-                      {app.companyName || 'Startaply Platform'}
+                    <div className="font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors">
+                      {getRole(app) || 'N/A'}
+                    </div>
+                    <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 mt-1">
+                      <Building2 size={12} /> {getCompany(app) || 'N/A'}
                     </div>
                   </td>
                   <td className="px-8 py-6">
                     <div className="text-sm font-medium text-slate-600 dark:text-slate-300">{app.email}</div>
                     <div className="text-xs text-slate-500 font-bold mt-1">{app.phone || 'No Phone Provided'}</div>
                   </td>
-                  <td className="px-8 py-6 text-center text-sm text-slate-500 dark:text-slate-400 font-bold">
-                    {new Date(parseInt(app.createdAt || app.appliedAt || Date.now())).toLocaleDateString()}
+                  <td className="px-8 py-5">
+                    <div className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                      <Calendar size={12} /> {new Date(parseInt(app.appliedat || app.createdAt || app.appliedAt || Date.now())).toLocaleDateString()}
+                    </div>
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-3">
