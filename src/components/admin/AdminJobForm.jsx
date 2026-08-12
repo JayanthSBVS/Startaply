@@ -159,7 +159,7 @@ const AdminJobForm = ({
             {jobForm.jobCategory === 'IT & Non-IT Jobs' && (
               <div className="space-y-2 relative">
                 <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Job Specialization *</label>
-                <select className={selectCls} value={jobForm.jobCategoryType || ''} onChange={e => setJobForm({ ...jobForm, jobCategoryType: e.target.value })}>
+                <select className={selectCls} value={jobForm.jobCategoryType || ''} onChange={e => setJobForm({ ...jobForm, jobCategoryType: e.target.value, processType: e.target.value === 'IT Job' ? 'Standard' : (jobForm.processType || 'Standard') })}>
                   <option value="">Select Specialization</option>
                   <option value="IT Job">IT Job</option>
                   <option value="Non-IT Job">Non-IT Job</option>
@@ -174,8 +174,12 @@ const AdminJobForm = ({
           <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Process Type</label>
           <select className={selectCls} value={jobForm.processType || 'Standard'} onChange={e => setJobForm({ ...jobForm, processType: e.target.value })}>
             <option value="Standard">Standard / Normal Role</option>
-            <option value="Voice Process">Voice Process</option>
-            <option value="Non-Voice Process">Non-Voice Process</option>
+            {jobForm.jobCategoryType !== 'IT Job' && (
+              <>
+                <option value="Voice Process">Voice Process</option>
+                <option value="Non-Voice Process">Non-Voice Process</option>
+              </>
+            )}
           </select>
           <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
         </div>

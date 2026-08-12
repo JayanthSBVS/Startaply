@@ -44,6 +44,7 @@ app.use('/api/testimonials', require('./routes/testimonials'));
 app.use('/api/prep-data', require('./routes/prepData'));
 app.use('/api/live-ticker', require('./routes/liveTicker'));
 app.use('/api/collabs', require('./routes/collabs'));
+app.use('/api/support', require('./routes/support'));
 
 app.get('/', (req, res) => {
   res.send('Startaply Operational API Running');

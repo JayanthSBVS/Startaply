@@ -22,6 +22,7 @@ async function updatePrepSchema() {
         await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS createdByAdminId TEXT DEFAULT 'system'`);
         await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS createdByAdminName TEXT DEFAULT 'System'`);
         await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS updatedAt BIGINT`);
+        await pool.query(`ALTER TABLE prep_data ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'General'`);
     } catch (err) {
         console.error("Prep Schema Update Error:", err.message);
     }
@@ -42,6 +43,7 @@ router.get('/', async (req, res) => {
             content: r.content,
             contentType: r.contenttype || r.contentType || 'article',
             fileUrl: r.fileurl || r.fileUrl,
+            role: r.role || 'General',
             createdAt: Number(r.createdat || r.createdAt),
             createdByAdminId: r.createdbyadminid,
             createdByAdminName: r.createdbyadminname
@@ -69,11 +71,11 @@ router.get('/admin/list', authMiddleware, async (req, res) => {
 
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { heading, jobType, content, contentType, fileUrl } = req.body;
+        const { heading, jobType, content, contentType, fileUrl, role } = req.body;
         const id = String(Date.now());
         const { rows } = await pool.query(
-            'INSERT INTO prep_data (id, heading, jobType, content, contentType, fileUrl, createdAt, createdByAdminId, createdByAdminName) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [id, heading, jobType, content, contentType || 'article', fileUrl || '', Date.now(), req.user.id, req.user.name]
+            'INSERT INTO prep_data (id, heading, jobType, content, contentType, fileUrl, role, createdAt, createdByAdminId, createdByAdminName) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+            [id, heading, jobType, content, contentType || 'article', fileUrl || '', role || 'General', Date.now(), req.user.id, req.user.name]
         );
 
         await logActivity(req.user.id, req.user.name, req.user.role, 'Preparation', `Added Material: ${heading}`, id);

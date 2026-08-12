@@ -1,5 +1,5 @@
-import React from 'react';
-import { Users, Search, Download, Trash2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Users, Search, Download, Trash2, Filter } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { API } from './adminConstants';
@@ -11,6 +11,36 @@ const AdminApplications = ({
   showMsg,
   getConfig
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const roles = useMemo(() => [...new Set(applications.map(a => a.jobTitle).filter(Boolean))].sort(), [applications]);
+  const companies = useMemo(() => [...new Set(applications.map(a => a.companyName).filter(Boolean))].sort(), [applications]);
+
+  const filteredApps = useMemo(() => {
+    return applications.filter(app => {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = !term || (app.name?.toLowerCase().includes(term) || app.email?.toLowerCase().includes(term) || app.jobTitle?.toLowerCase().includes(term));
+      const matchesRole = !roleFilter || app.jobTitle === roleFilter;
+      const matchesCompany = !companyFilter || app.companyName === companyFilter;
+      
+      let matchesDate = true;
+      const appTime = parseInt(app.createdAt || app.appliedAt || Date.now());
+      if (fromDate) {
+        matchesDate = matchesDate && (appTime >= new Date(fromDate).getTime());
+      }
+      if (toDate) {
+        const toTime = new Date(toDate).getTime() + 86400000;
+        matchesDate = matchesDate && (appTime < toTime);
+      }
+      
+      return matchesSearch && matchesRole && matchesCompany && matchesDate;
+    });
+  }, [applications, searchTerm, roleFilter, companyFilter, fromDate, toDate]);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-5">
       {/* Scalable Applicant Data Manager */}
@@ -28,22 +58,35 @@ const AdminApplications = ({
           </div>
 
           {/* Global Search & Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+          <div className="flex flex-col gap-4">
+            <div className="relative w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <input
                 type="text"
                 placeholder="Search by applicant name, email, or job title..."
                 className="w-full bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-700/50 rounded-full pl-12 pr-5 py-3.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-inner"
-                onChange={(e) => {
-                  const term = e.target.value.toLowerCase();
-                  const rows = document.querySelectorAll('.applicant-row');
-                  rows.forEach(row => {
-                    const text = row.innerText.toLowerCase();
-                    row.style.display = text.includes(term) ? '' : 'none';
-                  });
-                }}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
               />
+            </div>
+            
+            <div className="flex flex-wrap gap-3">
+              <select className="bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-emerald-500" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+                <option value="">All Roles</option>
+                {roles.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+              <select className="bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-emerald-500" value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
+                <option value="">All Companies</option>
+                {companies.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">From</span>
+                <input type="date" className="bg-transparent text-sm text-slate-700 dark:text-slate-300 outline-none" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+              </div>
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#0b0f14]/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-4 py-2.5">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">To</span>
+                <input type="date" className="bg-transparent text-sm text-slate-700 dark:text-slate-300 outline-none" value={toDate} onChange={e => setToDate(e.target.value)} />
+              </div>
             </div>
           </div>
         </div>
@@ -61,7 +104,7 @@ const AdminApplications = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40">
-              {applications.map(app => (
+              {filteredApps.map(app => (
                 <tr key={app.id} className="applicant-row hover:bg-white/5 transition-colors group">
                   <td className="px-8 py-6">
                     <div className="font-bold text-slate-900 dark:text-slate-100 text-base">{app.name}</div>

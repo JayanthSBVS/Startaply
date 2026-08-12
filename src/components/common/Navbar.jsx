@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, Building2, Users, PartyPopper, BookOpen, Home } from 'lucide-react';
+import { GraduationCap, Building2, Users, PartyPopper, BookOpen, Home, LifeBuoy } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import SupportModal from './SupportModal';
 
 const Navbar = () => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -66,6 +68,12 @@ const Navbar = () => {
 
         {/* ── Desktop CTA & Theme Toggle ── */}
         <div className="hidden lg:flex items-center gap-4 shrink-0">
+          <button 
+            onClick={() => setIsSupportOpen(true)}
+            className="flex items-center gap-2 text-sm font-semibold text-content-secondary hover:text-brand transition-colors focus-visible outline-none"
+          >
+            <LifeBuoy size={18} /> Support
+          </button>
           <ThemeToggle />
           <Link
             to="/jobs"
@@ -77,6 +85,13 @@ const Navbar = () => {
 
         {/* ── Mobile Right Side ── */}
         <div className="flex lg:hidden items-center gap-3">
+          <button 
+            onClick={() => setIsSupportOpen(true)}
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] text-content-secondary hover:text-brand transition-colors focus-visible outline-none"
+            aria-label="Support"
+          >
+            <LifeBuoy size={20} />
+          </button>
           <Link
             to="/jobs"
             className="flex items-center justify-center min-h-[44px] px-4 bg-brand hover:bg-brand-hover text-on-brand text-xs font-semibold rounded-md transition-colors duration-fast focus-visible shadow-xs"
@@ -87,6 +102,7 @@ const Navbar = () => {
         </div>
 
       </nav>
+      <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
     </div>
   );
 };

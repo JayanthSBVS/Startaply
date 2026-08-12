@@ -338,6 +338,7 @@ const AdminDashboard = () => {
             <AdminManageJobs 
               jobs={jobs} setJobForm={setJobForm} setEditingJobId={setEditingJobId}
               setActiveTab={setActiveTab} handleJobDelete={handleJobDelete}
+              handleToggle={handleToggle} setCompanySearch={setCompanySearch}
             />
           )}
           {activeTab === 'applications' && (

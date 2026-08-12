@@ -151,6 +151,7 @@ const PreparationPage = () => {
   }, []);
   const [activeCategory, setActiveCategory] = useState('IT Jobs');
   const [activeContentTab, setActiveContentTab] = useState('article');
+  const [activeRole, setActiveRole] = useState('General');
   const [prepData, setPrepData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -170,13 +171,28 @@ const PreparationPage = () => {
   const colors = COLOR_MAP[catObj.color];
   const contentTabs = CONTENT_TABS[activeCategory];
 
+  const roles = useMemo(() => {
+    const allRoles = prepData
+      .filter(p => (p.jobType || p.jobtype || '') === activeCategory)
+      .map(p => p.role || 'General')
+      .filter(Boolean);
+    return [...new Set(allRoles)].sort();
+  }, [prepData, activeCategory]);
+
+  useEffect(() => {
+    if (roles.length > 0 && !roles.includes(activeRole)) {
+      setActiveRole(roles[0]);
+    }
+  }, [activeCategory, roles, activeRole]);
+
   const filteredData = useMemo(() => {
     return prepData.filter(p => {
       const cat = p.jobType || p.jobtype || '';
       const type = p.contentType || p.contenttype || 'article';
-      return cat === activeCategory && type === activeContentTab;
+      const role = p.role || 'General';
+      return cat === activeCategory && type === activeContentTab && role === activeRole;
     });
-  }, [prepData, activeCategory, activeContentTab]);
+  }, [prepData, activeCategory, activeContentTab, activeRole]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans selection:bg-emerald-100 transition-colors duration-300">
@@ -219,6 +235,25 @@ const PreparationPage = () => {
             </button>
           ))}
         </div>
+
+        {/* Role Tabs */}
+        {roles.length > 1 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+            {roles.map(role => (
+              <button
+                key={role}
+                onClick={() => setActiveRole(role)}
+                className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                  activeRole === role
+                    ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-500/20'
+                    : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700'
+                }`}
+              >
+                {role}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Content Type Sub-tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-1">

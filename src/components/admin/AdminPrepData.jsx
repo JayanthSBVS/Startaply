@@ -29,6 +29,17 @@ const AdminPrepData = ({
               <div className="absolute right-5 top-[14px] pointer-events-none text-slate-500">▼</div>
             </div>
           </div>
+          
+          {/* Specific Role / Topic */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Role / Topic (e.g. React, UPSC)</label>
+            <input 
+              className={inputCls} 
+              placeholder="Leave empty for 'General'" 
+              value={prepForm.role || ''} 
+              onChange={e => setPrepForm({ ...prepForm, role: e.target.value })} 
+            />
+          </div>
 
           {/* Content Type */}
           <div className="space-y-2">
@@ -115,7 +126,7 @@ const AdminPrepData = ({
            <button
             onClick={async () => {
               await axios.post(`${API}/prep-data`, prepForm, getConfig());
-              setPrepForm({ heading: '', jobType: 'IT Jobs', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
+              setPrepForm({ heading: '', jobType: 'IT Jobs', role: '', content: '', contentType: 'article', fileUrl: '', question: '', answer: '' });
               fetchData();
               showMsg('Prep Material Published');
             }}
@@ -140,6 +151,11 @@ const AdminPrepData = ({
                   (item.contenttype || item.contentType) === 'paper' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                   'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700'
                 }`}>{(item.contenttype || item.contentType) === 'qna' ? '❓ Q&A' : (item.contenttype || item.contentType) === 'paper' ? '📄 Paper' : '📝 Article'}</span>
+                {item.role && item.role !== 'General' && (
+                  <span className="bg-purple-500/10 text-purple-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-purple-500/20">
+                    {item.role}
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => confirmAction('Delete material?', async () => { await axios.delete(`${API}/prep-data/${item.id}`, getConfig()); fetchData(); showMsg('Removed'); })}

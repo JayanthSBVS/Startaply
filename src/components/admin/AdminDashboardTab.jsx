@@ -108,12 +108,39 @@ const AdminDashboardTab = ({
         </div>
       ) : (
         /* Executive view: Just simple quick actions or stats */
-        <div className="bg-white dark:bg-slate-900/40 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-800/60 shadow-2xl text-center">
-          <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FileText size={32} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-3 bg-slate-900 text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-500/20 rounded-full blur-[80px] pointer-events-none" />
+            <h3 className="text-2xl font-black mb-2 relative z-10">Welcome to your Workspace</h3>
+            <p className="text-slate-400 font-medium max-w-xl relative z-10 mb-8">Use the sidebar to navigate through your authorized modules. Here is your impact for today.</p>
+            
+            {(() => {
+              const startOfDay = new Date();
+              startOfDay.setHours(0, 0, 0, 0);
+              const startOfDayTime = startOfDay.getTime();
+
+              const myJobsToday = jobs.filter(j => Number(j.createdAt || j.createdat) >= startOfDayTime).length;
+              const myMelasToday = melas.filter(m => Number(m.createdAt || m.createdat) >= startOfDayTime).length;
+              const myCompaniesToday = companies.filter(c => Number(c.createdAt || c.createdat) >= startOfDayTime).length;
+
+              return (
+                <div className="grid grid-cols-3 gap-4 relative z-10">
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-sm">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Jobs Posted Today</p>
+                    <p className="text-3xl font-black text-emerald-400">{myJobsToday}</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-sm">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Melas Created Today</p>
+                    <p className="text-3xl font-black text-amber-400">{myMelasToday}</p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-sm">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Partners Added Today</p>
+                    <p className="text-3xl font-black text-purple-400">{myCompaniesToday}</p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
-          <h3 className="text-2xl font-black mb-2">Welcome to your Workspace</h3>
-          <p className="text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto">Use the sidebar to navigate through your authorized modules. You can manage jobs, view applications, and handle content based on your permissions.</p>
         </div>
       )}
     </div>
