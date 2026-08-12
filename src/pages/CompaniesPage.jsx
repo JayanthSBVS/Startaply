@@ -196,7 +196,13 @@ const CompaniesPage = () => {
                     <div className="w-20 h-20 rounded-3xl glass-logo-container flex items-center justify-center overflow-hidden mb-4 group-hover:scale-110 transition-transform duration-500">
                       {company.logo ? (
                         <img 
-                          src={company.logo.startsWith('http') || company.logo.startsWith('//') ? company.logo : `https://${company.logo}`} 
+                          src={
+                            company.logo.startsWith('data:') || company.logo.startsWith('http') || company.logo.startsWith('//') || company.logo.startsWith('/')
+                              ? company.logo
+                              : company.logo.includes('.')
+                              ? `https://${company.logo}`
+                              : `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`
+                          } 
                           alt={company.name} 
                           className="w-full h-full object-contain p-3" 
                           onError={(e) => { 

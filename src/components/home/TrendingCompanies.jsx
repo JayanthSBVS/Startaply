@@ -31,71 +31,87 @@ const TrendingCompanies = () => {
   const stream1 = repeatToCount(companies, targetDesktopCards);
   const stream2 = repeatToCount(companies, targetDesktopCards).reverse();
 
-  const DesktopCompanyCard = ({ company, isDuplicate }) => (
-    <Link
-      to={`/company/${company.id || company.name}`}
-      className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0 hover:[animation-play-state:paused]"
-      aria-hidden={isDuplicate ? "true" : undefined}
-      tabIndex={isDuplicate ? -1 : undefined}
-    >
-      <div className="w-12 h-12 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1">
-        {company.logo ? (
-          <img
-            src={company.logo.startsWith('http') || company.logo.startsWith('//') ? company.logo : `https://${company.logo}`}
-            alt={`${company.name} logo`}
-            loading="lazy"
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`;
-            }}
-          />
-        ) : (
-          <Building2 className="text-slate-400" size={24} />
-        )}
-      </div>
-      <div className="min-w-0">
-        <h4 className="text-white font-bold text-sm truncate group-hover:text-emerald-400 transition-colors">{company.name}</h4>
-        <p className="text-slate-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Actively Hiring
-        </p>
-      </div>
-    </Link>
-  );
+  const getLogoUrl = (logo) => {
+    if (!logo) return null;
+    const str = String(logo).trim();
+    if (str.startsWith('data:') || str.startsWith('http://') || str.startsWith('https://') || str.startsWith('//') || str.startsWith('/')) {
+      return str;
+    }
+    if (str.includes('.')) return `https://${str}`;
+    return null;
+  };
+
+  const DesktopCompanyCard = ({ company, isDuplicate }) => {
+    const logoSrc = getLogoUrl(company.logo);
+    return (
+      <Link
+        to={`/company/${company.id || company.name}`}
+        className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0 hover:[animation-play-state:paused]"
+        aria-hidden={isDuplicate ? "true" : undefined}
+        tabIndex={isDuplicate ? -1 : undefined}
+      >
+        <div className="w-12 h-12 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1 shadow-sm">
+          {logoSrc ? (
+            <img
+              src={logoSrc}
+              alt={`${company.name} logo`}
+              loading="lazy"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`;
+              }}
+            />
+          ) : (
+            <Building2 className="text-slate-400" size={24} />
+          )}
+        </div>
+        <div className="min-w-0">
+          <h4 className="text-white font-bold text-sm truncate group-hover:text-emerald-400 transition-colors">{company.name}</h4>
+          <p className="text-slate-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Actively Hiring
+          </p>
+        </div>
+      </Link>
+    );
+  };
 
   // Mobile company pill - compact, touch-friendly
-  const MobileCompanyPill = ({ company, isDuplicate }) => (
-    <Link
-      to={`/company/${company.id || company.name}`}
-      className="flex-shrink-0 flex items-center gap-3 bg-white/[0.08] border border-white/[0.12] active:bg-white/[0.15] px-4 py-3 rounded-2xl transition-colors w-52 mr-3"
-      style={{ minHeight: '64px' }}
-      aria-hidden={isDuplicate ? "true" : undefined}
-      tabIndex={isDuplicate ? -1 : undefined}
-    >
-      <div className="w-10 h-10 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1">
-        {company.logo ? (
-          <img
-            src={company.logo.startsWith('http') || company.logo.startsWith('//') ? company.logo : `https://${company.logo}`}
-            alt={`${company.name} logo`}
-            loading="lazy"
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`;
-            }}
-          />
-        ) : (
-          <Building2 className="text-slate-400" size={20} />
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <h4 className="text-white font-bold text-sm truncate">{company.name}</h4>
-        <p className="text-emerald-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Hiring
-        </p>
-      </div>
-    </Link>
-  );
+  const MobileCompanyPill = ({ company, isDuplicate }) => {
+    const logoSrc = getLogoUrl(company.logo);
+    return (
+      <Link
+        to={`/company/${company.id || company.name}`}
+        className="flex-shrink-0 flex items-center gap-3 bg-white/[0.08] border border-white/[0.12] active:bg-white/[0.15] px-4 py-3 rounded-2xl transition-colors w-52 mr-3"
+        style={{ minHeight: '64px' }}
+        aria-hidden={isDuplicate ? "true" : undefined}
+        tabIndex={isDuplicate ? -1 : undefined}
+      >
+        <div className="w-10 h-10 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1 shadow-sm">
+          {logoSrc ? (
+            <img
+              src={logoSrc}
+              alt={`${company.name} logo`}
+              loading="lazy"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`;
+              }}
+            />
+          ) : (
+            <Building2 className="text-slate-400" size={20} />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h4 className="text-white font-bold text-sm truncate">{company.name}</h4>
+          <p className="text-emerald-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Hiring
+          </p>
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <section ref={sectionRef} className="py-12 md:py-24 relative overflow-hidden section-dark transition-colors duration-500">

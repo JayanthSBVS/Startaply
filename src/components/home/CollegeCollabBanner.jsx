@@ -10,11 +10,27 @@ const CollegeCollabBanner = () => {
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+      setFormData({ ...formData, phone: digitsOnly });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (formData.phone.length !== 10) {
+      setError('Contact number must be exactly 10 digits.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -171,10 +187,11 @@ const CollegeCollabBanner = () => {
                         required
                         type="tel"
                         name="phone"
+                        maxLength={10}
                         value={formData.phone}
                         onChange={handleChange}
                         className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                        placeholder="+91 98765 43210"
+                        placeholder="10-digit Mobile Number (e.g. 9876543210)"
                       />
                     </div>
 

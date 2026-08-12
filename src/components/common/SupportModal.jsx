@@ -15,8 +15,13 @@ const SupportModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.issue) {
-      toast.error('Email and issue details are required');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    if (!formData.issue?.trim()) {
+      toast.error('Issue details are required');
       return;
     }
     

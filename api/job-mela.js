@@ -116,15 +116,31 @@ app.post('/api/job-mela', authMiddleware, async (req, res) => {
   } catch (err) { res.status(500).json({ message: 'Server error', detail: err.message }); }
 });
 
+app.put('/api/job-mela/:id/set-active', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    // 1. Deactivate all melas
+    await pool.query('UPDATE job_mela SET isActive = false, showPopup = false');
+    // 2. Activate the selected mela
+    const { rows } = await pool.query(
+      'UPDATE job_mela SET isActive = true, showPopup = true WHERE id = $1 RETURNING *',
+      [id]
+    );
+    clearMemCachePrefix('mela_');
+    if (!rows.length) return res.status(404).json({ error: 'Mela not found' });
+    await recordActivity(pool, req.user, 'Job Mela', `Set job mela active for live ticker & popup: ${rows[0].title}`, id);
+    res.json(mapRow(rows[0]));
+  } catch (err) {
+    console.error('PUT /api/job-mela/:id/set-active:', err.message);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 app.put('/api/job-mela/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const role    = req.user.role;
-    const isManager = role === 'manager' || role === 'operational_manager';
-    const { rows: ex } = await pool.query('SELECT createdByAdminId FROM job_mela WHERE id=$1', [id]);
-    if (ex.length && !isManager && ex[0].createdbyadminid !== req.user.id) {
-       return res.status(403).json({ error: 'Forbidden' });
-    }
+    const { rows: ex } = await pool.query('SELECT * FROM job_mela WHERE id=$1', [id]);
+    if (!ex.length) return res.status(404).json({ error: 'Mela not found' });
 
     const { title, description, venue, date, time, image, tickerText, isActive, showPopup, company, registrationLink, bannerImage, googleMapLink } = req.body;
     const { rows } = await pool.query(
@@ -141,12 +157,9 @@ app.put('/api/job-mela/:id', authMiddleware, async (req, res) => {
 app.delete('/api/job-mela/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const role    = req.user.role;
-    const isManager = role === 'manager' || role === 'operational_manager';
-    const { rows: ex } = await pool.query('SELECT createdByAdminId FROM job_mela WHERE id=$1', [id]);
-    if (ex.length && !isManager && ex[0].createdbyadminid !== req.user.id) {
-       return res.status(403).json({ error: 'Forbidden' });
-    }
+    const { rows: ex } = await pool.query('SELECT * FROM job_mela WHERE id=$1', [id]);
+    if (!ex.length) return res.status(404).json({ error: 'Mela not found' });
+
     await pool.query('DELETE FROM job_mela WHERE id=$1', [id]);
     clearMemCachePrefix('mela_');
     await recordActivity(pool, req.user, 'Job Mela', `Deleted mela event ID: ${id}`, id);

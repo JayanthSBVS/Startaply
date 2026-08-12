@@ -86,7 +86,40 @@ const AdminJobMela = ({
                 {(m.googlemaplink || m.googleMapLink) && <div className="text-[10px] text-blue-400 font-bold mt-0.5">📍 Map link added</div>}
               </div>
             </div>
-            <button onClick={() => confirmAction('Delete mela?', async () => { await axios.delete(`${API}/job-mela/${m.id}`, getConfig()); fetchData(); showMsg('Removed'); })} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl text-rose-500 transition-colors flex-shrink-0"><Trash2 size={18} /></button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={async () => {
+                  try {
+                    await axios.put(`${API}/job-mela/${m.id}/set-active`, {}, getConfig());
+                    fetchData();
+                    showMsg(`"${m.title}" is now active for Live Ticker & Popup!`);
+                  } catch (err) {
+                    toast.error('Failed to set active Job Mela');
+                  }
+                }}
+                className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm ${
+                  m.isActive || m.isactive
+                    ? 'bg-amber-500 text-slate-950 shadow-amber-500/20 font-black' 
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-500/20 hover:text-amber-400'
+                }`}
+                title="Click to set this Job Mela as active on live ticker and homepage popup"
+              >
+                <Zap size={14} className={m.isActive || m.isactive ? 'fill-current' : ''} />
+                {m.isActive || m.isactive ? 'Active on Ticker & Popup' : 'Set as Active'}
+              </button>
+
+              <button 
+                onClick={() => confirmAction(`Delete Job Mela "${m.title}"?`, async () => { 
+                  await axios.delete(`${API}/job-mela/${m.id}`, getConfig()); 
+                  fetchData(); 
+                  showMsg('Removed'); 
+                })} 
+                className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl text-rose-500 transition-colors shrink-0"
+                title="Delete Mela"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
           </div>
         ))}
         {melas.length === 0 && (
