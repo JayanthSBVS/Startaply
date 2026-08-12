@@ -116,6 +116,14 @@
       "dest": "/api/collabs.js"
     },
     {
+      "src": "/api/support/(.*)",
+      "dest": "/api/support.js"
+    },
+    {
+      "src": "/api/support",
+      "dest": "/api/support.js"
+    },
+    {
       "handle": "filesystem"
     },
     {

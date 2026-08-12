@@ -10,7 +10,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
-async function init() {
+let isDbInitialized = false;
+
+async function ensureDb() {
+  if (isDbInitialized) return;
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS live_ticker (
@@ -20,9 +23,9 @@ async function init() {
         createdByAdminId TEXT
       )
     `);
+    isDbInitialized = true;
   } catch (err) { console.error('[live-ticker init]', err.message); }
 }
-init();
 
 const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -34,8 +37,9 @@ const authMiddleware = (req, res, next) => {
 };
 
 // GET all ticker items (public)
-app.get('/api/live-ticker', async (req, res) => {
+app.get(['/api/live-ticker', '/api/live-ticker/'], async (req, res) => {
   try {
+    await ensureDb();
     const cached = getMemCache('ticker_all', 30);
     if (cached) return res.json(cached);
     const { rows } = await pool.query('SELECT * FROM live_ticker ORDER BY createdAt DESC');
@@ -43,37 +47,39 @@ app.get('/api/live-ticker', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error('[GET live-ticker]', err.message);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
 // POST add ticker item (auth required)
-app.post('/api/live-ticker', authMiddleware, async (req, res) => {
+app.post(['/api/live-ticker', '/api/live-ticker/'], authMiddleware, async (req, res) => {
   try {
+    await ensureDb();
     const { text } = req.body;
     if (!text?.trim()) return res.status(400).json({ message: 'text is required' });
     const id = String(Date.now());
     const { rows } = await pool.query(
       'INSERT INTO live_ticker (id, text, createdAt, createdByAdminId) VALUES ($1,$2,$3,$4) RETURNING *',
-      [id, text.trim(), Date.now(), req.user.id]
+      [id, text.trim(), Date.now(), req.user.id || 'admin']
     );
     clearMemCachePrefix('ticker_all');
     res.status(201).json(rows[0]);
   } catch (err) {
-    console.error('[POST live-ticker]', err.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error('[POST live-ticker]', err);
+    res.status(500).json({ message: 'Server error', error: err.message, stack: err.stack });
   }
 });
 
 // DELETE ticker item
-app.delete('/api/live-ticker/:id', authMiddleware, async (req, res) => {
+app.delete(['/api/live-ticker/:id', '/api/live-ticker/:id/'], authMiddleware, async (req, res) => {
   try {
+    await ensureDb();
     await pool.query('DELETE FROM live_ticker WHERE id=$1', [req.params.id]);
     clearMemCachePrefix('ticker_all');
     res.json({ success: true });
   } catch (err) {
     console.error('[DELETE live-ticker]', err.message);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
