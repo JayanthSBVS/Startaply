@@ -3,6 +3,7 @@ import { Building2, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { API, inputCls, selectCls } from './adminConstants';
 import { compressImage } from '../../utils/imageCompression';
+import { publishFreshness } from '../../utils/dataFreshness';
 
 const AdminCompanies = ({
   companyForm,
@@ -39,7 +40,13 @@ const AdminCompanies = ({
               />
               {companyForm.logo && <img src={companyForm.logo} alt="Preview" className="w-16 h-16 object-contain mt-2 bg-white/5 rounded-xl border border-slate-700 p-2" />}
             </div>
-            <button onClick={async () => { await axios.post(`${API}/companies`, companyForm, getConfig()); setCompanyForm({ name: '', industry: '', logo: '' }); fetchData(); showMsg('Company added'); }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full mt-4 transition-all active:scale-95 shadow-lg shadow-emerald-500/20">Add Partner</button>
+            <button onClick={async () => { 
+              const res = await axios.post(`${API}/companies`, companyForm, getConfig()); 
+              publishFreshness('companies', 'create', res.data?.id || 'new');
+              setCompanyForm({ name: '', industry: '', logo: '' }); 
+              fetchData(); 
+              showMsg('Company added'); 
+            }} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-full mt-4 transition-all active:scale-95 shadow-lg shadow-emerald-500/20">Add Partner</button>
           </div>
         </div>
       </div>
@@ -57,6 +64,7 @@ const AdminCompanies = ({
             <button 
               onClick={() => confirmAction(`Delete company "${comp.name}"?`, async () => { 
                 await axios.delete(`${API}/companies/${comp.id}`, getConfig()); 
+                publishFreshness('companies', 'delete', comp.id);
                 fetchData(); 
                 showMsg('Company removed'); 
               })} 

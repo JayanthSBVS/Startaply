@@ -162,75 +162,78 @@ export const JobsProvider = ({ children }) => {
     };
   }, [refreshJobs]);
 
-  // ── LEGACY NON-JOBS FETCH ──────────────────────────────────────────────────
-  useEffect(() => {
-    const allFresh =
-      !companiesCache.stale &&
-      !melasCache.stale && !prepCache.stale && !heroCache.stale;
+  // ── NON-JOBS FRESHNESS FETCH ──────────────────────────────────────────────
+  const fetchPublicData = useCallback(async (isBackground = false) => {
+    try {
+      if (!isBackground) setOtherLoading(true);
+      setOtherError(null);
+      const t = Date.now();
 
-    if (allFresh) {
-      setOtherLoading(false);
-      return;
-    }
+      const [compRes, melasRes, prepRes] = await Promise.all([
+        axios.get(`${API}/companies?limit=100&_t=${t}`).catch(err => ({ error: true, err })),
+        axios.get(`${API}/job-mela?_t=${t}`).catch(err => ({ error: true, err })),
+        axios.get(`${API}/prep-data?_t=${t}`).catch(err => ({ error: true, err })),
+      ]);
 
-    const fetchPublicData = async () => {
-      try {
-        setOtherLoading(true);
-        setOtherError(null);
-
-        const [compRes, melasRes, prepRes] = await Promise.all([
-          axios.get(`${API}/companies?limit=100`).catch(err => ({ error: true, err })),
-          axios.get(`${API}/job-mela`).catch(err => ({ error: true, err })),
-          axios.get(`${API}/prep-data`).catch(err => ({ error: true, err })),
-        ]);
-
-        if (!compRes.error) {
-          const finalComps = Array.isArray(compRes.data) ? compRes.data : [];
-          setCompanies(finalComps);
-          writeCache('cache_companies', finalComps);
-        }
-
-        if (!melasRes.error) {
-          const finalMelas = Array.isArray(melasRes.data) ? melasRes.data : [];
-          setMelas(finalMelas);
-          writeCache('cache_melas', finalMelas);
-        }
-
-        if (!prepRes.error) {
-          const finalPrep = Array.isArray(prepRes.data) ? prepRes.data : [];
-          setPrepData(finalPrep);
-          writeCache('cache_prep', finalPrep);
-        }
-      } catch (err) {
-        console.error('Public API Error (Non-Jobs):', err);
-        setOtherError('Failed to load data. Showing cached results.');
-      } finally {
-        setOtherLoading(false);
+      if (!compRes.error) {
+        const finalComps = Array.isArray(compRes.data) ? compRes.data : [];
+        setCompanies(finalComps);
       }
-    };
+
+      if (!melasRes.error) {
+        const finalMelas = Array.isArray(melasRes.data) ? melasRes.data : [];
+        setMelas(finalMelas);
+      }
+
+      if (!prepRes.error) {
+        const finalPrep = Array.isArray(prepRes.data) ? prepRes.data : [];
+        setPrepData(finalPrep);
+      }
+    } catch (err) {
+      console.error('Public API Error (Non-Jobs):', err);
+      setOtherError('Failed to load data.');
+    } finally {
+      setOtherLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // 1. One-time cleanup of legacy local storage caches
+    try {
+      localStorage.removeItem('cache_melas');
+      localStorage.removeItem('cache_companies');
+      localStorage.removeItem('cache_prep');
+      sessionStorage.removeItem('cache_melas');
+    } catch (e) {}
+
+    // 2. Fetch fresh public data on mount
+    fetchPublicData(false);
+
+    // 3. Listen for freshness events on melas, companies, prep
+    const unSubMela = subscribeToFreshness('mela', () => fetchPublicData(true));
+    const unSubComp = subscribeToFreshness('companies', () => fetchPublicData(true));
+    const unSubPrep = subscribeToFreshness('prep', () => fetchPublicData(true));
 
     const fetchHeroBanners = async () => {
       try {
-        const res = await axios.get(`${API}/hero-banners`).catch(err => ({ error: true, err }));
+        const res = await axios.get(`${API}/hero-banners?_t=${Date.now()}`).catch(err => ({ error: true, err }));
         if (res.error) return;
         const banners = Array.isArray(res.data) ? res.data : [];
         const imagesOnly = banners.map(b => b.image).filter(Boolean);
         setHeroImages(imagesOnly);
-
-        const toStore = { images: imagesOnly.slice(0, 3), ts: Date.now() };
-        try {
-          localStorage.setItem('cache_hero_data', JSON.stringify(toStore));
-        } catch {
-          try { sessionStorage.setItem('cache_hero_data', JSON.stringify({ images: imagesOnly.slice(0, 1), ts: Date.now() })); } catch { /* silent */ }
-        }
       } catch (err) {
         console.error('Hero Fetch Error:', err);
       }
     };
 
-    fetchPublicData();
     fetchHeroBanners();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    return () => {
+      unSubMela();
+      unSubComp();
+      unSubPrep();
+    };
+  }, [fetchPublicData]);
 
   const fetchCompanyById = async (id) => {
     try {

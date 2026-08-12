@@ -72,7 +72,7 @@ function mapRow(r) {
 
 app.get('/api/prep-data/admin/list', authMiddleware, async (req, res) => {
   try {
-    // All admin roles see all prep data — ownership only affects delete permissions
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
@@ -80,21 +80,13 @@ app.get('/api/prep-data/admin/list', authMiddleware, async (req, res) => {
 
 app.get('/api/prep-data', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
 
-    const cacheKey = `prep_${page}_${limit}`;
-    const cached = getMemCache(cacheKey, 60);
-    if (cached) {
-      setEdgeCache(res, 60, 300);
-      return res.json(cached);
-    }
-
     const { rows } = await pool.query('SELECT * FROM prep_data ORDER BY createdAt DESC LIMIT $1 OFFSET $2', [limit, offset]);
     const result = rows.map(mapRow);
-    setMemCache(cacheKey, result);
-    setEdgeCache(res, 60, 300);
     res.json(result);
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });

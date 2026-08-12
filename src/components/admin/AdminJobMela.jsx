@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { API, inputCls } from './adminConstants';
 import { compressImage } from '../../utils/imageCompression';
+import { publishFreshness } from '../../utils/dataFreshness';
 
 const AdminJobMela = ({
   melaForm,
@@ -67,7 +68,13 @@ const AdminJobMela = ({
             </div>
           </div>
         </div>
-        <button onClick={async () => { await axios.post(`${API}/job-mela`, melaForm, getConfig()); setMelaForm({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' }); fetchData(); showMsg('Mela Created Successfully'); }} className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-5 rounded-full mt-10 transition-all shadow-xl shadow-amber-500/10">🚀 Publish Job Mela</button>
+        <button onClick={async () => { 
+          const res = await axios.post(`${API}/job-mela`, melaForm, getConfig()); 
+          publishFreshness('mela', 'create', res.data?.id || 'new');
+          setMelaForm({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' }); 
+          fetchData(); 
+          showMsg('Mela Created Successfully'); 
+        }} className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-5 rounded-full mt-10 transition-all shadow-xl shadow-amber-500/10">🚀 Publish Job Mela</button>
       </div>
 
       <div className="space-y-4">
@@ -91,6 +98,7 @@ const AdminJobMela = ({
                 onClick={async () => {
                   try {
                     await axios.put(`${API}/job-mela/${m.id}/set-active`, {}, getConfig());
+                    publishFreshness('mela', 'update', m.id);
                     fetchData();
                     showMsg(`"${m.title}" is now active for Live Ticker & Popup!`);
                   } catch (err) {
@@ -111,6 +119,7 @@ const AdminJobMela = ({
               <button 
                 onClick={() => confirmAction(`Delete Job Mela "${m.title}"?`, async () => { 
                   await axios.delete(`${API}/job-mela/${m.id}`, getConfig()); 
+                  publishFreshness('mela', 'delete', m.id);
                   fetchData(); 
                   showMsg('Removed'); 
                 })} 

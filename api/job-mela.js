@@ -66,7 +66,7 @@ function mapRow(r) {
 
 app.get('/api/job-mela/admin/list', authMiddleware, async (req, res) => {
   try {
-    // All admin roles see all job melas — ownership only affects edit/delete permissions
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query('SELECT * FROM job_mela ORDER BY createdAt DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
@@ -74,30 +74,18 @@ app.get('/api/job-mela/admin/list', authMiddleware, async (req, res) => {
 
 app.get('/api/job-mela', async (req, res) => {
   try {
-    const cached = getMemCache('mela_all', 120);
-    if (cached) {
-      setEdgeCache(res, 60, 300);
-      return res.json(cached);
-    }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query('SELECT * FROM job_mela ORDER BY createdAt DESC');
     const result = rows.map(mapRow);
-    setMemCache('mela_all', result);
-    setEdgeCache(res, 60, 300);
     res.json(result);
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
 app.get('/api/job-mela/active', async (req, res) => {
   try {
-    const cached = getMemCache('mela_active', 120);
-    if (cached) {
-      setEdgeCache(res, 60, 300);
-      return res.json(cached);
-    }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query('SELECT * FROM job_mela WHERE isActive = true ORDER BY createdAt DESC LIMIT 1');
     const result = mapRow(rows[0]) || null;
-    setMemCache('mela_active', result);
-    setEdgeCache(res, 60, 300);
     res.json(result);
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });

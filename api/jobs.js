@@ -669,9 +669,9 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
 // GET all applications
 app.get('/api/jobs/applications/all', authMiddleware, async (req, res) => {
   try {
-    // All admin roles see all applicants — no ownership filtering
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query(
-      `SELECT a.* FROM applications a JOIN jobs j ON a.jobId = j.id ORDER BY a.appliedAt DESC`
+      `SELECT a.* FROM applications a ORDER BY a.appliedAt DESC`
     );
     res.json(rows.map(r => ({
       ...r,

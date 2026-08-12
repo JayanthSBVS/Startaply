@@ -49,9 +49,7 @@ const authMiddleware = (req, res, next) => {
 // GET all ticker items (public)
 app.get(['/api/live-ticker', '/api/live-ticker/', '/live-ticker'], async (req, res) => {
   try {
-    const cached = getMemCache('ticker_all', 15);
-    if (cached) return res.json(cached);
-
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     await ensureDb();
     let rows = [];
     try {
