@@ -31,6 +31,9 @@ function normalizeRole(r) {
   return r;
 }
 
+const isFalse = (v) => v === false || v === 'false' || v === 0 || v === '0';
+const isTrue  = (v) => v === true || v === 'true' || v === 1 || v === '1';
+
 async function getPermissions(pool, role) {
   const normalized = normalizeRole(role);
   if (normalized === 'manager') {
@@ -52,13 +55,13 @@ async function getPermissions(pool, role) {
     if (rows && rows.length) {
       const r = rows[0];
       return {
-        can_post_job:        r.can_post_job        === true || r.can_post_job        === 'true',
-        can_edit_job:        r.can_edit_job        === true || r.can_edit_job        === 'true',
-        can_delete_job:      r.can_delete_job      === true || r.can_delete_job      === 'true',
-        can_view_applicants: r.can_view_applicants === true || r.can_view_applicants === 'true',
-        can_manage_companies:r.can_manage_companies=== true || r.can_manage_companies=== 'true',
-        can_manage_mela:     r.can_manage_mela     === true || r.can_manage_mela     === 'true',
-        can_manage_prep:     r.can_manage_prep     === true || r.can_manage_prep     === 'true'
+        can_post_job:        !isFalse(r.can_post_job),
+        can_edit_job:        !isFalse(r.can_edit_job),
+        can_delete_job:      isTrue(r.can_delete_job),
+        can_view_applicants: !isFalse(r.can_view_applicants),
+        can_manage_companies:!isFalse(r.can_manage_companies),
+        can_manage_mela:     !isFalse(r.can_manage_mela),
+        can_manage_prep:     !isFalse(r.can_manage_prep)
       };
     }
   } catch (e) {

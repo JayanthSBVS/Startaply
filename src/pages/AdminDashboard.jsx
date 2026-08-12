@@ -50,7 +50,7 @@ const getRoleConfig  = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.operational_ex
 const getRoleLabel   = (role) => getRoleConfig(role).label;
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, logout, isManager, isOpManager, isExecutive, canDo, permissions, refreshPermissions: authRefreshPermissions } = useAuth();
+  const { user, logout, isManager, isOpManager, isExecutive, canDo, getMyPermissions, permissions, refreshPermissions: authRefreshPermissions } = useAuth();
   const getConfig = () => {
     const token = localStorage.getItem('startaply_token');
     // Guard: never send Authorization header with null/undefined token (avoids 401 spam)
@@ -327,7 +327,7 @@ const AdminDashboard = () => {
   };
   
   const isMgr = isManager();
-  const perms = myPermissions || {};
+  const perms = myPermissions || getMyPermissions() || {};
 
   const renderAccessDenied = (featureTitle) => (
     <div className="bg-white dark:bg-slate-900/40 border border-amber-500/20 rounded-[2.5rem] p-12 text-center space-y-4 max-w-xl mx-auto mt-10 shadow-2xl">
@@ -343,7 +343,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0b0f14] flex text-slate-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300">
-      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} myPermissions={myPermissions} />
+      <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} myPermissions={perms} />
       <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-[#0b0f14]">
         <AdminHeader 
           activeTab={activeTab} setIsMobileMenuOpen={setIsMobileMenuOpen}

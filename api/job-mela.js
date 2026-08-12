@@ -67,6 +67,11 @@ function mapRow(r) {
 app.get('/api/job-mela/admin/list', authMiddleware, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_mela) {
+      return res.status(403).json({ error: 'Access denied: Manage Job Mela permission is disabled for your role.' });
+    }
     const { rows } = await pool.query('SELECT * FROM job_mela ORDER BY createdAt DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) { res.status(500).json({ message: 'Server error' }); }

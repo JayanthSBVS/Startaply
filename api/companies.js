@@ -144,10 +144,15 @@ function mapRow(r) {
 
 // ── ROUTES ────────────────────────────────────────────────────
 
-// Admin list — ALL authenticated admin roles see all companies
+// Admin list — authenticated admin roles with can_manage_companies permission
 app.get('/api/companies/admin/list', authMiddleware, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const { getPermissions } = require('./_shared');
+    const perms = await getPermissions(pool, req.user.role);
+    if (!perms.can_manage_companies) {
+      return res.status(403).json({ error: 'Access denied: Manage Companies permission is disabled for your role.' });
+    }
     const { rows } = await pool.query('SELECT * FROM companies ORDER BY createdat DESC');
     res.json(rows.map(r => ({ ...mapRow(r), isOwner: r.createdbyadminid === req.user.id })));
   } catch (err) {
