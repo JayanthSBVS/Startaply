@@ -32,11 +32,11 @@ const TrendingCompanies = () => {
   const stream2 = repeatToCount(companies, targetDesktopCards).reverse();
 
   const DesktopCompanyCard = ({ company, isDuplicate }) => (
-    // Note: DesktopCompanyCard has no focusable interactive children (no <a href> or <button>),
-    // so no tab-index correction is necessary when it's rendered in an aria-hidden duplicate track.
-    <div
-      className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0"
+    <Link
+      to={`/company/${company.id || company.name}`}
+      className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0 hover:[animation-play-state:paused]"
       aria-hidden={isDuplicate ? "true" : undefined}
+      tabIndex={isDuplicate ? -1 : undefined}
     >
       <div className="w-12 h-12 bg-white rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-white/20 p-1">
         {company.logo ? (
@@ -60,13 +60,13 @@ const TrendingCompanies = () => {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Actively Hiring
         </p>
       </div>
-    </div>
+    </Link>
   );
 
   // Mobile company pill - compact, touch-friendly
   const MobileCompanyPill = ({ company, isDuplicate }) => (
     <Link
-      to={`/companies`}
+      to={`/company/${company.id || company.name}`}
       className="flex-shrink-0 flex items-center gap-3 bg-white/[0.08] border border-white/[0.12] active:bg-white/[0.15] px-4 py-3 rounded-2xl transition-colors w-52 mr-3"
       style={{ minHeight: '64px' }}
       aria-hidden={isDuplicate ? "true" : undefined}
@@ -153,7 +153,7 @@ const TrendingCompanies = () => {
         {/* Track 1 - LTR */}
         <div className="overflow-hidden">
           <div
-            className={isReducedMotion ? "flex overflow-x-auto no-scrollbar" : "companies-track"}
+            className={isReducedMotion ? "flex overflow-x-auto no-scrollbar" : "companies-track hover:[animation-play-state:paused]"}
             style={{
               animationPlayState: shouldAnimate ? 'running' : 'paused',
               animation: isReducedMotion ? 'none' : undefined
@@ -170,7 +170,7 @@ const TrendingCompanies = () => {
         {!isReducedMotion && (
           <div className="overflow-hidden" aria-hidden="true">
             <div
-              className="companies-track-reverse"
+              className="companies-track-reverse hover:[animation-play-state:paused]"
               style={{
                 transform: 'translateX(-50%)',
                 animationPlayState: shouldAnimate ? 'running' : 'paused'

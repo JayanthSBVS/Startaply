@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, LayoutDashboard, PlusCircle, Briefcase, FileText, Building2, MapPin, BookOpen, MessageSquareQuote, Handshake, MessageSquare, Users2, Sliders, History, BarChart3, Image as ImageIcon, Zap, LogOut } from 'lucide-react';
+import { X, LayoutDashboard, PlusCircle, Briefcase, FileText, Building2, MapPin, BookOpen, MessageSquareQuote, Handshake, MessageSquare, Users2, Sliders, History, BarChart3, Image as ImageIcon, Zap, LogOut, Ticket } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 
 const AdminSidebar = ({
@@ -14,17 +14,17 @@ const AdminSidebar = ({
       { id: 'logs',        label: 'Activity Logs',   icon: History },
       { id: 'global_stats', label: 'Global Intelligence', icon: BarChart3 },
       { id: 'herobanners', label: 'Hero Banners',    icon: ImageIcon },
-      { id: 'liveticker',  label: 'Live Ticker',     icon: Zap },
     ] : []),
-    { id: 'add',          label: 'Post Job',     icon: PlusCircle },
-    { id: 'manage',       label: 'Manage Jobs',  icon: Briefcase },
-    { id: 'applications', label: 'Applications', icon: FileText },
-    { id: 'companies',    label: 'Companies',    icon: Building2 },
-    { id: 'jobmela',      label: 'Job Mela',     icon: MapPin },
-    { id: 'prep',         label: 'Prep Data',    icon: BookOpen },
-    { id: 'testimonials', label: 'Testimonials', icon: MessageSquareQuote },
-    { id: 'collabs',      label: 'Collab Requests', icon: Handshake },
-    { id: 'feedback',     label: 'Feedback',     icon: MessageSquare },
+    { id: 'liveticker',   label: 'Live Ticker',      icon: Zap },
+    { id: 'add',          label: 'Post Job',         icon: PlusCircle },
+    { id: 'manage',       label: 'Manage Jobs',      icon: Briefcase },
+    { id: 'applications', label: 'Applications',     icon: FileText },
+    { id: 'companies',    label: 'Companies',        icon: Building2 },
+    { id: 'jobmela',      label: 'Job Mela',         icon: MapPin },
+    { id: 'prep',         label: 'Prep Data',        icon: BookOpen },
+    { id: 'testimonials', label: 'Testimonials',     icon: MessageSquareQuote },
+    { id: 'collabs',      label: 'Collab Requests',  icon: Handshake },
+    { id: 'support',      label: 'Support Tickets',  icon: Ticket },
   ];
   return (
     

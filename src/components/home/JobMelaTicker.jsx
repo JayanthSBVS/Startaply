@@ -16,16 +16,7 @@ const TYPE_BADGES = [
   { label: 'FRESHER',color: 'text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-500/15 border-teal-200 dark:border-teal-500/20' },
 ];
 
-const SECONDARY_TEXT = [
-  '🏢 Infosys • Bangalore • Walk-in',
-  '🏛️ SSC CGL 2024 • Apply Now',
-  '⚡ Amazon Warehouse • Immediate',
-  '🚀 TCS Digital • 800 openings',
-  '📋 IBPS PO Result Out',
-  '🎯 Wipro Elite • Fresh Grads',
-  '🌟 Google India • SDE-2',
-  '🔥 Zepto Delivery • Weekly Pay',
-];
+
 
 const JobMelaTicker = () => {
   const [activeMela, setActiveMela] = useState(null);
@@ -77,10 +68,10 @@ const JobMelaTicker = () => {
     </span>
   ));
 
-  const tickerArray = tickerItems.length > 0 ? tickerItems.map(t => t.text) : SECONDARY_TEXT;
+  const tickerArray = tickerItems.map(t => t.text);
 
   // Define an explicit minimum array length to ensure full-width marquee coverage.
-  const targetSecondaryItems = staticMode ? tickerArray.length : getBoundedRepeatCount(tickerArray.length, TICKER_SECONDARY_MIN, TICKER_SECONDARY_MAX);
+  const targetSecondaryItems = staticMode ? tickerArray.length : (tickerArray.length > 0 ? getBoundedRepeatCount(tickerArray.length, TICKER_SECONDARY_MIN, TICKER_SECONDARY_MAX) : 0);
 
   const repeatToCount = (arr, count) => {
     if (!arr || arr.length === 0) return [];
@@ -160,24 +151,26 @@ const JobMelaTicker = () => {
           </div>
 
           {/* Secondary track (RTL, slower) */}
-          <div className="relative overflow-hidden py-1.5 bg-[#03081c]">
-            <div
-              className={staticMode ? "flex overflow-x-auto no-scrollbar" : "inline-flex whitespace-nowrap"}
-              style={
-                !staticMode
-                  ? { animation: 'marquee-rtl 55s linear infinite', animationPlayState: shouldAnimate ? 'running' : 'paused' }
-                  : {}
-              }
-            >
-              {secondaryItems}
+          {tickerArray.length > 0 && (
+            <div className="relative overflow-hidden py-1.5 bg-[#03081c]">
+              <div
+                className={staticMode ? "flex overflow-x-auto no-scrollbar" : "inline-flex whitespace-nowrap"}
+                style={
+                  !staticMode
+                    ? { animation: 'marquee-rtl 55s linear infinite', animationPlayState: shouldAnimate ? 'running' : 'paused' }
+                    : {}
+                }
+              >
+                {secondaryItems}
+              </div>
+              {!staticMode && (
+                <>
+                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#03081c] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#03081c] to-transparent z-10 pointer-events-none" />
+                </>
+              )}
             </div>
-            {!staticMode && (
-              <>
-                <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#03081c] to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#03081c] to-transparent z-10 pointer-events-none" />
-              </>
-            )}
-          </div>
+          )}
         </div>
       </div>
 

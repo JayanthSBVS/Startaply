@@ -10,7 +10,7 @@ import AdminJobMela from '../components/admin/AdminJobMela';
 import AdminPrepData from '../components/admin/AdminPrepData';
 import AdminTestimonials from '../components/admin/AdminTestimonials';
 import AdminCollabs from '../components/admin/AdminCollabs';
-import AdminFeedback from '../components/admin/AdminFeedback';
+import AdminSupportTickets from '../components/admin/AdminSupportTickets';
 import AdminLiveTicker from '../components/admin/AdminLiveTicker';
 import AdminHeroBanners from '../components/admin/AdminHeroBanners';
 import AdminTeamManagement from '../components/admin/AdminTeamManagement';
@@ -101,7 +101,7 @@ const AdminDashboard = () => {
   const [applications, setApplications] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [melas, setMelas] = useState([]);
-  const [feedbacks, setFeedbacks] = useState([]);
+  const [supportTickets, setSupportTickets] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [prepData, setPrepData] = useState([]);
   const [heroBanners, setHeroBanners] = useState([]);
@@ -188,9 +188,9 @@ const AdminDashboard = () => {
       } else if (activeTab === 'testimonials') {
         const res = await safeGet(`${API}/testimonials/admin/list`, config);
         setTestimonials(Array.isArray(res.data) ? res.data : []);
-      } else if (activeTab === 'feedback') {
-        const res = await safeGet(`${API}/feedback`, config);
-        setFeedbacks(Array.isArray(res.data) ? res.data : []);
+      } else if (activeTab === 'support') {
+        const res = await safeGet(`${API}/support`, config);
+        setSupportTickets(Array.isArray(res.data) ? res.data : []);
       } else if (activeTab === 'liveticker') {
         // Ticker is accessible to all admin roles
         const tickerRes = await safeGet(`${API}/live-ticker`, config).catch(() => ({ data: [] }));
@@ -383,9 +383,9 @@ const AdminDashboard = () => {
               API={API} userProfile={user} getConfig={getConfig} toast={toast} safeGet={null} isManager={isManager}
             />
           )}
-          {activeTab === 'feedback' && (
-            <AdminFeedback 
-              data={{ feedbacks }}
+          {activeTab === 'support' && (
+            <AdminSupportTickets 
+              data={{ supportTickets }}
               formState={{}}
               handlers={{ fetchData, confirmAction, showMsg }}
               API={API} userProfile={user} getConfig={getConfig} toast={toast} safeGet={null} isManager={isManager}
