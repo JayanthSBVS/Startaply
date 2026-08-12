@@ -82,13 +82,18 @@ const Footer = () => {
               Platform
             </h4>
             <ul className="space-y-4">
-              {['Browse Jobs', 'Companies', 'Job Melas', 'Preparation'].map(link => (
-                <li key={link}>
+              {[
+                { name: 'Browse Jobs', path: '/jobs' },
+                { name: 'Companies', path: '/companies' },
+                { name: 'Job Melas', path: '/job-melas' },
+                { name: 'Preparation', path: '/preparation' }
+              ].map(link => (
+                <li key={link.name}>
                   <Link
-                    to={`/${link.toLowerCase().replace(' ', '-')}`}
+                    to={link.path}
                     className="text-content-secondary hover:text-brand font-semibold transition-colors duration-fast inline-flex items-center gap-2 focus-visible rounded-sm min-h-[44px] sm:min-h-0"
                   >
-                    {link}
+                    {link.name}
                   </Link>
                 </li>
               ))}
