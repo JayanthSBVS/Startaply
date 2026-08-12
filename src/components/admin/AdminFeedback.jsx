@@ -13,7 +13,7 @@ const AdminFeedback = React.memo(({
   data, formState, handlers, API, userProfile, getConfig, toast, safeGet, isManager
 }) => {
   const { feedbacks } = data || {};
-  const { fetchData, confirmAction } = handlers || {};
+  const { fetchData, confirmAction, showMsg } = handlers || {};
   return (
     <>
             <div className="animate-in fade-in slide-in-from-bottom-5">
