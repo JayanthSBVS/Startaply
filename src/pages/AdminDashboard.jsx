@@ -19,7 +19,7 @@ import AdminPermissions from '../components/admin/AdminPermissions';
 import AdminActivityLogs from '../components/admin/AdminActivityLogs';
 import AdminGlobalStats from '../components/admin/AdminGlobalStats';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { publishFreshness } from '../utils/dataFreshness';
+import { publishFreshness, subscribeToFreshness } from '../utils/dataFreshness';
 import axios from 'axios';
 import {
   LayoutDashboard, PlusCircle, Briefcase, Trash2, Edit2,
