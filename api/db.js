@@ -1,8 +1,8 @@
 const { Pool } = require('pg');
 
-// ── Fail fast if JWT_SECRET is missing (prevents silent insecure fallback) ──
+// ── Fail fast if JWT_SECRET is missing ──
 if (!process.env.JWT_SECRET) {
-  console.warn('[SECURITY WARNING] JWT_SECRET env var is not set. Using insecure fallback. Set JWT_SECRET in Vercel environment variables immediately.');
+  console.warn('[SECURITY WARNING] JWT_SECRET env var is not set. Set JWT_SECRET in Vercel environment variables.');
 }
 
 // ── Database Pool ────────────────────────────────────────────────────────────
@@ -10,13 +10,22 @@ let globalPool = null;
 
 const getPool = () => {
   if (!globalPool) {
+    const connectionString = process.env.DATABASE_URL || 
+                             process.env.POSTGRES_URL || 
+                             process.env.POSTGRES_PRISMA_URL || 
+                             process.env.POSTGRES_URL_NON_POOLING;
+
+    if (!connectionString) {
+      console.warn('[DB WARNING] No DATABASE_URL or POSTGRES_URL environment variable found.');
+    }
+
     globalPool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
       ssl: { rejectUnauthorized: false },
-      max: 5,                    // Keep low for Vercel serverless
-      min: 1,                    // Keep one connection warm to reduce cold-start latency
-      idleTimeoutMillis: 30000,  // Release idle connections after 30s
-      connectionTimeoutMillis: 10000, // Don't hang forever if DB is unreachable
+      max: 5,
+      min: 0,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
     });
 
     globalPool.on('error', (err) => {
@@ -27,21 +36,19 @@ const getPool = () => {
 };
 
 // ── LRU-capped in-memory cache ───────────────────────────────────────────────
-// Prevents unbounded memory growth in long-lived Vercel instances.
 const MAX_CACHE_SIZE = 200;
-const memoryCache    = new Map(); // Map preserves insertion order for LRU
+const memoryCache    = new Map();
 
 function getMemCache(key, maxAgeSeconds) {
   const item = memoryCache.get(key);
   if (!item) return null;
   const ageSec = (Date.now() - item.ts) / 1000;
   if (ageSec < maxAgeSeconds) return item.data;
-  memoryCache.delete(key); // Expired — clean up
+  memoryCache.delete(key);
   return null;
 }
 
 function setMemCache(key, data) {
-  // LRU eviction: remove oldest entry if at capacity
   if (memoryCache.size >= MAX_CACHE_SIZE) {
     const oldestKey = memoryCache.keys().next().value;
     memoryCache.delete(oldestKey);

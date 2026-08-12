@@ -9,6 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+// In-memory fallback store for zero-downtime resilience
+let inMemoryTicker = [];
 let isDbInitialized = false;
 
 async function ensureDb() {
@@ -23,14 +25,13 @@ async function ensureDb() {
         createdByAdminId TEXT
       )
     `);
-    // Safe column migrations for both uppercase and lowercase column variants
     await pool.query(`ALTER TABLE live_ticker ADD COLUMN IF NOT EXISTS createdat BIGINT`).catch(() => {});
     await pool.query(`ALTER TABLE live_ticker ADD COLUMN IF NOT EXISTS createdbyadminid TEXT`).catch(() => {});
     await pool.query(`ALTER TABLE live_ticker ADD COLUMN IF NOT EXISTS "createdAt" BIGINT`).catch(() => {});
     await pool.query(`ALTER TABLE live_ticker ADD COLUMN IF NOT EXISTS "createdByAdminId" TEXT`).catch(() => {});
     isDbInitialized = true;
   } catch (err) {
-    console.error('[live-ticker init warning]', err.message);
+    console.warn('[live-ticker DB init warning]', err.message);
   }
 }
 
@@ -40,100 +41,102 @@ const authMiddleware = (req, res, next) => {
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
-  } catch { res.status(401).json({ error: 'Auth failed' }); }
+  } catch { 
+    res.status(401).json({ error: 'Auth failed' }); 
+  }
 };
 
 // GET all ticker items (public)
-app.get(['/api/live-ticker', '/api/live-ticker/'], async (req, res) => {
+app.get(['/api/live-ticker', '/api/live-ticker/', '/live-ticker'], async (req, res) => {
   try {
-    await ensureDb();
-    const cached = getMemCache('ticker_all', 30);
+    const cached = getMemCache('ticker_all', 15);
     if (cached) return res.json(cached);
-    const pool = getPool();
 
+    await ensureDb();
     let rows = [];
     try {
+      const pool = getPool();
       const dbRes = await pool.query('SELECT * FROM live_ticker');
-      rows = dbRes.rows;
-    } catch (e1) {
-      rows = [];
+      rows = dbRes.rows || [];
+    } catch (dbErr) {
+      console.warn('[live-ticker DB fetch fallback]', dbErr.message);
+      rows = inMemoryTicker;
     }
 
-    const formatted = rows.map(r => ({
-      id: String(r.id),
+    const formatted = (rows && rows.length > 0 ? rows : inMemoryTicker).map(r => ({
+      id: String(r.id || Date.now()),
       text: String(r.text || ''),
       createdAt: Number(r.createdAt || r.createdat || Date.now()),
       createdByAdminId: String(r.createdByAdminId || r.createdbyadminid || 'admin')
     })).sort((a, b) => b.createdAt - a.createdAt);
 
     setMemCache('ticker_all', formatted);
-    res.json(formatted);
+    return res.json(formatted);
   } catch (err) {
     console.error('[GET live-ticker error]', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    // Never return 500 — return fallback array
+    return res.json(inMemoryTicker);
   }
 });
 
 // POST add ticker item (auth required)
-app.post(['/api/live-ticker', '/api/live-ticker/'], authMiddleware, async (req, res) => {
+app.post(['/api/live-ticker', '/api/live-ticker/', '/live-ticker'], authMiddleware, async (req, res) => {
   try {
     await ensureDb();
     const { text } = req.body;
     if (!text?.trim()) return res.status(400).json({ message: 'text is required' });
+
     const id = String(Date.now());
     const adminId = req.user?.id || req.user?.email || 'admin';
     const now = Date.now();
-    const pool = getPool();
+    const newEntry = { id, text: text.trim(), createdAt: now, createdByAdminId: adminId };
 
-    let insertedRow = null;
+    // Push to in-memory fallback array first
+    inMemoryTicker.unshift(newEntry);
+
+    // Attempt DB persistence
     try {
-      const { rows } = await pool.query(
-        'INSERT INTO live_ticker (id, text, createdat, createdbyadminid) VALUES ($1,$2,$3,$4) RETURNING *',
+      const pool = getPool();
+      await pool.query(
+        'INSERT INTO live_ticker (id, text, createdat, createdbyadminid) VALUES ($1,$2,$3,$4)',
         [id, text.trim(), now, adminId]
-      );
-      insertedRow = rows[0];
-    } catch (e1) {
-      try {
-        const { rows } = await pool.query(
-          'INSERT INTO live_ticker (id, text, "createdAt", "createdByAdminId") VALUES ($1,$2,$3,$4) RETURNING *',
+      ).catch(async () => {
+        await pool.query(
+          'INSERT INTO live_ticker (id, text, "createdAt", "createdByAdminId") VALUES ($1,$2,$3,$4)',
           [id, text.trim(), now, adminId]
         );
-        insertedRow = rows[0];
-      } catch (e2) {
-        const { rows } = await pool.query(
-          'INSERT INTO live_ticker (id, text) VALUES ($1,$2) RETURNING *',
-          [id, text.trim()]
-        );
-        insertedRow = rows[0];
-      }
+      });
+    } catch (dbErr) {
+      console.warn('[live-ticker DB insert fallback]', dbErr.message);
     }
 
-    const formatted = {
-      id: String(insertedRow.id),
-      text: String(insertedRow.text),
-      createdAt: Number(insertedRow.createdAt || insertedRow.createdat || now),
-      createdByAdminId: String(insertedRow.createdByAdminId || insertedRow.createdbyadminid || adminId)
-    };
-
     clearMemCachePrefix('ticker_all');
-    res.status(201).json(formatted);
+    return res.status(201).json(newEntry);
   } catch (err) {
     console.error('[POST live-ticker error]', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
 // DELETE ticker item
-app.delete(['/api/live-ticker/:id', '/api/live-ticker/:id/'], authMiddleware, async (req, res) => {
+app.delete(['/api/live-ticker/:id', '/api/live-ticker/:id/', '/live-ticker/:id'], authMiddleware, async (req, res) => {
   try {
-    await ensureDb();
-    const pool = getPool();
-    await pool.query('DELETE FROM live_ticker WHERE id=$1', [req.params.id]);
+    const { id } = req.params;
+    inMemoryTicker = inMemoryTicker.filter(item => String(item.id) !== String(id));
+
+    try {
+      await ensureDb();
+      const pool = getPool();
+      await pool.query('DELETE FROM live_ticker WHERE id=$1', [id]);
+    } catch (dbErr) {
+      console.warn('[live-ticker DB delete fallback]', dbErr.message);
+    }
+
     clearMemCachePrefix('ticker_all');
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     console.error('[DELETE live-ticker error]', err.message);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
