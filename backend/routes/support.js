@@ -46,6 +46,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Submit a new support ticket
 router.post('/', async (req, res) => {
     try {
+        await initDb();
         const { email, name, issue } = req.body;
         
         if (!email || !issue) {

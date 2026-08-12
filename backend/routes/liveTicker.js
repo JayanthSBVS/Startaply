@@ -36,6 +36,8 @@ router.get('/', async (req, res) => {
 // POST new ticker item
 router.post('/', authMiddleware, async (req, res) => {
   try {
+    await initDb();
+    
     const { text } = req.body;
     if (!text) return res.status(400).json({ message: 'Text is required' });
 
