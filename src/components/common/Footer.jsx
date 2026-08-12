@@ -44,17 +44,30 @@ const Footer = () => {
             <p className="text-content-secondary font-medium text-base mb-8 max-w-sm leading-relaxed">
               India's premium opportunity ecosystem. Discover verified work that moves you, built for the ambitious.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="https://t.me/startaply"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-[44px] px-4 rounded-xl flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-xs shadow-lg shadow-sky-500/20 border border-sky-400/30 transition-all hover:scale-105 active:scale-95"
+                aria-label="Telegram Channel"
+              >
+                <svg className="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.67-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.59 4.62-1.87 5.14-1.88.11 0 .37.03.54.17.14.12.18.29.2.42-.01.07.01.24 0 .38z"/>
+                </svg>
+                <span>Telegram Alerts</span>
+              </a>
+
               {[
-                { icon: <Twitter size={20} />, label: 'Twitter', url: '#' },
-                { icon: <Linkedin size={20} />, label: 'LinkedIn', url: '#' },
-                { icon: <Instagram size={20} />, label: 'Instagram', url: '#' },
-                { icon: <Youtube size={20} />, label: 'YouTube', url: '#' }
+                { icon: <Twitter size={18} />, label: 'Twitter', url: '#' },
+                { icon: <Linkedin size={18} />, label: 'LinkedIn', url: '#' },
+                { icon: <Instagram size={18} />, label: 'Instagram', url: '#' },
+                { icon: <Youtube size={18} />, label: 'YouTube', url: '#' }
               ].map((social) => (
                 <a
                   key={social.label}
                   href={social.url}
-                  className="w-[44px] h-[44px] rounded-md flex items-center justify-center bg-surface-raised border border-border text-content-muted hover:text-brand hover:border-brand-soft transition-colors duration-fast focus-visible"
+                  className="w-[44px] h-[44px] rounded-xl flex items-center justify-center bg-surface-raised border border-border text-content-muted hover:text-brand hover:border-brand-soft transition-colors duration-fast focus-visible"
                   aria-label={social.label}
                 >
                   {social.icon}
