@@ -352,6 +352,7 @@ const AdminDashboard = () => {
               companies={companies} companyForm={companyForm} setCompanyForm={setCompanyForm}
               getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
               confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
+              userProfile={user} isManager={isManager}
             />
           )}
           {activeTab === 'jobmela' && (

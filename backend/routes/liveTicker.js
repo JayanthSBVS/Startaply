@@ -52,8 +52,8 @@ router.post('/', authMiddleware, async (req, res) => {
 
     res.status(201).json(rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('LIVE TICKER POST ERROR:', err);
+    res.status(500).json({ message: 'Server error', error: err.message, stack: err.stack });
   }
 });
 
