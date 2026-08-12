@@ -54,9 +54,17 @@ const AdminCompanies = ({
                 {comp.companyType && <span className="inline-block mt-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">{comp.companyType}</span>}
               </div>
             </div>
-            {(isManager() || comp.createdbyadminid === userProfile?.id) && (
-              <button onClick={() => confirmAction('Delete company?', async () => { await axios.delete(`${API}/companies/${comp.id}`, getConfig()); fetchData(); showMsg('Removed'); })} className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl text-rose-500 transition-colors opacity-0 group-hover:opacity-100 relative z-10 shrink-0"><Trash2 size={18} /></button>
-            )}
+            <button 
+              onClick={() => confirmAction(`Delete company "${comp.name}"?`, async () => { 
+                await axios.delete(`${API}/companies/${comp.id}`, getConfig()); 
+                fetchData(); 
+                showMsg('Company removed'); 
+              })} 
+              className="p-3 bg-rose-500/10 hover:bg-rose-500/20 rounded-2xl text-rose-500 transition-all opacity-0 group-hover:opacity-100 relative z-10 shrink-0"
+              title="Delete Company"
+            >
+              <Trash2 size={18} />
+            </button>
           </div>
         ))}
       </div>

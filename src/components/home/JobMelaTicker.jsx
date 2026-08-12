@@ -68,7 +68,15 @@ const JobMelaTicker = () => {
     </span>
   ));
 
-  const tickerArray = tickerItems.map(t => t.text);
+  const defaultSecondaryItems = [
+    '🔥 500+ Verified Hiring Drives Live',
+    '⚡ Direct HR Contacts & Zero Consulting Fees',
+    '🚀 100% Free Job & Internship Applications',
+    '🎯 Urgent Govt & IT Tech Drive Openings'
+  ];
+
+  const rawArray = tickerItems.map(t => t.text).filter(t => t && t.trim() !== '');
+  const tickerArray = rawArray.length > 0 ? rawArray : defaultSecondaryItems;
 
   // Define an explicit minimum array length to ensure full-width marquee coverage.
   const targetSecondaryItems = staticMode ? tickerArray.length : (tickerArray.length > 0 ? getBoundedRepeatCount(tickerArray.length, TICKER_SECONDARY_MIN, TICKER_SECONDARY_MAX) : 0);
