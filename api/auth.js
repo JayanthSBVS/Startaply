@@ -124,19 +124,28 @@ async function initAuthDb() {
       );
     }
 
-    // 4. Seed primary manager — admin@startaply.com / admin123 (new canonical credentials)
-    const adminEmail = 'admin@startaply.com';
-    const adminPass  = await bcrypt.hash('admin123', 10);
-    await pool.query(
-      `INSERT INTO users (id, name, email, password, role, department, createdAt)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
-       ON CONFLICT (email) DO NOTHING`,
-      ['admin_startaply', 'System Manager', adminEmail, adminPass, 'manager', 'Management', Date.now()]
-    );
+    // 4. Seed demo accounts for all roles
+    const seedUsers = [
+      { id: 'admin_startaply', name: 'System Manager', email: 'admin@startaply.com', pass: 'admin123', role: 'manager' },
+      { id: 'manager_startaply', name: 'Operations Manager', email: 'manager@startaply.com', pass: 'manager123', role: 'operational_manager' },
+      { id: 'executive_startaply', name: 'Operations Executive', email: 'executive@startaply.com', pass: 'executive123', role: 'operational_executive' }
+    ];
 
-    // Optional: Allow the "Operations Manager" (manager_principal) to be deleted by changing its role
-    // to operational_manager if it currently is manager. That way the UI delete button will appear.
-    await pool.query(`UPDATE users SET role = 'operational_manager' WHERE email = 'manager@startaply.com' AND role = 'manager'`).catch(() => {});
+    for (const u of seedUsers) {
+      const hashedPass = await bcrypt.hash(u.pass, 10);
+      const existing = await pool.query('SELECT id FROM users WHERE email = $1', [u.email]);
+      if (existing.rows.length > 0) {
+        await pool.query(
+          `UPDATE users SET role = $1, name = $2, password = $3 WHERE email = $4`,
+          [u.role, u.name, hashedPass, u.email]
+        ).catch(() => {});
+      } else {
+        await pool.query(
+          `INSERT INTO users (id, name, email, password, role, department, createdAt) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [u.id, u.name, u.email, hashedPass, u.role, 'Operations', Date.now()]
+        ).catch(() => {});
+      }
+    }
 
     // 7. Normalize any remaining 'admin' roles → 'executive' (safe, backward-compat migration)
     await pool.query(`UPDATE users SET role = 'executive' WHERE role = 'admin'`).catch(() => {});

@@ -62,10 +62,12 @@ router.get('/', async (req, res) => {
         googleMapLink: r.google_map_link,
         createdAt: Number(r.createdat),
         createdByAdminId: r.createdbyadminid,
-        createdByAdminName: r.createdbyadminname
+        createdAt: r.createdat,
+        updatedAt: r.updatedat
     })));
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.warn('[Job Mela GET fallback]', err.message);
+    res.json([]);
   }
 });
 

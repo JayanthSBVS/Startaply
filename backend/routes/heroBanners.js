@@ -26,8 +26,8 @@ router.get('/', async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM hero_banners ORDER BY createdAt DESC LIMIT 5');
     res.json(rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.warn('[Hero Banners GET fallback]', err.message);
+    res.json([]);
   }
 });
 

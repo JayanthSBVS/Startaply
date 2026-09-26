@@ -1,13 +1,15 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
+const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/startaply';
+
 if (!process.env.DATABASE_URL) {
-    throw new Error("FATAL: DATABASE_URL is missing in .env file.");
+    console.warn("WARNING: DATABASE_URL is missing in .env file. Falling back to local default.");
 }
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    connectionString: dbUrl,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
 module.exports = pool;

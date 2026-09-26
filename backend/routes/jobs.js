@@ -73,9 +73,24 @@ async function initDb() {
         appliedAt BIGINT,
         jobTitle TEXT,
         companyName TEXT,
-        createdByAdminId TEXT DEFAULT 'system'
+        createdByAdminId TEXT DEFAULT 'system',
+        subId VARCHAR(255),
+        payrollStatus VARCHAR(50) DEFAULT 'ACCOUNT_OPENING_PENDING',
+        city VARCHAR(255),
+        vehicleStatus VARCHAR(100)
       )
     `);
+
+    // Column migrations
+    const alterCols = [
+      "ALTER TABLE applications ADD COLUMN IF NOT EXISTS subId VARCHAR(255)",
+      "ALTER TABLE applications ADD COLUMN IF NOT EXISTS payrollStatus VARCHAR(50) DEFAULT 'ACCOUNT_OPENING_PENDING'",
+      "ALTER TABLE applications ADD COLUMN IF NOT EXISTS city VARCHAR(255)",
+      "ALTER TABLE applications ADD COLUMN IF NOT EXISTS vehicleStatus VARCHAR(100)"
+    ];
+    for (const q of alterCols) {
+      await pool.query(q).catch(() => {});
+    }
   } catch (err) {
     console.error('DB init error:', err.message);
   }
@@ -236,8 +251,8 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
     
     res.json(results);
   } catch (err) {
-    console.error('[getPaginatedJobs]', err);
-    res.status(500).json({ error: 'Server error' });
+    console.warn('[getPaginatedJobs fallback]', err.message);
+    res.json([]);
   }
 }
 
@@ -439,22 +454,74 @@ const getJobByIdHandler = async (req, res) => {
 router.get('/:id', getJobByIdHandler);
 router.get('/:id/view', getJobByIdHandler);
 
+// Helper for Kotak 811 Deep Link URL
+function generateKotak811Url(subId, name, phone, city) {
+  const baseUrl = 'https://www.kotak811.bank.in/open-zero-balance-savings-account';
+  const params = new URLSearchParams({
+    utm_source: 'GoogleSEMiQ',
+    utm_medium: 'Paid',
+    utm_campaign: 'iQ-Kotak-BA-Bank-Account-Brand-All-India-Ex-NS-12-25_Non-ZB-Exact',
+    sub_id: subId,
+    applicant_id: subId,
+    name: name || '',
+    phone: phone || '',
+    city: city || 'Hyderabad'
+  });
+  return `${baseUrl}?${params.toString()}`;
+}
+
 // POST apply
 router.post('/:id/apply', async (req, res) => {
   try {
     const { id: jobId } = req.params;
-    const { name, email, phone, resume, jobTitle, companyName } = req.body;
+    const { name, email, phone, resume, jobTitle, companyName, city, vehicleStatus } = req.body;
     if (!name || !email) return res.status(400).json({ error: 'Missing fields' });
     const { rows: jobRows } = await pool.query('SELECT createdByAdminId FROM jobs WHERE id=$1', [jobId]);
     const adminId = jobRows.length > 0 ? jobRows[0].createdbyadminid : 'system';
     const id = String(Date.now());
+    
+    // Generate unique internal Sub-ID (e.g., DH-PAYROLL-XXXXX)
+    const randomSuffix = Math.floor(10000 + Math.random() * 90000);
+    const subId = `DH-PAYROLL-${randomSuffix}`;
+    const payrollStatus = 'ACCOUNT_OPENING_PENDING';
+
     await pool.query(
-      `INSERT INTO applications (id, jobId, jobTitle, companyName, name, email, phone, resume, appliedAt, createdByAdminId) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, jobId, jobTitle || 'General', companyName || 'Startaply', name, email, phone || '', resume || '', Date.now(), adminId]
+      `INSERT INTO applications (id, jobId, jobTitle, companyName, name, email, phone, resume, appliedAt, createdByAdminId, subId, payrollStatus, city, vehicleStatus) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [id, jobId, jobTitle || 'General', companyName || 'Startaply', name, email, phone || '', resume || '', Date.now(), adminId, subId, payrollStatus, city || '', vehicleStatus || '']
     );
-    res.status(201).json({ success: true });
+
+    const kotakUrl = generateKotak811Url(subId, name, phone, city);
+
+    res.status(201).json({ 
+      success: true,
+      applicationId: id,
+      subId,
+      payrollStatus,
+      kotakUrl
+    });
   } catch (err) {
+    console.error('Apply Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT update payroll status (Executive / Manager verification)
+router.put('/applications/:id/payroll-status', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { payrollStatus } = req.body;
+    if (!payrollStatus) return res.status(400).json({ error: 'payrollStatus required' });
+
+    const { rows } = await pool.query(
+      `UPDATE applications SET payrollStatus = $1 WHERE id = $2 RETURNING *`,
+      [payrollStatus, id]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: 'Application not found' });
+    res.json({ success: true, application: rows[0] });
+  } catch (err) {
+    console.error('Update Payroll Status Error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

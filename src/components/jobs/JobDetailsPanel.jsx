@@ -11,8 +11,9 @@ const JobDetailsPanel = ({ job, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applied, setApplied] = useState(false);
 
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', resume: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', resume: '', city: '', vehicleStatus: '' });
   const [errors, setErrors] = useState({});
+  const [kotakData, setKotakData] = useState(null);
 
   // Fetch full details dynamically
   const [fullJob, setFullJob] = useState(null);
@@ -28,7 +29,6 @@ const JobDetailsPanel = ({ job, onClose }) => {
     };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch (err) {
-        // User cancelled sharing - not an error, but if it's a real error, copy to clipboard as fallback
         if (err.name !== 'AbortError') {
           navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
           toast.success("Link copied to clipboard!");
@@ -46,7 +46,8 @@ const JobDetailsPanel = ({ job, onClose }) => {
       setTimeout(() => setIsVisible(true), 10);
       setApplied(false);
       setShowForm(false);
-      setFormData({ name: '', email: '', phone: '', resume: '' });
+      setKotakData(null);
+      setFormData({ name: '', email: '', phone: '', resume: '', city: '', vehicleStatus: '' });
       setErrors({});
       setFullJob(null);
       setLoadingDetails(true);
@@ -56,7 +57,6 @@ const JobDetailsPanel = ({ job, onClose }) => {
         .catch(err => console.error("Failed to fetch full job view", err))
         .finally(() => setLoadingDetails(false));
       
-      // Increment view counter in the background
       axios.post(`${API}/jobs/${job.id}/view`).catch(() => {});
         
     } else {
@@ -77,7 +77,7 @@ const JobDetailsPanel = ({ job, onClose }) => {
   };
 
   const handlePhoneChange = (e) => {
-    const val = e.target.value.replace(/\D/g, ''); // Strip non-numeric characters automatically
+    const val = e.target.value.replace(/\D/g, '');
     if (val.length <= 10) {
       setFormData({ ...formData, phone: val });
       if (errors.phone) setErrors({ ...errors, phone: null });
@@ -102,19 +102,23 @@ const JobDetailsPanel = ({ job, onClose }) => {
 
     setIsSubmitting(true);
     try {
-      // Include Job context so Admin Dashboard displays correct data instead of "Unknown"
       const payload = {
         ...formData,
         jobTitle: displayJob.title,
         companyName: displayJob.company
       };
 
-      await axios.post(`${API}/jobs/${displayJob.id}/apply`, payload);
+      const res = await axios.post(`${API}/jobs/${displayJob.id}/apply`, payload);
       setApplied(true);
       setIsSubmitting(false);
 
-      if (displayJob.applyType === 'external' && displayJob.applyUrl) window.open(displayJob.applyUrl, '_blank');
-      setTimeout(() => { setIsVisible(false); setTimeout(onClose, 300); }, 2000);
+      if (res.data?.kotakUrl) {
+        setKotakData(res.data);
+      }
+
+      if (displayJob.applyType === 'external' && displayJob.applyUrl) {
+        window.open(displayJob.applyUrl, '_blank');
+      }
     } catch (err) {
       toast.error('Failed to submit application. Please try again.');
       setIsSubmitting(false);
@@ -155,30 +159,100 @@ const JobDetailsPanel = ({ job, onClose }) => {
               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Please provide your details to continue.</p>
             </div>
 
-            <form id="applyForm" onSubmit={submitApplication} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Name *</label>
-                <input required type="text" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors({ ...errors, name: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.name ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
-                {errors.name && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.name}</p>}
-              </div>
+            {applied ? (
+              <div className="py-6 space-y-6 animate-in fade-in">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 size={24} className="shrink-0" />
+                  <div>
+                    <h4 className="font-extrabold text-sm">Application Received Successfully!</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Your record has been logged in our recruitment system.</p>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Email *</label>
-                <input required type="email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors({ ...errors, email: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.email ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
-                {errors.email && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.email}</p>}
-              </div>
+                {kotakData?.kotakUrl && (
+                  <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-6 border border-red-500/30 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl pointer-events-none" />
+                    
+                    <div className="flex items-center gap-2 text-red-400 text-xs font-black uppercase tracking-widest mb-2">
+                      <span>Official Kotak 811 Partner Channel</span>
+                    </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Phone (10 Digits)</label>
-                <input type="text" placeholder="e.g. 9876543210" value={formData.phone} onChange={handlePhoneChange} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.phone ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
-                {errors.phone && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.phone}</p>}
-              </div>
+                    <h3 className="text-lg font-black tracking-tight mb-2">
+                      Open Kotak 811 Zero-Balance Payroll Account
+                    </h3>
+                    
+                    <p className="text-xs text-slate-300 leading-relaxed mb-5">
+                      To activate your daily and weekly rolling salary direct deposits with zero fees, complete your 3-minute Video KYC zero-balance account setup:
+                    </p>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Resume (PDF/Doc)</label>
-                <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-600 dark:text-slate-400 dark:bg-[#0b0f14] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-50 dark:file:bg-emerald-900/40 file:text-emerald-700 dark:file:text-emerald-400 hover:file:bg-emerald-100 dark:hover:file:bg-emerald-900/60 cursor-pointer" />
+                    <div className="space-y-2.5 mb-6 text-xs font-semibold text-slate-200">
+                      <div className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                        <span><strong>₹0 Minimum Balance:</strong> No penalty fees or minimum balance requirements.</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                        <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
+                        <span><strong>Instant Virtual Debit Card:</strong> Ready in minutes for daily fuel & ops expenses.</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
+                        <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                        <span><strong>Automated Direct Credits:</strong> 24-hr verification for daily & weekly payroll activation.</span>
+                      </div>
+                    </div>
+
+                    <a
+                      href={kotakData.kotakUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-4 rounded-full bg-red-600 hover:bg-red-500 text-white font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-red-600/30 active:scale-95"
+                    >
+                      Proceed to Kotak 811 Video KYC <ArrowRight size={16} />
+                    </a>
+                  </div>
+                )}
               </div>
-            </form>
+            ) : (
+              <form id="applyForm" onSubmit={submitApplication} className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Name *</label>
+                  <input required type="text" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors({ ...errors, name: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.name ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                  {errors.name && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.name}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Email *</label>
+                  <input required type="email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors({ ...errors, email: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.email ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                  {errors.email && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.email}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Phone (10 Digits)</label>
+                  <input type="text" placeholder="e.g. 9876543210" value={formData.phone} onChange={handlePhoneChange} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white ${errors.phone ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                  {errors.phone && <p className="text-rose-500 text-xs font-bold mt-1.5 flex items-center gap-1"><AlertCircle size={12} /> {errors.phone}</p>}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">City / Location</label>
+                    <input type="text" placeholder="e.g. Hyderabad" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white focus:border-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Vehicle Status</label>
+                    <select value={formData.vehicleStatus} onChange={e => setFormData({ ...formData, vehicleStatus: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none transition-all font-medium dark:bg-[#0b0f14] dark:text-white focus:border-emerald-500">
+                      <option value="">Select Option</option>
+                      <option value="Two Wheeler">Two Wheeler</option>
+                      <option value="Four Wheeler">Four Wheeler</option>
+                      <option value="No Vehicle">No Vehicle</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Resume (PDF/Doc)</label>
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-medium text-slate-600 dark:text-slate-400 dark:bg-[#0b0f14] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-50 dark:file:bg-emerald-900/40 file:text-emerald-700 dark:file:text-emerald-400 hover:file:bg-emerald-100 dark:hover:file:bg-emerald-900/60 cursor-pointer" />
+                </div>
+              </form>
+            )}
           </div>
         ) : (
           <div className="p-6 space-y-8 overflow-y-auto flex-1 custom-scrollbar bg-white dark:bg-slate-900 transition-colors">

@@ -140,9 +140,21 @@ async function initDb() {
           email TEXT,
           phone TEXT,
           resumeUrl TEXT,
-          appliedAt BIGINT
+          appliedAt BIGINT,
+          jobTitle TEXT,
+          companyName TEXT,
+          createdByAdminId TEXT DEFAULT 'system',
+          subId VARCHAR(255),
+          payrollStatus VARCHAR(50) DEFAULT 'ACCOUNT_OPENING_PENDING',
+          city VARCHAR(255),
+          vehicleStatus VARCHAR(100)
         )
       `);
+
+      const appCols = ['subId', 'payrollStatus', 'city', 'vehicleStatus'];
+      for (const col of appCols) {
+        await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS ${col.toLowerCase()} TEXT`).catch(() => {});
+      }
       
       console.log('Jobs API Initialized Successfully');
       return true;
@@ -714,20 +726,50 @@ app.delete('/api/jobs/applications/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Helper for Kotak 811 Deep Link URL
+function generateKotak811Url(subId, name, phone, city) {
+  const baseUrl = 'https://www.kotak811.bank.in/open-zero-balance-savings-account';
+  const params = new URLSearchParams({
+    utm_source: 'GoogleSEMiQ',
+    utm_medium: 'Paid',
+    utm_campaign: 'iQ-Kotak-BA-Bank-Account-Brand-All-India-Ex-NS-12-25_Non-ZB-Exact',
+    sub_id: subId,
+    applicant_id: subId,
+    name: name || '',
+    phone: phone || '',
+    city: city || 'Hyderabad'
+  });
+  return `${baseUrl}?${params.toString()}`;
+}
+
 // POST apply to job
 const nodemailer = require('nodemailer');
 app.post('/api/jobs/:id/apply', async (req, res) => {
   try {
-    const { name, email, phone, resume, jobTitle, companyName } = req.body;
+    const { name, email, phone, resume, jobTitle, companyName, city, vehicleStatus } = req.body;
     if (!name || !email) return res.status(400).json({ message: 'Missing fields' });
     const id = String(Date.now());
 
+    // Generate unique internal Sub-ID (e.g., DH-PAYROLL-XXXXX)
+    const randomSuffix = Math.floor(10000 + Math.random() * 90000);
+    const subId = `DH-PAYROLL-${randomSuffix}`;
+    const payrollStatus = 'ACCOUNT_OPENING_PENDING';
+
     // Save application first — don't block on email
     const { rows } = await pool.query(
-      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt,jobTitle,companyName) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [id, req.params.id, name, email, phone || '', resume || '', Date.now(), jobTitle || '', companyName || '']
+      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt,jobTitle,companyName,subId,payrollStatus,city,vehicleStatus) 
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [id, req.params.id, name, email, phone || '', resume || '', Date.now(), jobTitle || '', companyName || '', subId, payrollStatus, city || '', vehicleStatus || '']
     );
-    res.status(201).json(rows[0]);
+
+    const kotakUrl = generateKotak811Url(subId, name, phone, city);
+
+    res.status(201).json({
+      ...rows[0],
+      subId,
+      payrollStatus,
+      kotakUrl
+    });
 
     // Fire-and-forget email — failures don't affect the user response
     (async () => {
@@ -751,6 +793,26 @@ app.post('/api/jobs/:id/apply', async (req, res) => {
     })();
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT update payroll status (Executive / Manager verification)
+app.put('/api/jobs/applications/:id/payroll-status', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { payrollStatus } = req.body;
+    if (!payrollStatus) return res.status(400).json({ error: 'payrollStatus required' });
+
+    const { rows } = await pool.query(
+      `UPDATE applications SET payrollStatus = $1 WHERE id = $2 RETURNING *`,
+      [payrollStatus, id]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: 'Application not found' });
+    res.json({ success: true, application: rows[0] });
+  } catch (err) {
+    console.error('Update Payroll Status Error:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

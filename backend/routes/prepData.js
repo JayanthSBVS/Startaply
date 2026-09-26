@@ -49,7 +49,8 @@ router.get('/', async (req, res) => {
             createdByAdminName: r.createdbyadminname
         })));
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        console.warn('[Prep Data GET fallback]', err.message);
+        res.json([]);
     }
 });
 
