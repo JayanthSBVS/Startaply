@@ -8,8 +8,8 @@ import { ArrowRight, Flame, Building2, GraduationCap } from 'lucide-react';
 
 const TABS = [
   { key: 'All',              label: 'All Fresh',    icon: Flame,         color: 'from-blue-500 to-cyan-400' },
-  { key: 'IT & Non-IT Jobs', label: 'IT & Tech',   icon: Building2,     color: 'from-violet-500 to-purple-400' },
-  { key: 'Government Jobs',  label: 'Government',  icon: GraduationCap, color: 'from-amber-500 to-orange-400' },
+  { key: 'IT & Tech',        label: 'IT & Tech',   icon: Building2,     color: 'from-violet-500 to-purple-400' },
+  { key: 'Private Jobs',     label: 'Private Jobs', icon: GraduationCap, color: 'from-blue-600 to-indigo-400' },
 ];
 
 const TodaysJobsSection = memo(({ onViewDetails }) => {
@@ -17,13 +17,25 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
   const [activeTab, setActiveTab] = useState('All');
 
   const safeJobs  = Array.isArray(jobs) ? jobs : [];
-  const freshJobs = safeJobs.filter(j => j.isToday || j.isFresh);
+  const freshList = safeJobs.filter(j => j.isToday || j.isFresh);
+  const freshJobs = freshList.length > 0 ? freshList : safeJobs;
+
   const filtered  = activeTab === 'All'
     ? freshJobs
-    : freshJobs.filter(j => (j.jobCategory || j.category) === activeTab);
+    : freshJobs.filter(j => {
+        const cat = (j.jobCategory || j.category || '').toLowerCase();
+        const type = (j.jobCategoryType || '').toLowerCase();
+        if (activeTab === 'IT & Tech' || activeTab === 'IT & Non-IT Jobs') {
+          return cat.includes('it') || cat.includes('software') || cat.includes('tech') || type.includes('it');
+        }
+        if (activeTab === 'Private Jobs') {
+          return cat.includes('private') || cat.includes('corporate') || (!cat.includes('govt') && !cat.includes('mela'));
+        }
+        return cat === activeTab.toLowerCase();
+      });
 
   const safeFiltered = Array.isArray(filtered) ? filtered : [];
-  const categoryQuery = activeTab === 'All' ? 'All Categories' : encodeURIComponent(activeTab);
+  const categoryQuery = activeTab === 'All' ? 'All Categories' : encodeURIComponent(activeTab === 'IT & Tech' ? 'IT & Non-IT Jobs' : activeTab);
   const activeTabData = TABS.find(t => t.key === activeTab) || TABS[0];
 
   return (

@@ -2,26 +2,18 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import {
   BookOpen, Download, ChevronDown, ChevronUp,
-  GraduationCap, Building2, Monitor, FileText, HelpCircle, Newspaper
+  GraduationCap, Monitor, FileText, HelpCircle, Newspaper, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORIES = [
-  { id: 'IT Jobs', icon: Monitor, color: 'emerald' },
-  { id: 'Non-IT Jobs', icon: GraduationCap, color: 'blue' },
-  { id: 'Government Jobs', icon: Building2, color: 'amber' },
+  { id: 'IT Jobs', icon: Monitor, color: 'blue' },
+  { id: 'Non-IT Jobs', icon: GraduationCap, color: 'indigo' },
 ];
 
 const CONTENT_TABS = {
-  'IT Jobs':         [{ id: 'article', label: 'Articles & Tips', icon: FileText }, { id: 'qna', label: 'Q&A', icon: HelpCircle }, { id: 'paper', label: 'Papers', icon: Newspaper }],
-  'Non-IT Jobs':     [{ id: 'article', label: 'Articles & Tips', icon: FileText }, { id: 'qna', label: 'Q&A', icon: HelpCircle }, { id: 'paper', label: 'Papers', icon: Newspaper }],
-  'Government Jobs': [{ id: 'paper', label: 'Previous Year Papers', icon: Newspaper }, { id: 'article', label: 'Study Notes', icon: FileText }, { id: 'qna', label: 'Q&A', icon: HelpCircle }],
-};
-
-const COLOR_MAP = {
-  emerald: { active: 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', glow: 'from-emerald-500/10' },
-  blue:    { active: 'bg-blue-600 text-white shadow-lg shadow-blue-600/30',    badge: 'bg-blue-50 text-blue-700 border-blue-200',    glow: 'from-blue-500/10' },
-  amber:   { active: 'bg-amber-600 text-white shadow-lg shadow-amber-600/30',  badge: 'bg-amber-50 text-amber-700 border-amber-200',  glow: 'from-amber-500/10' },
+  'IT Jobs':     [{ id: 'article', label: 'Articles & Guides', icon: FileText }, { id: 'qna', label: 'Interview Q&A', icon: HelpCircle }, { id: 'paper', label: 'Sample Papers', icon: Newspaper }],
+  'Non-IT Jobs': [{ id: 'article', label: 'Articles & Guides', icon: FileText }, { id: 'qna', label: 'Interview Q&A', icon: HelpCircle }, { id: 'paper', label: 'Sample Papers', icon: Newspaper }],
 };
 
 // --- Q&A Accordion Card ---
@@ -33,19 +25,20 @@ const QnACard = ({ item }) => {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all shadow-sm"
+      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-[#1A62FE]/40 transition-all shadow-sm"
     >
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-start justify-between gap-4 p-5 md:p-6 text-left group"
+        aria-expanded={open}
       >
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-center justify-center">
-            <HelpCircle size={14} className="text-blue-500 dark:text-blue-400" />
+          <span className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-lg bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 flex items-center justify-center">
+            <HelpCircle size={15} className="text-[#001F8E] dark:text-[#1A62FE]" />
           </span>
-          <span className="font-bold text-slate-800 dark:text-white text-sm md:text-base leading-snug">{item.heading || item.question}</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-snug">{item.heading || item.question}</span>
         </div>
-        <div className="flex-shrink-0 mt-0.5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
+        <div className="flex-shrink-0 mt-0.5 text-slate-400 group-hover:text-[#1A62FE] transition-colors">
           {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
       </button>
@@ -56,11 +49,11 @@ const QnACard = ({ item }) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.22 }}
             className="overflow-hidden"
           >
-            <div className="px-5 md:px-6 pb-5 pt-1 border-t border-slate-100 dark:border-slate-800">
-              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">{item.content || item.answer}</p>
+            <div className="px-5 md:px-6 pb-6 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-normal">{item.content || item.answer}</p>
             </div>
           </motion.div>
         )}
@@ -78,28 +71,28 @@ const PaperCard = ({ item }) => {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 hover:border-amber-300 dark:hover:border-amber-500/50 hover:shadow-xl hover:-translate-y-0.5 transition-all group"
+      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 hover:border-[#1A62FE]/40 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
     >
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-center group-hover:bg-amber-500 group-hover:border-amber-500 transition-all">
-          <Newspaper size={22} className="text-amber-500 group-hover:text-white transition-colors" />
+        <div className="flex-shrink-0 w-12 h-12 bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 rounded-xl flex items-center justify-center group-hover:bg-[#001F8E] transition-all">
+          <Newspaper size={22} className="text-[#001F8E] dark:text-[#1A62FE] group-hover:text-white transition-colors" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm md:text-base mb-1 leading-snug">{item.heading}</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white text-sm md:text-base mb-1.5 leading-snug">{item.heading}</h3>
           {item.content && (
-            <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-medium leading-relaxed mb-3">{item.content}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-normal leading-relaxed mb-3">{item.content}</p>
           )}
           {fileUrl ? (
             <a
               href={fileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-amber-500 dark:bg-amber-600 hover:bg-amber-400 dark:hover:bg-amber-500 text-white text-xs font-black px-4 py-2.5 rounded-full transition-all shadow-md shadow-amber-500/20 active:scale-95"
+              className="inline-flex items-center gap-2 bg-[#001F8E] hover:bg-[#1A62FE] text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm shadow-[#001F8E]/20 active:scale-95"
             >
-              <Download size={14} /> Download Paper
+              <Download size={13} /> Download Material
             </a>
           ) : (
-            <span className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold px-4 py-2 rounded-full">
+            <span className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-medium px-3 py-1.5 rounded-lg">
               Coming Soon
             </span>
           )}
@@ -110,21 +103,21 @@ const PaperCard = ({ item }) => {
 };
 
 // --- Article Card ---
-const ArticleCard = ({ item, color }) => (
+const ArticleCard = ({ item }) => (
   <motion.div
     layout
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, scale: 0.97 }}
-    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-7 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-2xl hover:-translate-y-1 transition-all group"
+    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 hover:border-[#1A62FE]/40 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
   >
-    <div className={`w-11 h-11 bg-${color}-50 dark:bg-${color}-900/20 border border-${color}-200 dark:border-${color}-800 rounded-xl flex items-center justify-center mb-4 group-hover:bg-${color}-600 group-hover:border-${color}-600 transition-all`}>
-      <BookOpen size={20} className={`text-${color}-500 dark:text-${color}-400 group-hover:text-white transition-colors`} />
+    <div className="w-10 h-10 bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#001F8E] transition-all">
+      <BookOpen size={18} className="text-[#001F8E] dark:text-[#1A62FE] group-hover:text-white transition-colors" />
     </div>
-    <h3 className="text-base md:text-lg font-extrabold text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2.5 group-hover:text-[#001F8E] dark:group-hover:text-[#1A62FE] transition-colors leading-snug">
       {item.heading}
     </h3>
-    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">{item.content}</p>
+    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-wrap font-normal">{item.content}</p>
   </motion.div>
 );
 
@@ -133,7 +126,7 @@ const Skeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     {[1, 2, 3, 4].map(i => (
       <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 animate-pulse">
-        <div className="w-11 h-11 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4" />
+        <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl mb-4" />
         <div className="h-5 bg-slate-100 dark:bg-slate-800 rounded-full w-3/4 mb-3" />
         <div className="space-y-2">
           <div className="h-3 bg-slate-50 dark:bg-slate-800/50 rounded-full w-full" />
@@ -147,7 +140,7 @@ const Skeleton = () => (
 // --- Main Page ---
 const PreparationPage = () => {
   useEffect(() => {
-    document.title = "Preparation Materials | Startaply";
+    document.title = "Preparation Hub | Startaply";
   }, []);
   const [activeCategory, setActiveCategory] = useState('IT Jobs');
   const [activeContentTab, setActiveContentTab] = useState('article');
@@ -167,8 +160,6 @@ const PreparationPage = () => {
     setActiveContentTab(tabs[0].id);
   }, [activeCategory]);
 
-  const catObj = CATEGORIES.find(c => c.id === activeCategory);
-  const colors = COLOR_MAP[catObj.color];
   const contentTabs = CONTENT_TABS[activeCategory];
 
   const roles = useMemo(() => {
@@ -195,24 +186,25 @@ const PreparationPage = () => {
   }, [prepData, activeCategory, activeContentTab, activeRole]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans selection:bg-emerald-100 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-slate-900 pt-28 pb-24 px-4 text-center relative overflow-hidden"
+        className="bg-gradient-to-b from-[#001F8E] via-[#00176b] to-slate-900 pt-28 pb-24 px-4 text-center relative overflow-hidden"
       >
-        <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${colors.glow} via-transparent to-transparent opacity-60 dark:opacity-40`} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#1A62FE]/20 via-transparent to-transparent" />
         <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">
-            <BookOpen size={12} /> Preparation Hub
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold text-blue-100 uppercase tracking-wider mb-6">
+            <Sparkles size={13} className="text-[#1A62FE]" /> Career Resources & Guides
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4 leading-tight">
-            Interview & Exam<br /><span className="text-emerald-400">Preparation</span>
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+            Interview & Skill <br className="hidden sm:inline" />
+            <span className="text-[#EFF3FF] font-extrabold">Preparation Hub</span>
           </h1>
-          <p className="text-slate-400 font-medium max-w-xl mx-auto text-sm md:text-base">
-            Curated study materials, interview Q&As, and previous year papers - all in one place.
+          <p className="text-blue-100/80 font-normal max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+            Curated study materials, verified interview Q&As, and comprehensive company preparation kits to help you ace your hiring process.
           </p>
         </div>
       </motion.div>
@@ -220,18 +212,18 @@ const PreparationPage = () => {
       <div className="max-w-5xl mx-auto px-4 -mt-8 relative z-10 pb-24">
 
         {/* Category Tabs */}
-        <div className="bg-white dark:bg-slate-900 rounded-full shadow-xl shadow-slate-200/60 dark:shadow-slate-950/40 border border-slate-200 dark:border-slate-800 p-1.5 md:p-2 mb-6 flex gap-1 md:gap-2 overflow-x-auto no-scrollbar">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/40 border border-slate-200 dark:border-slate-800 p-2 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
           {CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-full text-xs md:text-sm font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
+              className={`flex-1 flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 ${
                 activeCategory === cat.id
-                  ? colors.active
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#001F8E] text-white shadow-md shadow-[#001F8E]/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFF3FF] dark:hover:bg-slate-800 hover:text-[#001F8E] dark:hover:text-white'
               }`}
             >
-              <cat.icon size={14} className="flex-shrink-0" /> {cat.id}
+              <cat.icon size={16} className="flex-shrink-0" /> {cat.id}
             </button>
           ))}
         </div>
@@ -243,10 +235,10 @@ const PreparationPage = () => {
               <button
                 key={role}
                 onClick={() => setActiveRole(role)}
-                className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all border ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border ${
                   activeRole === role
-                    ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-500/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700'
+                    ? 'bg-[#001F8E] text-white border-[#001F8E] shadow-sm'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-[#1A62FE]/40'
                 }`}
               >
                 {role}
@@ -261,13 +253,13 @@ const PreparationPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveContentTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap border transition-all flex-shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap border transition-all flex-shrink-0 ${
                 activeContentTab === tab.id
-                  ? 'bg-slate-900 dark:bg-emerald-600 text-emerald-400 dark:text-white border-slate-700 dark:border-emerald-500 shadow-lg'
-                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-200'
+                  ? 'bg-[#EFF3FF] dark:bg-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] border-[#001F8E]/30 dark:border-[#1A62FE]/30 shadow-sm'
+                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <tab.icon size={13} /> {tab.label}
+              <tab.icon size={14} /> {tab.label}
             </button>
           ))}
         </div>
@@ -279,13 +271,13 @@ const PreparationPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20 md:py-28 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors"
+            className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"
           >
-            <BookOpen size={48} className="mx-auto text-slate-300 dark:text-slate-700 mb-4" />
-            <h3 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mb-2">Nothing Here Yet</h3>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-              {activeContentTab === 'paper' ? 'Previous year papers' : activeContentTab === 'qna' ? 'Q&A content' : 'Articles'}
-              {' '}for {activeCategory} will be added soon.
+            <BookOpen size={44} className="mx-auto text-slate-300 dark:text-slate-700 mb-3" />
+            <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white mb-1.5">No Materials Available Yet</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-normal text-xs md:text-sm">
+              {activeContentTab === 'paper' ? 'Sample papers' : activeContentTab === 'qna' ? 'Interview Q&A items' : 'Articles and guides'}
+              {' '}for {activeCategory} are being prepared and will be published shortly.
             </p>
           </motion.div>
         ) : (
@@ -299,8 +291,8 @@ const PreparationPage = () => {
                 {filteredData.map(item => <PaperCard key={item.id} item={item} />)}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                {filteredData.map(item => <ArticleCard key={item.id} item={item} color={catObj.color} />)}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                {filteredData.map(item => <ArticleCard key={item.id} item={item} />)}
               </div>
             )}
           </AnimatePresence>

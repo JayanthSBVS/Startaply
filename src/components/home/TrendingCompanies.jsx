@@ -46,7 +46,7 @@ const TrendingCompanies = () => {
     return (
       <Link
         to={`/company/${company.id || company.name}`}
-        className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-6 py-4 rounded-[1.5rem] backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0 hover:[animation-play-state:paused]"
+        className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#1A62FE]/40 px-6 py-4 rounded-2xl backdrop-blur-md mx-3 transition-colors cursor-pointer group w-72 shrink-0 hover:[animation-play-state:paused]"
         aria-hidden={isDuplicate ? "true" : undefined}
         tabIndex={isDuplicate ? -1 : undefined}
       >
@@ -59,7 +59,7 @@ const TrendingCompanies = () => {
               className="w-full h-full object-contain"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=001F8E&color=fff&bold=true`;
               }}
             />
           ) : (
@@ -67,9 +67,9 @@ const TrendingCompanies = () => {
           )}
         </div>
         <div className="min-w-0">
-          <h4 className="text-white font-bold text-sm truncate group-hover:text-emerald-400 transition-colors">{company.name}</h4>
-          <p className="text-slate-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Actively Hiring
+          <h4 className="text-white font-bold text-sm truncate group-hover:text-[#1A62FE] transition-colors">{company.name}</h4>
+          <p className="text-slate-400 text-xs font-medium mt-0.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1A62FE] animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Actively Hiring
           </p>
         </div>
       </Link>
@@ -96,7 +96,7 @@ const TrendingCompanies = () => {
               className="w-full h-full object-contain"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=10b981&color=fff&bold=true`;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=001F8E&color=fff&bold=true`;
               }}
             />
           ) : (
@@ -105,8 +105,8 @@ const TrendingCompanies = () => {
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="text-white font-bold text-sm truncate">{company.name}</h4>
-          <p className="text-emerald-400 text-[10px] font-bold mt-0.5 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Hiring
+          <p className="text-[#1A62FE] text-[10px] font-bold mt-0.5 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1A62FE] animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }} /> Hiring
           </p>
         </div>
       </Link>
@@ -114,39 +114,28 @@ const TrendingCompanies = () => {
   };
 
   return (
-    <section ref={sectionRef} className="py-12 md:py-24 relative overflow-hidden section-dark transition-colors duration-500">
-      {/* Network background effect - hidden on mobile */}
-      <svg className="hidden md:block absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-        <pattern id="network" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-          <circle cx="50" cy="50" r="1" fill="#fff" />
-          <path d="M0 0 L100 100 M100 0 L0 100" stroke="#fff" strokeWidth="0.5" strokeOpacity="0.5" fill="none" />
-        </pattern>
-        <rect x="0" y="0" width="100%" height="100%" fill="url(#network)" />
-      </svg>
-
-      {/* Glow - reduced on mobile */}
-      <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] rounded-full opacity-20 pointer-events-none mix-blend-screen"
-        style={{ backgroundImage: 'var(--orb-indigo)', filter: 'blur(80px)' }}
-      />
+    <section ref={sectionRef} className="py-12 md:py-24 relative overflow-hidden bg-[#020617] transition-colors duration-500">
+      {/* Glow */}
+      <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] bg-[#1A62FE]/10 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto px-4 relative z-10 mb-8 md:mb-16 text-center">
-        <div className="inline-flex items-center gap-2 mb-4 md:mb-6 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700/50 shadow-sm">
-          <Users size={13} className="text-emerald-400" />
-          <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-slate-300">The Startaply Network</span>
+      <div className="max-w-7xl mx-auto px-4 relative z-10 mb-8 md:mb-14 text-center">
+        <div className="inline-flex items-center gap-2 mb-3.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 shadow-sm text-xs font-bold uppercase tracking-wider text-blue-200">
+          <Users size={13} className="text-[#1A62FE]" />
+          <span>The Startaply Partner Network</span>
         </div>
-        <h2 className="text-2xl md:text-6xl font-black text-white tracking-tighter mb-3 md:mb-4">
-          Hiring <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Ecosystem</span>
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
+          Verified Hiring <span className="text-[#1A62FE]">Ecosystem</span>
         </h2>
-        <p className="text-slate-400 font-medium text-sm md:text-lg max-w-sm md:max-w-xl mx-auto mb-6 md:mb-8">
-          Join the exclusive network of top enterprises and startups recruiting directly through our platform.
+        <p className="text-slate-300 font-normal text-xs sm:text-sm md:text-base max-w-lg mx-auto mb-6 md:mb-8">
+          Join leading enterprises and high-growth companies recruiting directly through Startaply.
         </p>
         <Link
           to="/companies"
-          className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-white text-slate-900 rounded-full font-bold text-sm hover:bg-emerald-400 hover:text-slate-900 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95"
+          className="inline-flex items-center gap-2 px-6 md:px-8 py-3 bg-[#001F8E] hover:bg-[#1A62FE] text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-[#001F8E]/30 active:scale-95"
           style={{ minHeight: '44px' }}
         >
-          Explore Directory <ExternalLink size={15} />
+          Explore Company Directory <ExternalLink size={14} />
         </Link>
       </div>
 
@@ -162,7 +151,7 @@ const TrendingCompanies = () => {
       </div>
 
       {/* ── DESKTOP: Marquee tracks ── */}
-      <div className="hidden md:flex relative z-10 flex-col gap-5 pb-10">
+      <div className="hidden md:flex relative z-10 flex-col gap-4 pb-10">
         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#020617] to-transparent z-20 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#020617] to-transparent z-20 pointer-events-none" />
 
@@ -171,8 +160,7 @@ const TrendingCompanies = () => {
           <div
             className={isReducedMotion ? "flex overflow-x-auto no-scrollbar" : "companies-track hover:[animation-play-state:paused]"}
             style={{
-              animationPlayState: shouldAnimate ? 'running' : 'paused',
-              animation: isReducedMotion ? 'none' : undefined
+              animationPlayState: shouldAnimate ? 'running' : 'paused'
             }}
           >
             {isReducedMotion
@@ -182,7 +170,7 @@ const TrendingCompanies = () => {
           </div>
         </div>
 
-        {/* Track 2 - RTL (Entire track is decorative) */}
+        {/* Track 2 - RTL */}
         {!isReducedMotion && (
           <div className="overflow-hidden" aria-hidden="true">
             <div

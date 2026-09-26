@@ -6,9 +6,9 @@ const steps = [
   {
     icon: <Search size={26} />,
     title: 'Discover Opportunities',
-    desc: 'Search across Government, IT, Non-IT, Fresher and Startup jobs - all verified, zero consulting fees.',
+    desc: 'Search across IT, Tech, Non-IT, Fresher and Startup jobs - all verified, zero consulting fees.',
     number: '01',
-    color: 'emerald',
+    color: 'blue',
   },
   {
     icon: <MapPin size={26} />,

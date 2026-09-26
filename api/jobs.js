@@ -94,8 +94,6 @@ async function initDb() {
           isToday BOOLEAN,
           isVisible BOOLEAN DEFAULT true,
           views INTEGER DEFAULT 0,
-          govtJobType TEXT,
-          stateName TEXT,
           jobCategoryType TEXT,
           mapLocationUrl TEXT,
           processType TEXT DEFAULT 'Standard',
@@ -105,7 +103,7 @@ async function initDb() {
       `);
 
       // 2. Safely ensure all columns exist (idempotent)
-      const cols = ['applyType', 'views', 'isFresh', 'govtJobType', 'stateName', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyid'];
+      const cols = ['applyType', 'views', 'isFresh', 'jobCategoryType', 'mapLocationUrl', 'processType', 'createdByAdminId', 'companyid'];
       for (const col of cols) {
         await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS ${col.toLowerCase()} TEXT`);
       }
@@ -218,8 +216,6 @@ function normalizeJob(body, existing = null, adminId = null) {
     isTrending: nb(body.isTrending),
     isToday: nb(body.isToday),
     isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
-    govtJobType: body.govtJobType || body.govtjobtype || '',
-    stateName: body.stateName || body.statename || '',
     jobCategoryType: body.jobCategoryType || body.jobcategorytype || '',
     mapLocationUrl: body.mapLocationUrl || body.maplocationurl || '',
     processType: body.processType || body.processtype || 'Standard',
@@ -247,8 +243,6 @@ function mapRow(r) {
     expiryDays: Number(r.expirydays || r.expiryDays || 0),
     views: Number(r.views || 0),
     applicationCount: Number(r.applicationcount || 0),
-    govtJobType: r.govtjobtype || r.govtJobType || '',
-    stateName: r.statename || r.stateName || '',
     jobCategoryType: r.jobcategorytype || r.jobCategoryType || '',
     mapLocationUrl: r.maplocationurl || r.mapLocationUrl || '',
     processType: r.processtype || r.processType || 'Standard',
@@ -286,7 +280,7 @@ const setDynamicNoStore = (res) => {
 };
 
 // ── JOBS SELECT (light — excludes heavy text blobs) ───────────────────────────
-const JOBS_SELECT_LIGHT = `id, createdat, updatedat, title, subtitle, description, requiredSkills, company, companylogo, location, workmode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, govtJobType, stateName, jobCategoryType, processType, createdByAdminId, companyid`;
+const JOBS_SELECT_LIGHT = `id, createdat, updatedat, title, subtitle, description, requiredSkills, company, companylogo, location, workmode, salary, type, category, monthTag, applyType, expiryDays, isFeatured, isFresh, isTrending, isToday, isVisible, jobCategoryType, processType, createdByAdminId, companyid`;
 
 function processPublicJobs(rows) {
   const now = Date.now();
@@ -324,13 +318,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
       let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
       if (rawTerms.length === 0) rawTerms = search.trim().split(/\s+/).filter(Boolean);
 
-      // Typo tolerance: search for both 'goverment' and 'government'
-      const finalTerms = [];
-      rawTerms.forEach(t => {
-        finalTerms.push(t);
-        if (t === 'goverment') finalTerms.push('government');
-        if (t === 'government') finalTerms.push('goverment');
-      });
+      const finalTerms = rawTerms;
 
       const searchConditions = finalTerms.map(term => {
         queryParams.push(`%${term}%`);
@@ -341,8 +329,6 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
           company ILIKE $${idx} OR 
           location ILIKE $${idx} OR 
           category ILIKE $${idx} OR 
-          govtJobType ILIKE $${idx} OR
-          stateName ILIKE $${idx} OR
           jobCategoryType ILIKE $${idx}
         )`;
       });
@@ -439,26 +425,19 @@ app.get('/api/jobs/admin/list', authMiddleware, async (req, res) => {
 // Split public routes — each hits a specific optimized query
 app.get('/api/jobs/latest',     (req, res) => getPaginatedJobs(req, res, '', []));
 app.get('/api/jobs/featured',   (req, res) => getPaginatedJobs(req, res, 'isFeatured = true', []));
-app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, "isFresh::text = 'true' OR isToday = true", []));
-app.get('/api/jobs/today',      (req, res) => getPaginatedJobs(req, res, 'isToday = true', []));
-
-app.get('/api/jobs/government', (req, res) => {
-  const govtFilter = req.query.govtFilter;
-  let addlt = `category = 'Government Jobs'`;
-  const p = [];
-  if (govtFilter === 'Central' || govtFilter === 'State') {
-    addlt += ` AND (govtJobType = $1 OR govtjobtype = $1)`;
-    p.push(govtFilter);
-  }
-  return getPaginatedJobs(req, res, addlt, p);
-});
+app.get('/api/jobs/freshers',   (req, res) => getPaginatedJobs(req, res, "(experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher%' OR isFresh::text = 'true' OR isToday = true)", []));
+app.get('/api/jobs/today',      (req, res) => getPaginatedJobs(req, res, "isToday = true OR isFresh::text = 'true'", []));
 
 app.get('/api/jobs/it', (req, res) => {
-  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'IT Job' OR jobcategorytype = 'IT Job')`, []);
+  return getPaginatedJobs(req, res, `(category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%'`, []);
 });
 
 app.get('/api/jobs/non-it', (req, res) => {
-  return getPaginatedJobs(req, res, `category = 'IT & Non-IT Jobs' AND (jobCategoryType = 'Non-IT Job' OR jobcategorytype = 'Non-IT Job')`, []);
+  return getPaginatedJobs(req, res, `category ILIKE '%Non-IT%' OR jobCategoryType ILIKE '%Non%'`, []);
+});
+
+app.get('/api/jobs/gig', (req, res) => {
+  return getPaginatedJobs(req, res, `category ILIKE '%Gig%' OR jobCategoryType ILIKE '%Gig%' OR category ILIKE '%Service%'`, []);
 });
 
 // GET all jobs (public paginated — legacy fallback)
@@ -527,16 +506,16 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
         requiredSkills,techStack,aboutCompany,benefits,company,companyLogo,
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,isFeatured,isFresh,isTrending,isToday,isVisible,
-        govtJobType,stateName,jobCategoryType,mapLocationUrl,processType,createdByAdminId,
+        jobCategoryType,mapLocationUrl,processType,createdByAdminId,
         companyid
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company, j.companyLogo,
       j.location, j.workMode, j.qualification, j.experience, j.salary, j.type, j.category,
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType, j.createdByAdminId,
+      j.jobCategoryType, j.mapLocationUrl, j.processType, j.createdByAdminId,
       j.companyId
     ]);
 
@@ -612,16 +591,16 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
         companyLogo=$11,location=$12,workMode=$13,qualification=$14,experience=$15,
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,isFeatured=$23,isFresh=$24,isTrending=$25,isToday=$26,isVisible=$27,
-        govtJobType=$28,stateName=$29,jobCategoryType=$30,mapLocationUrl=$31,processType=$32,
-        createdByAdminId=$33, companyid=$34
-      WHERE id=$35 RETURNING *
+        jobCategoryType=$28,mapLocationUrl=$29,processType=$30,
+        createdByAdminId=$31, companyid=$32
+      WHERE id=$33 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
       j.companyLogo, j.location, j.workMode, j.qualification, j.experience,
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.stateName, j.jobCategoryType, j.mapLocationUrl, j.processType,
+      j.jobCategoryType, j.mapLocationUrl, j.processType,
       j.createdByAdminId, j.companyId, id
     ]);
 

@@ -27,7 +27,7 @@ const AdminJobForm = ({
         <div className="space-y-2"><label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Job Title *</label><input className={inputCls} value={jobForm.title || ''} onChange={e => setJobForm({ ...jobForm, title: e.target.value })} placeholder="Software Engineer" /></div>
         <div className="space-y-2 relative">
           <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">
-            Company {jobForm.jobCategory === 'Government Jobs' ? '(Optional)' : '*'}
+            Company *
           </label>
           <div className="relative group/search">
             <div className="flex gap-2">
@@ -103,10 +103,9 @@ const AdminJobForm = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2 relative">
               <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Category *</label>
-              <select className={selectCls} value={jobForm.jobCategory || ''} onChange={e => setJobForm({ ...jobForm, jobCategory: e.target.value, govtJobType: '', stateName: '', jobCategoryType: '' })}>
+              <select className={selectCls} value={jobForm.jobCategory || ''} onChange={e => setJobForm({ ...jobForm, jobCategory: e.target.value, jobCategoryType: '' })}>
                 <option value="">Select Category</option>
                 <option value="IT & Non-IT Jobs">IT & Non-IT Jobs</option>
-                <option value="Government Jobs">Government Jobs</option>
                 <option value="Private Jobs">Private Jobs</option>
                 <option value="Fresher Jobs">Fresher Jobs</option>
                 <option value="Gig & Services">Gig & Services</option>
@@ -114,47 +113,6 @@ const AdminJobForm = ({
               <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
             </div>
 
-            {jobForm.jobCategory === 'Government Jobs' && (
-              <div className="space-y-2 relative">
-                <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Govt Job Type *</label>
-                <select className={selectCls} value={jobForm.govtJobType || ''} onChange={e => setJobForm({ ...jobForm, govtJobType: e.target.value, stateName: '' })}>
-                  <option value="">Select Type</option>
-                  <option value="Central">Central Govt Job</option>
-                  <option value="State">State Govt Job</option>
-                </select>
-                <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
-              </div>
-            )}
-
-            {jobForm.jobCategory === 'Government Jobs' && (
-              <div className="space-y-2 relative">
-                <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Govt Department *</label>
-                <select className={selectCls} value={jobForm.govtDept || ''} onChange={e => setJobForm({ ...jobForm, govtDept: e.target.value })}>
-                  <option value="">Select Department</option>
-                  <option value="Teaching">Teaching / Education</option>
-                  <option value="Police">Police / Security</option>
-                  <option value="Military">Military / Defence</option>
-                  <option value="Railway">Railway</option>
-                  <option value="Banking">Banking & Finance</option>
-                  <option value="Healthcare">Healthcare / Medical</option>
-                  <option value="Judiciary">Judiciary / Law</option>
-                  <option value="UPSC / PSC">UPSC / PSC</option>
-                  <option value="Others">Others</option>
-                </select>
-                <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
-              </div>
-            )}
-
-            {jobForm.jobCategory === 'Government Jobs' && jobForm.govtJobType === 'State' && (
-              <div className="space-y-2 relative">
-                <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">State Name *</label>
-                <select className={selectCls} value={jobForm.stateName || ''} onChange={e => setJobForm({ ...jobForm, stateName: e.target.value })}>
-                  <option value="">Select State</option>
-                  {['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'].map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <div className="absolute right-5 top-[38px] pointer-events-none text-slate-500">▼</div>
-              </div>
-            )}
 
             {jobForm.jobCategory === 'IT & Non-IT Jobs' && (
               <div className="space-y-2 relative">

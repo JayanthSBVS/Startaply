@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GraduationCap, Building2, CalendarCheck, X, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, Building2, CalendarCheck, X, Send, Loader2, CheckCircle2, Award, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CollegeCollabBanner = () => {
@@ -23,7 +23,7 @@ const CollegeCollabBanner = () => {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address.');
+      setError('Please enter a valid official email address.');
       return;
     }
     if (formData.phone.length !== 10) {
@@ -54,50 +54,58 @@ const CollegeCollabBanner = () => {
   };
 
   return (
-    <section className="relative py-24 section-light overflow-hidden border-b border-slate-200/50 dark:border-slate-900 transition-colors duration-500">
-      {/* Background Glows */}
-      <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-emerald-400/8 dark:bg-emerald-600/15 blur-[100px] rounded-full pointer-events-none" />
-      <div className="absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
-        style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}
-      />
-
-      <div className="max-w-4xl mx-auto px-4 relative z-10 text-center">
+    <section className="relative py-20 md:py-28 bg-white dark:bg-[#0b0f14] overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
+      {/* Background Decorative Mesh */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-br from-[#001F8E]/5 via-[#1A62FE]/8 to-transparent dark:from-[#001F8E]/15 dark:via-[#1A62FE]/10 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="flex flex-col items-center"
+          className="bg-gradient-to-br from-slate-50 to-[#EFF3FF]/60 dark:from-slate-900/90 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-8 md:p-14 shadow-xl shadow-slate-200/40 dark:shadow-none text-center relative overflow-hidden"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest mb-6">
-            <GraduationCap size={16} /> Campus to Corporate
+          {/* Subtle top accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#001F8E] via-[#1A62FE] to-[#4D84FF]" />
+
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] text-xs font-bold uppercase tracking-wider mb-6">
+            <GraduationCap size={15} /> Campus to Corporate Network
           </div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-[1.05]">
-            Empowering <span className="text-gradient-emerald">Institutions</span> Nationwide
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-5 tracking-tight leading-tight">
+            Bridging Campus Talent with <br className="hidden sm:inline" />
+            <span className="text-[#001F8E] dark:text-[#1A62FE]">High-Growth Corporates</span>
           </h2>
 
-          <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed mb-10 max-w-2xl">
-            Startaply partners with Degree & Engineering Colleges across India. We bring verified corporate recruitment drives and freshers job melas directly to campus networks - giving students early access before public listing.
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg font-normal leading-relaxed mb-8 max-w-2xl mx-auto">
+            Startaply partners with leading Degree, Engineering, and Polytechnic colleges across India. We bring verified corporate hiring drives and fresher recruitment melas directly to your campus — giving students early access to top employers.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-10">
-            <div className="flex items-center gap-3 premium-surface rounded-full px-5 py-3.5 transition-colors">
-              <Building2 size={20} className="text-emerald-500 shrink-0" />
-              <span className="text-slate-900 dark:text-white font-bold text-sm">500+ Partner Colleges</span>
+          {/* Key Metrics / Highlights */}
+          <div className="flex flex-wrap gap-3 sm:gap-4 items-center justify-center mb-9">
+            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-sm">
+              <Building2 size={18} className="text-[#001F8E] dark:text-[#1A62FE] shrink-0" />
+              <span className="text-slate-800 dark:text-white font-bold text-xs sm:text-sm">500+ Partner Colleges</span>
             </div>
-            <div className="flex items-center gap-3 premium-surface rounded-full px-5 py-3.5 transition-colors">
-              <CalendarCheck size={20} className="text-emerald-500 shrink-0" />
-              <span className="text-slate-900 dark:text-white font-bold text-sm">Exclusive Campus Drives</span>
+            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-sm">
+              <CalendarCheck size={18} className="text-[#1A62FE] shrink-0" />
+              <span className="text-slate-800 dark:text-white font-bold text-xs sm:text-sm">Exclusive On-Campus Drives</span>
+            </div>
+            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-sm">
+              <Award size={18} className="text-amber-500 shrink-0" />
+              <span className="text-slate-800 dark:text-white font-bold text-xs sm:text-sm">100% Free Placement Engine</span>
             </div>
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group relative inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/25 active:translate-y-0"
+            className="group inline-flex items-center justify-center gap-2.5 bg-[#001F8E] hover:bg-[#1A62FE] text-white px-8 py-4 rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-[#001F8E]/25 hover:shadow-xl hover:shadow-[#1A62FE]/30 hover:-translate-y-0.5 active:translate-y-0"
+            aria-label="Request College Collaboration"
           >
-            Collaborate with Us
-            <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            Partner with Startaply
+            <Send size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </button>
         </motion.div>
       </div>
@@ -109,80 +117,81 @@ const CollegeCollabBanner = () => {
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
             role="dialog"
             aria-modal="true"
+            aria-label="Partner with Startaply"
           >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"
             />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
               className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 z-10"
             >
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">Partner with Startaply</h3>
-                  <p className="text-sm text-slate-500 mt-1">Submit your college details to collaborate.</p>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Partner with Startaply</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">Submit your institution details for corporate drive collaboration.</p>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                   aria-label="Close form"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
 
               <div className="p-6">
                 {success ? (
                   <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle2 size={32} />
+                    <div className="w-14 h-14 bg-[#EFF3FF] dark:bg-[#1A62FE]/10 text-[#001F8E] dark:text-[#1A62FE] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[#1A62FE]/20">
+                      <CheckCircle2 size={28} />
                     </div>
-                    <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Request Received!</h4>
-                    <p className="text-slate-500">Our team will get back to you shortly to discuss the partnership.</p>
+                    <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5">Request Received!</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-normal max-w-sm mx-auto">Our campus partnerships team will review your details and reach out within 24 business hours.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {error && (
-                      <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 dark:bg-red-500/10 dark:border-red-500/20">
+                      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs rounded-xl border border-rose-100 dark:border-rose-500/20 font-medium">
                         {error}
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">College/Institution Name <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">College / Institution Name <span className="text-rose-500">*</span></label>
                       <input
                         required
                         type="text"
                         name="collegeName"
                         value={formData.collegeName}
                         onChange={handleChange}
-                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                        placeholder="e.g. Indian Institute of Technology"
+                        className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1A62FE]/20 focus:border-[#1A62FE] transition-all font-medium"
+                        placeholder="e.g. Osmania University College of Engineering"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Official Email <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Official Placement Email <span className="text-rose-500">*</span></label>
                       <input
                         required
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                        placeholder="placement@college.edu"
+                        className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1A62FE]/20 focus:border-[#1A62FE] transition-all font-medium"
+                        placeholder="placements@college.edu.in"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Contact Number <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Contact Number (10 Digits) <span className="text-rose-500">*</span></label>
                       <input
                         required
                         type="tel"
@@ -190,20 +199,20 @@ const CollegeCollabBanner = () => {
                         maxLength={10}
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                        placeholder="10-digit Mobile Number (e.g. 9876543210)"
+                        className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1A62FE]/20 focus:border-[#1A62FE] transition-all font-medium"
+                        placeholder="e.g. 9876543210"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Proposal / Message (Optional)</label>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Expected Drive Details / Message (Optional)</label>
                       <textarea
                         name="message"
                         value={formData.message}
                         onChange={handleChange}
                         rows={3}
-                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all resize-none"
-                        placeholder="Tell us about the hackathon or event you want to conduct..."
+                        className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1A62FE]/20 focus:border-[#1A62FE] transition-all resize-none font-medium"
+                        placeholder="Share expected batch size, branches, or preferred drive dates..."
                       />
                     </div>
 
@@ -211,9 +220,9 @@ const CollegeCollabBanner = () => {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                        className="w-full bg-[#001F8E] hover:bg-[#1A62FE] text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#001F8E]/20 disabled:opacity-60 text-sm"
                       >
-                        {loading ? <Loader2 size={18} className="animate-spin" /> : 'Submit Request'}
+                        {loading ? <Loader2 size={16} className="animate-spin" /> : 'Submit Partnership Request'}
                       </button>
                     </div>
                   </form>

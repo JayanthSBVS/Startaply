@@ -113,15 +113,15 @@ const SupportModal = ({ isOpen, onClose }) => {
           ) : (
             <>
               {/* Header */}
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-6 text-white relative overflow-hidden">
+              <div className="bg-gradient-to-r from-[#001F8E] to-[#1A62FE] p-6 text-white relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-                <button onClick={handleClose} className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors bg-black/10 hover:bg-black/20 p-2 rounded-full">
+                <button onClick={handleClose} className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors bg-black/10 hover:bg-black/20 p-2 rounded-full" aria-label="Close support modal">
                   <X size={20} />
                 </button>
                 <h2 className="text-2xl font-black flex items-center gap-3">
                   <Mail size={24} /> Live Support
                 </h2>
-                <p className="text-emerald-50 font-medium text-sm mt-2 opacity-90">
+                <p className="text-blue-100 font-medium text-sm mt-2 opacity-90">
                   Need help? Raise a ticket and our team will get back to you via email.
                 </p>
               </div>
@@ -135,31 +135,31 @@ const SupportModal = ({ isOpen, onClose }) => {
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-inner"
+                    className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#1A62FE] focus:ring-1 focus:ring-[#1A62FE] outline-none transition-all shadow-inner"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest pl-1">Email Address *</label>
+                  <label className="text-[10px] font-black uppercase text-[#1A62FE] tracking-widest pl-1">Email Address *</label>
                   <input 
                     type="email" 
                     required
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-inner"
+                    className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#1A62FE] focus:ring-1 focus:ring-[#1A62FE] outline-none transition-all shadow-inner"
                   />
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-emerald-500 tracking-widest pl-1">Issue Details *</label>
+                  <label className="text-[10px] font-black uppercase text-[#1A62FE] tracking-widest pl-1">Issue Details *</label>
                   <textarea 
                     required
                     rows={4}
                     placeholder="Describe your issue or question in detail..."
                     value={formData.issue}
                     onChange={e => setFormData({ ...formData, issue: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-inner resize-none"
+                    className="w-full bg-slate-50 dark:bg-[#0b0f14] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#1A62FE] focus:ring-1 focus:ring-[#1A62FE] outline-none transition-all shadow-inner resize-none"
                   />
                 </div>
                 
@@ -167,10 +167,10 @@ const SupportModal = ({ isOpen, onClose }) => {
                   <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                    className="w-full flex items-center justify-center gap-2 bg-[#001F8E] hover:bg-[#1A62FE] text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-[#001F8E]/25 active:scale-95 text-sm"
                   >
                     {loading ? (
-                      <div className="w-5 h-5 border-2 border-slate-950/20 border-t-slate-950 rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                     ) : (
                       <><Send size={18} /> Submit Ticket</>
                     )}

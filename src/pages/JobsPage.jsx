@@ -12,32 +12,31 @@ import axios from 'axios';
 
 // ─── Section definitions ───────────────────────────────────────────────────
 const SECTIONS = [
-  { id: 'all',        label: 'All Jobs',        icon: Briefcase,     color: 'emerald',  desc: 'Every live opening' },
-  { id: 'government', label: 'Government Jobs',  icon: Building2,     color: 'amber',    desc: 'Central & State Govt' },
-  { id: 'it',         label: 'IT Jobs',          icon: Monitor,       color: 'blue',     desc: 'Developers, QA, Data' },
-  { id: 'nonit',      label: 'Non-IT Jobs',      icon: Briefcase,     color: 'purple',   desc: 'BPO, Sales, HR, Ops' },
-  { id: 'freshers',   label: 'Freshers',         icon: GraduationCap, color: 'teal',     desc: '0-1 years experience' },
-  { id: 'featured',   label: 'Featured',         icon: Star,          color: 'rose',     desc: 'Hand-picked top roles' },
-  { id: 'today',      label: "Today's Jobs",     icon: Zap,           color: 'orange',   desc: 'Posted within 24h' },
+  { id: 'all',        label: 'All Jobs',        icon: Briefcase,     color: 'brand',    desc: 'Every live opening across India' },
+  { id: 'it',         label: 'IT & Software',   icon: Monitor,       color: 'blue',     desc: 'Developers, QA, Cloud, Data & AI' },
+  { id: 'nonit',      label: 'Non-IT & Ops',    icon: Briefcase,     color: 'purple',   desc: 'BPO, Sales, HR, Operations, Banking' },
+  { id: 'gig',        label: 'Gig & Freelance', icon: Zap,           color: 'orange',   desc: 'Contract, remote & flexible gigs' },
+  { id: 'freshers',   label: 'Freshers (0-1y)', icon: GraduationCap, color: 'teal',     desc: 'Entry level & 0-1 years experience' },
+  { id: 'featured',   label: 'Featured Roles',  icon: Star,          color: 'rose',     desc: 'Hand-picked top verified roles' },
+  { id: 'today',      label: "Today's Jobs",    icon: Zap,           color: 'amber',    desc: 'Posted within the last 24 hours' },
 ];
 
 const colorMap = {
-  emerald: { pill: 'bg-emerald-600 text-white shadow-emerald-600/20',  idle: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500', iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
-  amber:   { pill: 'bg-amber-600 text-white shadow-amber-600/20',      idle: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',         dot: 'bg-amber-500',   iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
-  blue:    { pill: 'bg-blue-600 text-white shadow-blue-600/20',        idle: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',             dot: 'bg-blue-500',    iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  purple:  { pill: 'bg-purple-600 text-white shadow-purple-600/20',    idle: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',     dot: 'bg-purple-500',  iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
-  teal:    { pill: 'bg-teal-600 text-white shadow-teal-600/20',        idle: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',             dot: 'bg-teal-500',    iconBg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400' },
-  rose:    { pill: 'bg-rose-600 text-white shadow-rose-600/20',        idle: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',             dot: 'bg-rose-500',    iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
-  orange:  { pill: 'bg-orange-600 text-white shadow-orange-600/20',    idle: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',     dot: 'bg-orange-500',  iconBg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+  brand:   { pill: 'bg-brand text-on-brand shadow-brand/25',          idle: 'bg-brand-soft text-brand dark:text-brand-hover border-brand/20', dot: 'bg-brand',     iconBg: 'bg-brand-soft text-brand dark:text-brand-hover' },
+  amber:   { pill: 'bg-amber-600 text-white shadow-amber-600/20',     idle: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',         dot: 'bg-amber-500',   iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+  blue:    { pill: 'bg-blue-600 text-white shadow-blue-600/20',       idle: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',             dot: 'bg-blue-500',    iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  purple:  { pill: 'bg-indigo-600 text-white shadow-indigo-600/20',   idle: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',     dot: 'bg-indigo-500',  iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' },
+  teal:    { pill: 'bg-teal-600 text-white shadow-teal-600/20',       idle: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',             dot: 'bg-teal-500',    iconBg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400' },
+  rose:    { pill: 'bg-rose-600 text-white shadow-rose-600/20',       idle: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',             dot: 'bg-rose-500',    iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+  orange:  { pill: 'bg-orange-600 text-white shadow-orange-600/20',   idle: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',     dot: 'bg-orange-500',  iconBg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
 };
 
 // ─── Derive initial state from URL ─────────────────────────────────────────
 function getInitialState(searchParams) {
   const section = searchParams.get('section') || 'all';
   const search = searchParams.get('search') || searchParams.get('company') || searchParams.get('q') || '';
-  const govtFilter = searchParams.get('govtFilter') || 'All';
   const workMode = searchParams.get('workMode') || 'All';
-  return { section, search, govtFilter, workMode };
+  return { section, search, workMode };
 }
 
 const JobsPage = () => {
@@ -48,7 +47,6 @@ const JobsPage = () => {
 
   const [search, setSearch]             = useState(init.search);
   const [activeSection, setActiveSection] = useState(init.section);
-  const [govtFilter, setGovtFilter]     = useState(init.govtFilter);
   const [workMode, setWorkMode]         = useState(init.workMode);
   const [selectedJob, setSelectedJob]   = useState(null);
 
@@ -132,9 +130,6 @@ const JobsPage = () => {
     if (state.section !== activeSection) {
       setActiveSection(state.section);
     }
-    if (state.govtFilter !== govtFilter) {
-      setGovtFilter(state.govtFilter);
-    }
     if (state.workMode !== workMode) {
       setWorkMode(state.workMode);
     }
@@ -151,19 +146,17 @@ const JobsPage = () => {
     if (debouncedSearch)         newParams.set('search', debouncedSearch);
     else newParams.delete('search');
 
-    if (govtFilter !== 'All')    newParams.set('govtFilter', govtFilter);
-    else newParams.delete('govtFilter');
-
     if (workMode !== 'All')      newParams.set('workMode', workMode);
     else newParams.delete('workMode');
 
     // Clean up old legacy params if they exist
+    newParams.delete('govtFilter');
     newParams.delete('company');
     newParams.delete('q');
     newParams.delete('category');
     
     setSearchParams(newParams, { replace: true });
-  }, [activeSection, debouncedSearch, govtFilter, workMode, setSearchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeSection, debouncedSearch, workMode, setSearchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle immediate search trigger on form submission (Enter or Search Button click)
   const handleSearchSubmit = (e) => {
@@ -185,7 +178,7 @@ const JobsPage = () => {
     setLocalJobs([]);
     setHasMore(true);
     setJobsUpdateAvailable(false);
-  }, [activeSection, govtFilter, debouncedSearch]);
+  }, [activeSection, debouncedSearch]);
 
   // Server fetch effect
   useEffect(() => {
@@ -201,18 +194,16 @@ const JobsPage = () => {
       try {
         const routeMap = {
           'all':        '/api/jobs',
-          'government': '/api/jobs/government',
           'it':         '/api/jobs/it',
           'nonit':      '/api/jobs/non-it',
+          'gig':        '/api/jobs/gig',
           'freshers':   '/api/jobs/freshers',
           'today':      '/api/jobs/today',
           'featured':   '/api/jobs/featured',
         };
         const endpoint = routeMap[activeSection] || '/api/jobs';
         let queryParams = `?page=${page}&limit=20`;
-        if (activeSection === 'government' && govtFilter !== 'All') {
-          queryParams += `&govtFilter=${govtFilter}`;
-        }
+
         if (debouncedSearch) {
           queryParams += `&search=${encodeURIComponent(debouncedSearch)}`;
         }
@@ -267,7 +258,7 @@ const JobsPage = () => {
       }
       abortController.abort();
     };
-  }, [activeSection, govtFilter, debouncedSearch, page, refreshCounter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeSection, debouncedSearch, page, refreshCounter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     return localJobs.filter(job => {
@@ -283,7 +274,6 @@ const JobsPage = () => {
   const handleClearFilters = () => {
     setSearch('');
     setActiveSection('all');
-    setGovtFilter('All');
     setWorkMode('All');
   };
 
@@ -292,16 +282,16 @@ const JobsPage = () => {
 
       {/* ── HERO SEARCH ────────────────────────────────────────── */}
       <div className="bg-slate-950 pt-28 pb-16 px-4 border-b border-slate-800 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-slate-950 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand/20 to-slate-950 pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 text-white">
-            Discover Your Next <span className="text-emerald-400">Opportunity</span>
+            Discover Your Next <span className="text-brand-hover">Opportunity</span>
           </h1>
           <p className="text-slate-400 mb-8 text-lg font-medium">Browse verified openings across India</p>
 
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all shadow-2xl">
+          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-brand/50 transition-all shadow-2xl">
             <div className="flex-1 flex items-center pl-5">
-              <Search size={20} className="text-emerald-400 shrink-0" />
+              <Search size={20} className="text-brand-hover shrink-0" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -316,7 +306,7 @@ const JobsPage = () => {
                 </button>
               )}
             </div>
-            <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-7 py-3.5 rounded-[1.5rem] font-bold transition-colors shadow-sm text-sm">
+            <button type="submit" className="bg-brand hover:bg-brand-hover text-on-brand px-7 py-3.5 rounded-[1.5rem] font-bold transition-colors shadow-sm text-sm">
               Search
             </button>
           </form>
@@ -334,7 +324,7 @@ const JobsPage = () => {
               return (
                 <button
                   key={sec.id}
-                  onClick={() => { setActiveSection(sec.id); setGovtFilter('All'); }}
+                  onClick={() => { setActiveSection(sec.id); }}
                   className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-200 ${
                     isActive
                       ? `${secColors.pill} shadow-md border-transparent`
@@ -352,34 +342,7 @@ const JobsPage = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-10">
 
-        {/* ── GOVT SUB-FILTER ─────────────────────────────────────── */}
-        <AnimatePresence>
-          {activeSection === 'government' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-6 overflow-hidden"
-            >
-              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 flex flex-wrap items-center gap-3">
-                <span className="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 mr-2">Filter:</span>
-                {['All', 'Central', 'State'].map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setGovtFilter(f)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-black border transition-all ${
-                      govtFilter === f
-                        ? 'bg-amber-600 text-white border-transparent shadow-md'
-                        : 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30'
-                    }`}
-                  >
-                    {f === 'All' ? 'All Govt Jobs' : `${f} Government`}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
 
         {/* ── MODE FILTER ─────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-1">
@@ -387,7 +350,7 @@ const JobsPage = () => {
             <h2
               ref={resultsHeadingRef}
               tabIndex={-1}
-              className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"
+              className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
             >
               <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
                 <IconComp size={16} />
@@ -407,7 +370,7 @@ const JobsPage = () => {
                 onClick={() => setWorkMode(m)}
                 className={`px-3.5 py-2 rounded-full text-xs font-bold border transition-all ${
                   workMode === m
-                    ? 'bg-slate-900 dark:bg-emerald-600 text-white border-transparent'
+                    ? 'bg-brand text-on-brand border-transparent shadow-sm'
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
                 }`}
               >
@@ -441,15 +404,15 @@ const JobsPage = () => {
         {/* ── UPDATE AVAILABLE ALERT ────────────────────────────────── */}
         {jobsUpdateAvailable && (
           <div
-            className="mb-8 p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 rounded-xl border border-emerald-200 dark:border-emerald-800/40 flex justify-between items-center shadow-sm"
+            className="mb-8 p-4 bg-brand-soft text-brand dark:text-brand-hover rounded-xl border border-brand/20 flex justify-between items-center shadow-sm"
           >
-            <span className="text-sm font-medium">Listings have changed</span>
+            <span className="text-sm font-bold">Listings have changed</span>
             <button
               onClick={() => {
                 handleManualRefresh();
               }}
               disabled={isManualRefreshing}
-              className="px-4 py-2 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+              className="px-4 py-2 min-h-[44px] bg-brand hover:bg-brand-hover text-on-brand text-sm font-bold rounded-lg transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-brand disabled:opacity-50"
               aria-label="Refresh job results"
             >
               {isManualRefreshing ? 'Refreshing...' : 'Refresh results'}
@@ -465,7 +428,7 @@ const JobsPage = () => {
         {/* ── RESULTS ─────────────────────────────────────────────── */}
         {loading && localJobs.length === 0 ? (
           <div className="flex justify-center items-center py-24">
-            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : filtered.length === 0 && !loading ? (
           <motion.div
@@ -482,7 +445,7 @@ const JobsPage = () => {
             </p>
             <button
               onClick={handleClearFilters}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-full shadow-lg transition-all"
+              className="bg-brand hover:bg-brand-hover text-on-brand font-bold px-8 py-3.5 rounded-full shadow-lg transition-all"
             >
               Clear all filters
             </button>
@@ -499,7 +462,7 @@ const JobsPage = () => {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <JobCard job={job} onClick={() => setSelectedJob(job)} />
+                  <JobCard job={job} onViewDetails={() => setSelectedJob(job)} />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -519,7 +482,7 @@ const JobsPage = () => {
         )}
         {loading && localJobs.length > 0 && (
           <div className="mt-12 flex justify-center py-4">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </div>

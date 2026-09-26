@@ -7,7 +7,7 @@ const TermsOfService = () => {
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-32 pb-16 transition-colors">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Terms of <span className="text-emerald-600 dark:text-emerald-400">Service</span>
+            Terms of <span className="text-gradient-emerald">Service</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-6 font-medium">Last updated: {new Date().toLocaleDateString()}</p>
         </div>
@@ -20,7 +20,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base">1</span>
+            <span className="w-10 h-10 rounded-xl bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover flex items-center justify-center text-base font-bold">1</span>
             Use of the Site
           </h3>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 font-medium">
@@ -28,7 +28,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base">2</span>
+            <span className="w-10 h-10 rounded-xl bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover flex items-center justify-center text-base font-bold">2</span>
             User Accounts & Information
           </h3>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 font-medium">
@@ -36,7 +36,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base">3</span>
+            <span className="w-10 h-10 rounded-xl bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover flex items-center justify-center text-base font-bold">3</span>
             Intellectual Property
           </h3>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 font-medium">
@@ -44,7 +44,7 @@ const TermsOfService = () => {
           </p>
 
           <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base">4</span>
+            <span className="w-10 h-10 rounded-xl bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover flex items-center justify-center text-base font-bold">4</span>
             Disclaimers
           </h3>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-medium">

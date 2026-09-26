@@ -52,7 +52,7 @@ const AdminTestimonials = ({
                 )}
               </div>
               {testimonialForm.photo && (
-                <div className="mt-2 rounded-2xl overflow-hidden border-2 border-emerald-500/40 w-20 h-20 shadow-md">
+                <div className="mt-2 rounded-2xl overflow-hidden border-2 border-brand/40 w-20 h-20 shadow-md">
                   <img src={testimonialForm.photo} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; }} />
                 </div>
               )}
@@ -70,7 +70,7 @@ const AdminTestimonials = ({
               } catch (err) {
                 toast.error('Failed to publish testimonial');
               }
-            }} className="w-full bg-purple-500 hover:bg-purple-400 text-white font-black py-4 rounded-full mt-4 transition-all shadow-lg shadow-purple-500/20">Publish Testimonial</button>
+            }} className="w-full bg-brand hover:bg-brand-hover text-on-brand font-black py-4 rounded-full mt-4 transition-all shadow-lg shadow-brand/25">Publish Testimonial</button>
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@ const AdminTestimonials = ({
               </div>
               <div>
                 <h4 className="font-black text-slate-900 dark:text-white">{t.name}</h4>
-                <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest">{t.tagline}</p>
+                <p className="text-xs font-bold text-brand dark:text-brand-hover uppercase tracking-widest">{t.tagline}</p>
               </div>
             </div>
             <p className="text-slate-600 dark:text-slate-300 text-sm font-medium italic">"{t.description}"</p>

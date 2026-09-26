@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
   GraduationCap,
-  Building2,
   Users,
   PartyPopper,
   BookOpen,
@@ -12,13 +11,14 @@ import {
   X,
   Search,
 } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 
 const HIDDEN_ROUTES = ['/admin', '/admin-login', '/admin/dashboard'];
 
 const PRIMARY_TABS = [
-  { id: 'home',    label: 'Home',        path: '/',                               icon: Home },
-  { id: 'it',      label: 'IT Jobs',     path: '/category/IT%20%26%20Non-IT%20Jobs', icon: GraduationCap },
-  { id: 'govt',    label: 'Govt Jobs',   path: '/category/Government%20Jobs',     icon: Building2 },
+  { id: 'home',      label: 'Home',        path: '/',                                 icon: Home },
+  { id: 'it',        label: 'IT Jobs',     path: '/category/IT%20%26%20Non-IT%20Jobs', icon: GraduationCap },
+  { id: 'companies', label: 'Companies',   path: '/companies',                         icon: Users },
 ];
 
 const MORE_ITEMS = [
@@ -82,15 +82,17 @@ const MobileBottomNav = () => {
 
       {/* ── More Sheet ── */}
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-surface-raised border-t border-border z-50 lg:hidden rounded-t-xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] transition-transform duration-base ease-standard ${
+        className={`fixed bottom-0 left-0 right-0 bg-surface-raised border-t border-border z-50 lg:hidden rounded-t-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] transition-transform duration-base ease-standard ${
           moreOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         role="dialog"
         aria-label="More navigation options"
         aria-modal="true"
       >
-        <div className="flex justify-between items-center mb-4 px-2">
-          <span className="text-lg font-bold text-content">More</span>
+        <div className="flex justify-between items-center mb-5 px-1 pb-3 border-b border-border">
+          <div className="flex items-center gap-3">
+            <BrandLogo variant="horizontal" height={28} />
+          </div>
           <button
             className="p-2 rounded-full bg-surface-muted text-content-muted hover:text-content focus-visible"
             onClick={closeMore}

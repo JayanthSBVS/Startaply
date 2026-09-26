@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "collab-1",
+    "collegeName": "IIT Madras Training & Placement Cell",
+    "email": "placements@iitm.ac.in",
+    "phone": "+91 9876543210",
+    "message": "We would like to partner with Startaply for our upcoming 2026 campus recruitment season to connect our graduating batch with top tech companies and startups.",
+    "createdAt": "2026-09-26T09:40:59.921Z"
+  },
+  {
+    "id": "collab-2",
+    "collegeName": "BITS Pilani Career Development Centre",
+    "email": "careers@pilani.bits-pilani.ac.in",
+    "phone": "+91 9811223344",
+    "message": "Interested in conducting on-campus recruitment drives and hackathons for product engineering roles.",
+    "createdAt": "2026-09-26T09:40:59.925Z"
+  }
+]

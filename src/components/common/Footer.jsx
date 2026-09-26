@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Twitter, Linkedin, Instagram, Youtube, ArrowRight } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 
 const Footer = () => {
   const location = useLocation();
@@ -36,10 +37,8 @@ const Footer = () => {
 
           {/* ── Brand & Mission ── */}
           <div className="lg:col-span-5">
-            <Link to="/" className="inline-block mb-6 focus-visible rounded-sm">
-              <span className="text-3xl font-black text-content tracking-tighter leading-none transition-colors">
-                START<span className="text-brand">APLY</span>
-              </span>
+            <Link to="/" className="inline-flex items-center mb-6 focus-visible rounded-sm group" aria-label="Startaply Home">
+              <BrandLogo variant="horizontal" height={40} className="group-hover:opacity-95 transition-opacity" />
             </Link>
             <p className="text-content-secondary font-medium text-base mb-8 max-w-sm leading-relaxed">
               India's premium opportunity ecosystem. Discover verified work that moves you, built for the ambitious.
@@ -108,8 +107,8 @@ const Footer = () => {
             <ul className="space-y-4">
               {[
                 { name: 'IT & Tech', path: '/category/IT%20%26%20Non-IT%20Jobs' },
-                { name: 'Government', path: '/category/Government%20Jobs' },
                 { name: 'Freshers', path: '/jobs?fresh=true' },
+                { name: 'Private Jobs', path: '/category/Private%20Jobs' },
                 { name: 'Gig Workers', path: '/category/Gig%20%26%20Services' }
               ].map(link => (
                 <li key={link.name}>

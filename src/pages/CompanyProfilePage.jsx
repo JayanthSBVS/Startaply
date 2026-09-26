@@ -74,21 +74,21 @@ const CompanyProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white selection:bg-brand/30 transition-colors">
       {/* Premium Header Section */}
       <div className="relative pt-32 pb-16 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-emerald-500/5 to-transparent dark:from-emerald-500/10 pointer-events-none" />
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-brand/5 to-transparent dark:from-brand/10 pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand/10 rounded-full blur-[120px] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <Link to="/companies" className="inline-flex items-center gap-2 text-slate-500 hover:text-emerald-500 transition-colors font-bold text-sm mb-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800">
+          <Link to="/companies" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand transition-colors font-bold text-sm mb-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800">
             <ArrowLeft size={16} /> Back to Companies
           </Link>
 
           <div className="flex flex-col lg:flex-row gap-10 items-start lg:items-center">
             {/* Logo container with Glassmorphism */}
             <div className="w-32 h-32 md:w-40 md:h-40 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl flex items-center justify-center p-6 border border-white/20 dark:border-slate-800 shrink-0 group hover:scale-105 transition-transform duration-500 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-brand/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               {company.logo ? (
                 <img src={company.logo} alt={company.name} className="w-full h-full object-contain relative z-10" />
               ) : (
@@ -99,7 +99,7 @@ const CompanyProfilePage = () => {
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 {company.companyType && (
-                  <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">
+                  <span className="bg-brand-soft text-brand dark:text-brand-hover border border-brand/20 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">
                     {company.companyType}
                   </span>
                 )}
@@ -123,13 +123,13 @@ const CompanyProfilePage = () => {
               <div className="flex flex-wrap gap-6 text-slate-500 dark:text-slate-400 font-bold">
                 {company.location && (
                   <div className="flex items-center gap-2">
-                    <MapPin size={18} className="text-emerald-500" />
+                    <MapPin size={18} className="text-brand" />
                     {company.location}
                   </div>
                 )}
                 {company.website && (
-                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-emerald-500 transition-colors">
-                    <Globe size={18} className="text-emerald-500" />
+                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-brand transition-colors">
+                    <Globe size={18} className="text-brand" />
                     Visit Website
                   </a>
                 )}
@@ -139,7 +139,7 @@ const CompanyProfilePage = () => {
             <div className="flex flex-row lg:flex-col gap-4 w-full lg:w-auto">
                <div className="flex-1 lg:w-48 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl text-center">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Open Positions</p>
-                  <p className="text-3xl font-black text-emerald-500">{jobs.length}</p>
+                  <p className="text-3xl font-black text-brand">{jobs.length}</p>
                </div>
             </div>
           </div>
@@ -157,7 +157,7 @@ const CompanyProfilePage = () => {
                 <Info size={120} />
               </div>
               <h3 className="text-xl font-black mb-6 flex items-center gap-3 relative z-10">
-                <Target size={22} className="text-emerald-500" /> About {company.name}
+                <Target size={22} className="text-brand" /> About {company.name}
               </h3>
               <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-6 relative z-10">
                 {company.description || `Explore career opportunities at ${company.name}, leading the way in the ${company.industry || 'technology'} sector. Join a team dedicated to innovation and growth.`}
@@ -181,14 +181,14 @@ const CompanyProfilePage = () => {
 
             {/* Quick Stats Widget */}
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl group-hover:bg-emerald-500/30 transition-colors" />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand/20 rounded-full blur-3xl group-hover:bg-brand/30 transition-colors" />
               <h3 className="text-lg font-black mb-6 flex items-center gap-3 relative z-10">
-                <TrendingUp size={20} className="text-emerald-400" /> Career Growth
+                <TrendingUp size={20} className="text-brand-hover" /> Career Growth
               </h3>
               <p className="text-slate-400 text-sm font-medium mb-6 relative z-10 leading-relaxed">
                 Unlock your potential at {company.name}. We're looking for driven individuals to join our expanding team.
               </p>
-              <Link to="/jobs" className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all relative z-10">
+              <Link to="/jobs" className="w-full bg-brand hover:bg-brand-hover text-on-brand font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all relative z-10 shadow-lg shadow-brand/25">
                 Explore All Jobs <ChevronRight size={18} />
               </Link>
             </div>
@@ -198,7 +198,7 @@ const CompanyProfilePage = () => {
           <div className="lg:col-span-2 space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black flex items-center gap-3">
-                <Briefcase size={26} className="text-emerald-500" /> Current Opportunities
+                <Briefcase size={26} className="text-brand" /> Current Opportunities
               </h2>
               <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                 {jobs.length} Results

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, Building2, Users, PartyPopper, BookOpen, Home, LifeBuoy } from 'lucide-react';
+import { GraduationCap, Users, PartyPopper, BookOpen, Home, LifeBuoy } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import SupportModal from './SupportModal';
+import BrandLogo from './BrandLogo';
 
 const Navbar = () => {
   const location = useLocation();
@@ -21,7 +22,6 @@ const Navbar = () => {
   const menuItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'IT & Tech', path: '/category/IT%20%26%20Non-IT%20Jobs', icon: GraduationCap },
-    { name: 'Govt', path: '/category/Government%20Jobs', icon: Building2 },
     { name: 'Companies', path: '/companies', icon: Users },
     { name: 'Melas', path: '/job-melas', icon: PartyPopper },
     { name: 'Prep', path: '/preparation', icon: BookOpen },
@@ -39,10 +39,8 @@ const Navbar = () => {
       <nav className="h-full w-full max-w-[1200px] mx-auto px-4 md:px-8 flex justify-between items-center">
 
         {/* ── Logo ── */}
-        <Link to="/" className="flex flex-col shrink-0 group focus-visible rounded-sm">
-          <span className="font-black tracking-tighter leading-none text-2xl text-content">
-            START<span className="text-brand transition-colors duration-fast group-hover:text-brand-hover">APLY</span>
-          </span>
+        <Link to="/" className="flex items-center shrink-0 group focus-visible rounded-sm" aria-label="Startaply Home">
+          <BrandLogo variant="horizontal" height={34} className="group-hover:opacity-95 transition-opacity" />
         </Link>
 
         {/* ── Desktop Nav Links ── */}

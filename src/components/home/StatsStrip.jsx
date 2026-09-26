@@ -1,44 +1,45 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView, animate } from 'framer-motion';
+import { BarChart3 } from 'lucide-react';
 
 const stats = [
   {
     target: 10000,
     suffix: '+',
     label: 'Verified Jobs',
-    sublabel: 'Manually reviewed opportunities',
+    sublabel: 'Active & reviewed opportunities',
     start: 9000,
-    accent: 'text-gradient-emerald',
-    glow: 'rgba(16,185,129,0.15)',
-    bar: 'from-emerald-500 to-emerald-300'
+    accent: 'text-[#001F8E] dark:text-[#1A62FE]',
+    glow: 'rgba(26,98,254,0.15)',
+    bar: 'from-[#001F8E] to-[#1A62FE]'
   },
   {
     target: 500,
     suffix: '+',
     label: 'Partner Companies',
-    sublabel: 'Trusted industry employers',
+    sublabel: 'Direct hiring network partners',
     start: 450,
-    accent: 'text-gradient-emerald-cyan',
-    glow: 'rgba(6,182,212,0.15)',
-    bar: 'from-cyan-500 to-blue-400'
+    accent: 'text-[#1A62FE] dark:text-[#4D84FF]',
+    glow: 'rgba(77,132,255,0.15)',
+    bar: 'from-[#1A62FE] to-[#4D84FF]'
   },
   {
     target: 100,
     suffix: '%',
     label: 'Free Platform',
-    sublabel: 'Zero fees, zero paywalls',
+    sublabel: 'Zero candidate charges & fees',
     start: 100,
-    accent: 'text-gradient-indigo-emerald',
+    accent: 'text-indigo-600 dark:text-indigo-400',
     glow: 'rgba(99,102,241,0.15)',
-    bar: 'from-indigo-500 to-emerald-400'
+    bar: 'from-indigo-600 to-[#1A62FE]'
   },
   {
-    target: 15,
+    target: 20,
     suffix: '+',
     label: 'Categories',
-    sublabel: 'Roles for every career path',
+    sublabel: 'Specialized hiring tracks',
     start: 5,
-    accent: 'text-gradient-premium',
+    accent: 'text-slate-800 dark:text-slate-100',
     glow: 'rgba(15,23,42,0.1)',
     bar: 'from-slate-700 to-slate-400'
   }
@@ -63,45 +64,37 @@ const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, bar, 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={started ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex-1 min-w-[220px] max-w-sm mx-auto w-full"
+      transition={{ duration: 0.7, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative flex-1 min-w-[180px] max-w-sm mx-auto w-full"
     >
-      {/* ── Premium Surface Card ── */}
-      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl premium-surface p-5 md:p-8 flex flex-col gap-3 md:gap-4 h-full cursor-default">
-        
-        {/* Animated rise line */}
+      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 p-5 md:p-7 flex flex-col gap-3 h-full shadow-sm hover:border-[#1A62FE]/40 transition-colors cursor-default">
+        {/* Animated rise bar */}
         {started && (
-          <div className="absolute left-0 bottom-0 w-1 rounded-full bg-gradient-to-t opacity-80" style={{ backgroundImage: `linear-gradient(to top, var(--emerald), transparent)` }}>
+          <div className="absolute left-0 bottom-0 w-1 rounded-full bg-gradient-to-t opacity-80" style={{ backgroundImage: `linear-gradient(to top, #1A62FE, transparent)` }}>
             <div className={`w-full bg-gradient-to-t ${bar} stat-rise`} />
           </div>
         )}
 
-        {/* Ambient glow behind card content */}
-        <div
-          className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none mix-blend-multiply dark:mix-blend-screen"
-          style={{ background: `radial-gradient(circle, ${glow} 0%, transparent 70%)` }}
-        />
-
         {/* Micro-label */}
         <div className="flex items-center gap-2 relative z-10">
-          <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${bar} shadow-sm`} />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${bar} shadow-sm`} />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {label}
           </span>
         </div>
 
-        <div className="flex items-end gap-1 relative z-10 mt-1 mb-0.5 md:mt-2 md:mb-1">
-          <span className={`text-4xl md:text-7xl font-black tracking-tighter leading-[0.85] ${accent}`}>
+        <div className="flex items-end gap-1 relative z-10 mt-1 mb-0.5">
+          <span className={`text-4xl md:text-6xl font-black tracking-tight leading-none ${accent}`}>
             {display}
           </span>
-          <span className={`text-xl md:text-4xl font-black mb-1 ${accent}`}>
+          <span className={`text-xl md:text-3xl font-black mb-0.5 ${accent}`}>
             {suffix}
           </span>
         </div>
 
-        <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed relative z-10 mt-auto">
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-normal leading-relaxed relative z-10 mt-auto">
           {sublabel}
         </p>
       </div>
@@ -114,49 +107,41 @@ const StatsStrip = () => {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section className="relative py-10 md:py-20 section-surface border-b border-slate-200/60 dark:border-slate-800/50 transition-colors duration-500 overflow-hidden">
-      {/* Background atmosphere */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[500px] rounded-full opacity-30 dark:opacity-20 mix-blend-multiply dark:mix-blend-screen"
-          style={{ backgroundImage: 'var(--orb-emerald)', filter: 'blur(80px)' }}
-        />
-      </div>
-
-      <div ref={ref} className="relative z-10 max-w-[90rem] mx-auto px-4 md:px-8">
+    <section className="relative py-12 md:py-20 bg-slate-50 dark:bg-[#0b0f14] border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 overflow-hidden">
+      <div ref={ref} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         
         {/* Section Header */}
-        <div className="text-center mb-16 md:mb-20">
+        <div className="text-center mb-12 md:mb-16">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm"
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 mb-3.5 px-3.5 py-1.5 rounded-full bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] text-xs font-bold uppercase tracking-wider shadow-sm"
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400">Platform Scale</span>
+            <BarChart3 size={14} /> Platform Metrics
           </motion.div>
           
           <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-2xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3 md:mb-4"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3"
           >
-            Numbers That <span className="text-gradient-emerald">Matter</span>
+            Scale & Impact at <span className="text-[#001F8E] dark:text-[#1A62FE]">Startaply</span>
           </motion.h2>
           
           <motion.p 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-lg max-w-lg mx-auto"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-slate-500 dark:text-slate-400 font-normal text-xs sm:text-sm md:text-base max-w-md mx-auto"
           >
-            Real data. Real opportunities. Real growth.
+            Transparent numbers powered by active employers and genuine hires.
           </motion.p>
         </div>
 
         {/* Floating Stat Panels */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 justify-center items-stretch">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 md:gap-6 justify-center items-stretch">
           {stats.map((s, i) => (
             <StatPanel key={s.label} {...s} index={i} started={isInView} />
           ))}

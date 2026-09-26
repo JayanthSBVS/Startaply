@@ -10,9 +10,9 @@ const TICKER_SECONDARY_MAX = 16;
 
 const TYPE_BADGES = [
   { label: 'URGENT', color: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/15 border-red-200 dark:border-red-500/20' },
-  { label: 'GOVT',   color: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/20' },
+  { label: 'TECH',   color: 'text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-500/15 border-sky-200 dark:border-sky-500/20' },
   { label: 'IT',     color: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/15 border-blue-200 dark:border-blue-500/20' },
-  { label: 'NEW',    color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/20' },
+  { label: 'NEW',    color: 'text-brand-hover dark:text-brand-hover bg-brand-soft dark:bg-brand-soft border-brand/20 dark:border-brand/20' },
   { label: 'FRESHER',color: 'text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-500/15 border-teal-200 dark:border-teal-500/20' },
 ];
 
@@ -44,7 +44,7 @@ const JobMelaTicker = () => {
   }, [shouldAnimate]);
 
   const primaryText = activeMela?.tickerText ||
-    '🚀 New Government Notifications  •  Exam Admit Cards Released  •  Urgent IT Hiring Drive  •  State Govt Jobs Open  •  Job Mela 2024 Registrations Live  •  Railway Recruitment Announced  •  Amazon 1000+ Openings  •  TCS Digital Fresh Drive';
+    '🚀 Verified Early Talent Openings  •  Direct HR Connect Drives  •  Urgent IT & Tech Openings  •  Corporate Hiring Live  •  Job Mela Registrations Live  •  Top Startup Roles  •  Amazon 1000+ Openings  •  TCS Digital Fresh Drive';
 
   const currentBadge = TYPE_BADGES[badgeIdx];
 
@@ -54,7 +54,7 @@ const JobMelaTicker = () => {
   const primaryItems = [...Array(primaryRepeats)].map((_, i) => (
     <span key={i} className="flex items-center gap-8 px-6 shrink-0" aria-hidden={i > 0 ? "true" : undefined}>
       <span className="flex items-center gap-2 text-slate-100 text-sm font-semibold tracking-tight whitespace-nowrap">
-        <Sparkles size={14} className="text-emerald-400 shrink-0" />
+        <Sparkles size={14} className="text-brand-hover shrink-0" />
         {primaryText}
       </span>
       <Link
@@ -72,7 +72,7 @@ const JobMelaTicker = () => {
     '🔥 500+ Verified Hiring Drives Live',
     '⚡ Direct HR Contacts & Zero Consulting Fees',
     '🚀 100% Free Job & Internship Applications',
-    '🎯 Urgent Govt & IT Tech Drive Openings'
+    '🎯 Urgent IT & Tech Drive Openings'
   ];
 
   const rawArray = tickerItems.map(t => t.text).filter(t => t && t.trim() !== '');
@@ -100,15 +100,13 @@ const JobMelaTicker = () => {
   return (
     <div ref={sectionRef} className="relative z-40 bg-slate-950 border-y border-slate-900 overflow-hidden select-none">
       {/* Top accent line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent" />
 
       {/* Shimmer background */}
       {!staticMode && (
         <div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent opacity-50"
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-brand/5 to-transparent opacity-50 ticker-shimmer"
           style={{
-            animation: 'shimmer 8s linear infinite',
-            backgroundSize: '200% 100%',
             animationPlayState: shouldAnimate ? 'running' : 'paused'
           }}
         />
@@ -122,11 +120,11 @@ const JobMelaTicker = () => {
             <span className="relative flex h-2.5 w-2.5 shrink-0">
               {!staticMode && (
                 <span
-                  className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"
+                  className="absolute inline-flex h-full w-full rounded-full bg-brand-hover opacity-75 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"
                   style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }}
                 />
               )}
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand shadow-[0_0_8px_rgba(0,31,142,0.8)]" />
             </span>
             <span className="text-white text-[10px] font-black uppercase tracking-widest">Live Feed</span>
           </div>
@@ -162,10 +160,10 @@ const JobMelaTicker = () => {
           {tickerArray.length > 0 && (
             <div className="relative overflow-hidden py-1.5 bg-[#03081c]">
               <div
-                className={staticMode ? "flex overflow-x-auto no-scrollbar" : "inline-flex whitespace-nowrap"}
+                className={staticMode ? "flex overflow-x-auto no-scrollbar" : "ticker-wrapper-rtl"}
                 style={
                   !staticMode
-                    ? { animation: 'marquee-rtl 55s linear infinite', animationPlayState: shouldAnimate ? 'running' : 'paused' }
+                    ? { animationPlayState: shouldAnimate ? 'running' : 'paused' }
                     : {}
                 }
               >

@@ -1,32 +1,28 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, GraduationCap, Building2, Briefcase, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Search, GraduationCap, Briefcase, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useJobs } from '../../context/JobsContext';
 import { usePageActivity } from '../../hooks/usePageActivity';
 
 const PLACEHOLDERS = [
   'Software Engineer, Bangalore',
-  'Government Teacher vacancy',
   'Data Analyst, remote',
-  'Bank PO 2025',
   'Frontend Developer, startup',
+  'Product Manager, Hyderabad',
+  'HR Executive, full-time',
 ];
 
 const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => {
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
+  const { scrollY } = useScroll();
 
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, -60]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
+  const bgY = useTransform(scrollY, [0, 800], ['0%', '30%']);
+  const bgScale = useTransform(scrollY, [0, 800], [1, 1.08]);
+  const contentY = useTransform(scrollY, [0, 800], [0, -60]);
+  const contentOpacity = useTransform(scrollY, [0, 600], [1, 0]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full" style={{ minHeight: 'min(96vh, 900px)' }}>
+    <div className="relative w-full h-full" style={{ minHeight: 'min(96vh, 900px)' }}>
       <motion.div className="absolute inset-0 z-0" style={{ y: bgY, scale: bgScale }}>
         <AnimatePresence>
           <motion.img
@@ -44,7 +40,7 @@ const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => 
         <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/55 via-[#0b0f14]/65 to-[#0b0f14]/92" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/70 via-transparent to-[#0b0f14]/30" />
 
-        <div className="hidden md:block absolute top-0 right-[20%] w-[600px] h-[400px] rounded-full bg-emerald-500/8 blur-[100px] pointer-events-none" />
+        <div className="hidden md:block absolute top-0 right-[20%] w-[600px] h-[400px] rounded-full bg-brand/8 blur-[100px] pointer-events-none" />
         <div className="hidden md:block absolute bottom-0 left-[10%] w-[500px] h-[300px] rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
       </motion.div>
 
@@ -164,9 +160,8 @@ const Hero = () => {
         className="flex flex-wrap gap-1.5 mb-5 md:mb-8"
       >
         {[
-          { icon: <GraduationCap size={11} />, label: 'Freshers', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' },
+          { icon: <GraduationCap size={11} />, label: 'Freshers', color: 'bg-brand/15 text-blue-200 border-brand/25' },
           { icon: <Briefcase size={11} />, label: 'Private Jobs', color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' },
-          { icon: <Building2 size={11} />, label: 'Govt Jobs', color: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
           { icon: <Sparkles size={11} />, label: 'Startups', color: 'bg-purple-500/15 text-purple-300 border-purple-500/25' },
         ].map((pill) => (
           <button
@@ -213,10 +208,10 @@ const Hero = () => {
       >
         {/* ── MOBILE Search: Premium single-row discovery bar ──────── */}
         <div className="sm:hidden relative">
-          <div className="relative flex items-center bg-white/12 border border-white/25 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] focus-within:bg-white/18 focus-within:border-emerald-400/60 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_3px_rgba(16,185,129,0.15)] transition-all duration-300">
+          <div className="relative flex items-center bg-white/12 border border-white/25 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] focus-within:bg-white/18 focus-within:border-brand/60 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_3px_rgba(0,31,142,0.15)] transition-all duration-300">
             {/* Search icon - left side */}
             <div className="pl-4 pr-2 shrink-0">
-              <Search size={19} className="text-emerald-400" />
+              <Search size={19} className="text-brand-hover" />
             </div>
             {/* Input */}
             <input
@@ -234,7 +229,7 @@ const Hero = () => {
             <div className="pr-2 shrink-0">
               <button
                 onClick={() => handleSearch()}
-                className="bg-emerald-500 active:bg-emerald-600 active:scale-95 text-slate-950 font-black px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-emerald-500/30 flex items-center gap-1.5 whitespace-nowrap"
+                className="bg-brand active:bg-brand-hover active:scale-95 text-on-brand font-black px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-brand/30 flex items-center gap-1.5 whitespace-nowrap"
                 style={{ minHeight: '44px' }}
               >
                 Search
@@ -246,9 +241,9 @@ const Hero = () => {
 
         {/* ── DESKTOP Search: Full inline layout ─────────────────────── */}
         <div className="hidden sm:block relative">
-          <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-emerald-500/40 focus-within:border-emerald-500/40 transition-all duration-300 overflow-hidden">
+          <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-brand/40 focus-within:border-brand/40 transition-all duration-300 overflow-hidden">
             <div className="flex items-center pl-4">
-              <Search size={18} className="text-emerald-400 shrink-0" />
+              <Search size={18} className="text-brand-hover shrink-0" />
             </div>
             <div className="relative flex-1">
               <input
@@ -265,7 +260,7 @@ const Hero = () => {
             <div className="py-1.5 pr-1.5">
               <button
                 onClick={() => handleSearch()}
-                className="group bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-all shadow-lg shadow-emerald-500/25 h-full"
+                className="group bg-brand hover:bg-brand-hover active:scale-95 text-on-brand font-black px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-all shadow-lg shadow-brand/25 h-full"
               >
                 Explore Jobs
                 <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
@@ -295,12 +290,12 @@ const Hero = () => {
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all duration-100 ${
                     index === selectedIndex
-                      ? 'bg-emerald-500/10 text-emerald-400'
+                      ? 'bg-brand/10 text-brand-hover'
                       : 'text-slate-300 hover:bg-white/5'
                   }`}
                   style={{ minHeight: '44px' }}
                 >
-                  <Search size={13} className={index === selectedIndex ? 'text-emerald-500' : 'text-slate-500'} />
+                  <Search size={13} className={index === selectedIndex ? 'text-brand' : 'text-slate-500'} />
                   <span className="font-semibold text-sm">{suggestion}</span>
                 </button>
               ))}

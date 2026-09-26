@@ -72,13 +72,17 @@ function App() {
               <Route path="/jobs"           element={<JobsPage />} />
               <Route path="/companies"      element={<CompaniesPage />} />
               <Route path="/companies/:companyId" element={<CompanyProfilePage />} />
+              <Route path="/company/:companyId" element={<CompanyProfilePage />} />
               <Route path="/job-melas"      element={<JobMelaPage />} />
+              <Route path="/job-mela"       element={<JobMelaPage />} />
               <Route path="/job-mela/:id"   element={<JobMelaDetailPage />} />
               <Route path="/category/:categoryName" element={<CategoryJobsPage />} />
               <Route path="/admin"          element={<AdminDashboard />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin-login"    element={<AdminLogin />} />
               <Route path="/preparation"    element={<PreparationPage />} />
+              <Route path="/prep"           element={<PreparationPage />} />
+              <Route path="/interview-prep" element={<PreparationPage />} />
               <Route path="/about"          element={<AboutUs />} />
               <Route path="/privacy"        element={<PrivacyPolicy />} />
               <Route path="/terms"          element={<TermsOfService />} />

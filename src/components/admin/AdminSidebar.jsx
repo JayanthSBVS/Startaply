@@ -2,6 +2,8 @@ import React from 'react';
 import { X, LayoutDashboard, PlusCircle, Briefcase, FileText, Building2, MapPin, BookOpen, MessageSquareQuote, Handshake, MessageSquare, Users2, Sliders, History, BarChart3, Image as ImageIcon, Zap, LogOut, Ticket } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 
+import BrandLogo from '../common/BrandLogo';
+
 const AdminSidebar = ({
   isMobileMenuOpen, setIsMobileMenuOpen, activeTab, setActiveTab,
   logout, navigate, isManager, myPermissions
@@ -32,13 +34,16 @@ const AdminSidebar = ({
   return (
     
       <div className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-slate-50 dark:bg-[#0b0f14]/80 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800/50 flex flex-col z-[100] transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800/50 flex justify-between items-center">
-          <h2 className="text-xl font-black tracking-tighter">START<span className="text-emerald-500">ADMIN</span></h2>
-          <button className="md:hidden text-slate-500 dark:text-slate-500 dark:text-slate-400" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800/50 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <BrandLogo variant="horizontal" height={28} />
+            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-brand-soft text-brand border border-brand/20">Admin</span>
+          </div>
+          <button className="md:hidden text-slate-500 dark:text-slate-400" onClick={() => setIsMobileMenuOpen(false)}><X size={20} /></button>
         </div>
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
           {navItems.map(item => (
-            <button key={item.id} onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-300 ${activeTab === item.id ? 'bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'}`}>
+            <button key={item.id} onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-300 ${activeTab === item.id ? 'bg-brand/10 text-brand dark:text-brand-hover border border-brand/20 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200 border border-transparent'}`}>
               <item.icon size={18} /> {item.label}
             </button>
           ))}

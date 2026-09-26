@@ -28,16 +28,16 @@ const AdminCollabs = React.memo(({
                         <h3 className="font-bold text-slate-900 dark:text-white line-clamp-2">{req.college_name || req.collegeName}</h3>
                         <p className="text-xs font-bold text-slate-500 mt-1">{new Date(req.created_at || req.createdAt).toLocaleString()}</p>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
-                        <Handshake className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="w-10 h-10 rounded-full bg-brand-soft flex items-center justify-center shrink-0">
+                        <Handshake className="w-5 h-5 text-brand dark:text-brand-hover" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                        <Mail className="w-4 h-4 text-emerald-500" /> <a href={`mailto:${req.email}`} className="hover:underline font-medium break-all">{req.email}</a>
+                        <Mail className="w-4 h-4 text-brand" /> <a href={`mailto:${req.email}`} className="hover:underline font-medium break-all">{req.email}</a>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                        <Phone className="w-4 h-4 text-emerald-500" /> <a href={`tel:${req.phone}`} className="hover:underline font-medium">{req.phone}</a>
+                        <Phone className="w-4 h-4 text-brand" /> <a href={`tel:${req.phone}`} className="hover:underline font-medium">{req.phone}</a>
                       </div>
                     </div>
                     {req.message && (

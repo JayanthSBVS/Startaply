@@ -24,7 +24,7 @@ const AdminPrepData = ({
             <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Target Category</label>
             <div className="relative">
               <select className={selectCls} value={prepForm.jobType} onChange={e => setPrepForm({ ...prepForm, jobType: e.target.value })}>
-                <option>IT Jobs</option><option>Non-IT Jobs</option><option>Government Jobs</option>
+                <option>IT Jobs</option><option>Non-IT Jobs</option><option>Aptitude & Core</option>
               </select>
               <div className="absolute right-5 top-[14px] pointer-events-none text-slate-500">▼</div>
             </div>
@@ -32,7 +32,7 @@ const AdminPrepData = ({
           
           {/* Specific Role / Topic */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Role / Topic (e.g. React, UPSC)</label>
+            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Role / Topic (e.g. React, Python, HR)</label>
             <input 
               className={inputCls} 
               placeholder="Leave empty for 'General'" 

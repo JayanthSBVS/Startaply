@@ -56,7 +56,6 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
   const isUrgent = daysRemaining !== null && daysRemaining <= 3;
   const isNew = (Date.now() - createdAt) < 86400000 * 2;
   const isHero = layout === 'hero';
-  const isGovt = job.category === 'Government Jobs';
 
   const handleShare = (e) => {
     e.stopPropagation();
@@ -78,21 +77,21 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
   const workMode = job.workMode || null;
 
   return (
-    <div className="relative group p-[1px] rounded-[2rem] transition-all duration-500 h-full hover:bg-gradient-to-b hover:from-emerald-500/30 hover:to-transparent hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+    <div className="relative group p-[1px] rounded-[2rem] transition-all duration-500 h-full hover:bg-gradient-to-b hover:from-brand/30 hover:to-transparent hover:shadow-[0_0_30px_rgba(0,31,142,0.15)]">
       <motion.div
         onClick={() => onViewDetails && onViewDetails(job)}
         whileHover={{ y: -8, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className={`relative rounded-[1.75rem] md:rounded-[2rem] bg-white dark:bg-[#0b0f14]/80 border border-slate-200/80 dark:border-white/5 group-hover:border-emerald-500/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-5 md:p-8' : 'p-4 md:p-5'}`}
+        className={`relative rounded-[1.75rem] md:rounded-[2rem] bg-white dark:bg-[#0b0f14]/80 border border-slate-200/80 dark:border-white/5 group-hover:border-brand/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-5 md:p-8' : 'p-4 md:p-5'}`}
       >
-        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/0 to-transparent group-hover:via-emerald-400/50 transition-all duration-700 pointer-events-none" />
+        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brand/0 to-transparent group-hover:via-brand/50 transition-all duration-700 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col h-full">
           {/* ── Header: Logo & Badges ── */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex gap-3 min-w-0 flex-1">
-            <div className={`shrink-0 ${isHero ? 'w-14 h-14' : 'w-12 h-12'} rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-emerald-500/20 transition-colors`}>
+            <div className={`shrink-0 ${isHero ? 'w-14 h-14' : 'w-12 h-12'} rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-brand/20 transition-colors`}>
               {companyLogo && !imageError ? (
                 <img src={companyLogo} alt={job.company} className="w-full h-full object-contain p-1.5" loading="lazy" onError={() => setImageError(true)} />
               ) : (
@@ -102,9 +101,9 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
             <div className="min-w-0 pt-1">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <p className="text-sm font-black text-slate-800 dark:text-slate-100 truncate">{job.company || 'Company'}</p>
-                <BadgeCheck size={14} className="text-emerald-500 shrink-0" />
+                <BadgeCheck size={14} className="text-brand shrink-0" />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/70 dark:text-emerald-400/70 truncate">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-brand/70 dark:text-brand-hover/70 truncate">
                 {job.category || job.jobCategory || ''}
               </p>
             </div>
@@ -112,8 +111,8 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
           
           <div className="flex flex-col items-end gap-1.5 shrink-0">
             {isNew && (
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/50 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> New
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-[9px] font-black uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" /> New
               </span>
             )}
             {job.isTrending && (
@@ -125,7 +124,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         </div>
 
         <div className="mb-3">
-          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors duration-300 line-clamp-2 ${isHero ? 'text-lg md:text-[1.75rem]' : 'text-sm md:text-base'}`}>
+          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-brand dark:group-hover:text-brand-hover transition-colors duration-300 line-clamp-2 ${isHero ? 'text-lg md:text-[1.75rem]' : 'text-sm md:text-base'}`}>
             {job.title || 'Position Title'}
           </h3>
         </div>
@@ -140,8 +139,8 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         {/* ── Salary & Skills ── */}
         <div className="mb-5 md:mb-6 space-y-3 md:space-y-4">
           {job.salary && (
-            <div className="flex items-center gap-1.5 text-slate-900 dark:text-emerald-400 font-black text-sm md:text-base bg-emerald-50 dark:bg-emerald-500/5 w-max px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/10">
-              <IndianRupee size={14} strokeWidth={2.5} className="text-emerald-500" />
+            <div className="flex items-center gap-1.5 text-slate-900 dark:text-brand-hover font-black text-sm md:text-base bg-brand-soft w-max px-3 py-1.5 rounded-xl border border-brand/10">
+              <IndianRupee size={14} strokeWidth={2.5} className="text-brand" />
               {job.salary}
             </div>
           )}
@@ -218,7 +217,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={(e) => { e.stopPropagation(); onViewDetails && onViewDetails(job); }}
-              className={`flex items-center gap-1.5 font-bold text-xs md:text-sm px-4 md:px-5 py-2.5 rounded-xl transition-all ${job.applyType === 'easy' ? 'bg-emerald-500 text-slate-900 shadow-[0_5px_15px_-3px_rgba(16,185,129,0.3)]' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'}`}
+              className={`flex items-center gap-1.5 font-bold text-xs md:text-sm px-4 md:px-5 py-2.5 rounded-xl transition-all ${job.applyType === 'easy' ? 'bg-brand text-on-brand shadow-md shadow-brand/20 hover:bg-brand-hover' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'}`}
               style={{ minHeight: '44px' }}
             >
               {job.applyType === 'easy' ? 'Easy Apply' : 'View Job'}

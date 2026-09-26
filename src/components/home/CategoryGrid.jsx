@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, Building2, Briefcase, Zap, GraduationCap, ArrowRight, Wifi } from 'lucide-react';
+import { Monitor, Briefcase, Zap, GraduationCap, ArrowRight, Wifi } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useJobs } from '../../context/JobsContext';
 
@@ -13,24 +13,19 @@ const CATEGORY_DEFS = [
     navPath: '/category/IT %26 Non-IT Jobs',
     accent: 'blue',
     gradient: 'from-blue-500 to-cyan-400',
-    filter: j => ['IT & Non-IT Jobs', 'IT & Software Jobs'].includes(j.category),
-  },
-  {
-    name: 'Government',
-    desc: 'Central & State govt opportunities',
-    icon: Building2,
-    navPath: '/category/Government Jobs',
-    accent: 'amber',
-    gradient: 'from-amber-500 to-orange-400',
-    filter: j => j.category === 'Government Jobs',
+    filter: j => {
+      const cat = (j.category || j.jobCategory || '').toLowerCase();
+      const type = (j.jobCategoryType || '').toLowerCase();
+      return cat.includes('it') || cat.includes('software') || cat.includes('tech') || type.includes('it');
+    },
   },
   {
     name: 'Freshers',
     desc: '0-1 yr experience welcome',
     icon: GraduationCap,
     navPath: '/jobs?section=freshers',
-    accent: 'emerald',
-    gradient: 'from-emerald-500 to-teal-400',
+    accent: 'brand',
+    gradient: 'from-blue-600 to-indigo-400',
     filter: j => j.isFresh || (j.experience || '').toLowerCase().includes('fresher') || (j.experience || '').includes('0'),
   },
   {
@@ -40,7 +35,10 @@ const CATEGORY_DEFS = [
     navPath: '/category/Private Jobs',
     accent: 'indigo',
     gradient: 'from-indigo-500 to-violet-400',
-    filter: j => j.category === 'Private Jobs',
+    filter: j => {
+      const cat = (j.category || j.jobCategory || '').toLowerCase();
+      return cat.includes('private') || cat.includes('corporate') || (!cat.includes('govt') && !cat.includes('mela'));
+    },
   },
   {
     name: 'Gig Works',
@@ -49,16 +47,18 @@ const CATEGORY_DEFS = [
     navPath: '/category/Gig %26 Services',
     accent: 'rose',
     gradient: 'from-rose-500 to-pink-400',
-    filter: j => ['Gig & Services', 'Gig Works'].includes(j.category || j.jobCategory || ''),
+    filter: j => {
+      const cat = (j.category || j.jobCategory || '').toLowerCase();
+      return cat.includes('gig') || cat.includes('service') || cat.includes('freelance');
+    },
   },
 ];
 
 const ACCENT_COLORS = {
-  blue:    { icon: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-500/10',   border: 'border-blue-100 dark:border-blue-500/15',   hover: 'group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-blue-500/30' },
-  amber:   { icon: 'text-amber-500',  bg: 'bg-amber-50 dark:bg-amber-500/10',  border: 'border-amber-100 dark:border-amber-500/15',  hover: 'group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-amber-500/30' },
-  emerald: { icon: 'text-emerald-500',bg: 'bg-emerald-50 dark:bg-emerald-500/10',border:'border-emerald-100 dark:border-emerald-500/15',hover:'group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-emerald-500/30' },
-  indigo:  { icon: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10', border: 'border-indigo-100 dark:border-indigo-500/15', hover: 'group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-indigo-500/30' },
-  rose:    { icon: 'text-rose-500',   bg: 'bg-rose-50 dark:bg-rose-500/10',   border: 'border-rose-100 dark:border-rose-500/15',   hover: 'group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-rose-500/30' },
+  blue:  { icon: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-500/10',   border: 'border-blue-100 dark:border-blue-500/15',   hover: 'group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-blue-500/30' },
+  brand: { icon: 'text-brand',      bg: 'bg-brand-soft dark:bg-brand-soft',  border: 'border-brand/10 dark:border-brand/15',       hover: 'group-hover:bg-brand group-hover:text-on-brand group-hover:shadow-brand/30' },
+  indigo:{ icon: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10',border: 'border-indigo-100 dark:border-indigo-500/15',hover: 'group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-indigo-500/30' },
+  rose:  { icon: 'text-rose-500',   bg: 'bg-rose-50 dark:bg-rose-500/10',   border: 'border-rose-100 dark:border-rose-500/15',   hover: 'group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-rose-500/30' },
 };
 
 const CategoryGrid = () => {
@@ -99,14 +99,14 @@ const CategoryGrid = () => {
           <motion.button
             variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
             onClick={() => navigate('/jobs')}
-            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group whitespace-nowrap"
+            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover transition-colors group whitespace-nowrap"
           >
             View All <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
           </motion.button>
         </div>
 
         {/* Cards */}
-        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-5 gap-4 md:gap-5 no-scrollbar snap-x snap-mandatory">
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 gap-4 md:gap-5 no-scrollbar snap-x snap-mandatory">
           {CATEGORY_DEFS.map((cat, i) => {
             const ac = ACCENT_COLORS[cat.accent];
             const count = counts[i];
@@ -143,7 +143,7 @@ const CategoryGrid = () => {
                   </div>
                 </div>
 
-                <h3 className="text-base font-black text-slate-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors relative z-10">
+                <h3 className="text-base font-black text-slate-900 dark:text-white mb-1 group-hover:text-brand dark:group-hover:text-brand-hover transition-colors relative z-10">
                   {cat.name}
                 </h3>
                 <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 relative z-10 leading-snug">
@@ -151,7 +151,7 @@ const CategoryGrid = () => {
                 </p>
 
                 {/* Arrow CTA - hidden on mobile (hover-only, no hover on touch) */}
-                <div className="hidden md:flex mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-500 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 relative z-10">
+                <div className="hidden md:flex mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 relative z-10">
                   Explore <ArrowRight size={11} />
                 </div>
               </motion.div>

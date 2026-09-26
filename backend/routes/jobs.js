@@ -32,7 +32,7 @@ async function initDb() {
         mapLocationUrl TEXT, isFeatured BOOLEAN, isTrending BOOLEAN,
         isToday BOOLEAN, isVisible BOOLEAN, views INTEGER DEFAULT 0,
         isFresh BOOLEAN DEFAULT FALSE,
-        govtJobType TEXT, stateName TEXT, jobCategoryType TEXT, govtDept TEXT,
+        jobCategoryType TEXT,
         createdByAdminId TEXT DEFAULT 'system',
         createdByAdminName TEXT DEFAULT 'System',
         companyId VARCHAR(50)
@@ -107,7 +107,7 @@ function nb(v) { return v === true || v === 'true' || v === 1 || v === '1'; }
 const JOBS_SELECT_LIGHT = `
   id, title, subtitle, description, company, location, category, type, salary, createdat, 
   isFeatured, isToday, isTrending, isVisible, workmode, companylogo, 
-  govtjobtype, statename, jobcategorytype, updatedat, companyId, isHeroFeatured, isfresh
+  jobcategorytype, updatedat, companyId, isHeroFeatured, isfresh
 `;
 
 function mapRow(row) {
@@ -139,9 +139,6 @@ function mapRow(row) {
     expiryDays: Number(row.expirydays || 0),
     processType: row.processtype || 'Standard',
     mapLocationUrl: row.maplocationurl || '',
-    govtJobType: row.govtjobtype || '',
-    govtDept: row.govtdept || '',
-    stateName: row.statename || '',
     jobCategoryType: row.jobcategorytype || '',
     isFeatured: nb(row.isfeatured),
     isFresh: nb(row.isfresh),
@@ -203,13 +200,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
       let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
       if (rawTerms.length === 0) rawTerms = search.trim().split(/\s+/).filter(Boolean);
 
-      // Typo tolerance: search for both 'goverment' and 'government'
-      const finalTerms = [];
-      rawTerms.forEach(t => {
-        finalTerms.push(t);
-        if (t === 'goverment') finalTerms.push('government');
-        if (t === 'government') finalTerms.push('goverment');
-      });
+      const finalTerms = rawTerms;
 
       const searchConditions = finalTerms.map(term => {
         queryParams.push(`%${term}%`);
@@ -219,8 +210,6 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
           company ILIKE $${idx} OR 
           location ILIKE $${idx} OR 
           category ILIKE $${idx} OR 
-          govtJobType ILIKE $${idx} OR
-          stateName ILIKE $${idx} OR
           jobCategoryType ILIKE $${idx} OR
           companyId ILIKE $${idx}
         )`;
@@ -260,32 +249,25 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
 
 router.get('/', (req, res) => getPaginatedJobs(req, res));
 
-router.get('/government', (req, res) => {
-  const { govtFilter } = req.query;
-  let addlt = `category = 'Government Jobs'`;
-  const p = [];
-  if (govtFilter === 'Central' || govtFilter === 'State') {
-    addlt += ` AND (govtJobType = $1 OR govtjobtype = $1)`;
-    p.push(govtFilter);
-  }
-  return getPaginatedJobs(req, res, addlt, p);
-});
-
 router.get('/it', (req, res) => {
-  return getPaginatedJobs(req, res, `category = 'IT & Software Jobs'`);
+  return getPaginatedJobs(req, res, `(category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%'`);
 });
 
 router.get('/non-it', (req, res) => {
-  return getPaginatedJobs(req, res, `category = 'Non-IT Jobs'`);
+  return getPaginatedJobs(req, res, `category ILIKE '%Non-IT%' OR jobCategoryType ILIKE '%Non%'`);
+});
+
+router.get('/gig', (req, res) => {
+  return getPaginatedJobs(req, res, `category ILIKE '%Gig%' OR jobCategoryType ILIKE '%Gig%' OR category ILIKE '%Service%'`);
 });
 
 router.get('/freshers', (req, res) => {
-  return getPaginatedJobs(req, res, `(experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher Jobs%' OR isFresh::text = 'true')`);
+  return getPaginatedJobs(req, res, `(experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher%' OR isFresh::text = 'true')`);
 });
 
 router.get('/today', (req, res) => {
   const dayAgo = Date.now() - 86400000;
-  return getPaginatedJobs(req, res, `createdAt > ${dayAgo} OR isToday::text = 'true'`);
+  return getPaginatedJobs(req, res, `createdAt > ${dayAgo} OR isToday::text = 'true' OR isFresh::text = 'true'`);
 });
 
 router.get('/featured', (req, res) => {
@@ -352,9 +334,9 @@ router.post('/', authMiddleware, async (req, res) => {
         location,workMode,qualification,experience,salary,type,category,
         monthTag,applyUrl,applyType,expiryDays,processType,mapLocationUrl,
         isFeatured,isFresh,isTrending,isToday,isVisible,
-        govtJobType,govtDept,stateName,jobCategoryType,
+        jobCategoryType,
         createdByAdminId, createdByAdminName, companyId, isHeroFeatured
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39)
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
       RETURNING *
     `, [
       j.id, j.createdAt, j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
@@ -362,7 +344,7 @@ router.post('/', authMiddleware, async (req, res) => {
       j.location, j.workMode, j.qualification, j.experience, j.salary, j.type, j.category,
       j.monthTag, j.applyUrl, j.applyType, j.expiryDays, j.processType, j.mapLocationUrl,
       j.isFeatured, j.isFresh, j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType,
+      j.jobCategoryType,
       j.createdByAdminId, j.createdByAdminName, j.companyId, j.isHeroFeatured
     ]);
     searchCache.clear(); // Clear cache when data is modified
@@ -388,9 +370,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
         salary=$16,type=$17,category=$18,monthTag=$19,applyUrl=$20,applyType=$21,
         expiryDays=$22,processType=$23,mapLocationUrl=$24,isFeatured=$25,isFresh=$26,
         isTrending=$27,isToday=$28,isVisible=$29,
-        govtJobType=$30,govtDept=$31,stateName=$32,jobCategoryType=$33, companyId=$34,
-        isHeroFeatured=$35
-      WHERE id=$36 RETURNING *
+        jobCategoryType=$30, companyId=$31,
+        isHeroFeatured=$32
+      WHERE id=$33 RETURNING *
     `, [
       j.updatedAt, j.title, j.subtitle, j.description, j.fullDescription,
       j.requiredSkills, j.techStack, j.aboutCompany, j.benefits, j.company,
@@ -398,7 +380,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       j.salary, j.type, j.category, j.monthTag, j.applyUrl, j.applyType,
       j.expiryDays, j.processType, j.mapLocationUrl, j.isFeatured, j.isFresh,
       j.isTrending, j.isToday, j.isVisible,
-      j.govtJobType, j.govtDept, j.stateName, j.jobCategoryType, j.companyId,
+      j.jobCategoryType, j.companyId,
       j.isHeroFeatured, id
     ]);
     searchCache.clear(); // Clear cache when data is modified
@@ -574,9 +556,6 @@ function normalizeJob(body, existing = null) {
     isTrending: nb(body.isTrending),
     isToday: nb(body.isToday),
     isVisible: body.isVisible === undefined ? true : nb(body.isVisible),
-    govtJobType: body.govtJobType || '',
-    govtDept: body.govtDept || '',
-    stateName: body.stateName || '',
     jobCategoryType: body.jobCategoryType || '',
     createdByAdminId: body.createdByAdminId || existing?.createdByAdminId || 'system',
     createdByAdminName: body.createdByAdminName || existing?.createdByAdminName || 'System',

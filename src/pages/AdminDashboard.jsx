@@ -37,13 +37,13 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
 import { motion } from 'framer-motion';
 const API = '/api';
-const inputCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm dark:shadow-inner";
-const selectCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-slate-900 dark:text-white cursor-pointer focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all shadow-sm dark:shadow-inner appearance-none";
-const textareaCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-[1.5rem] px-5 py-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all resize-none shadow-sm dark:shadow-inner";
+const inputCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all shadow-sm dark:shadow-inner";
+const selectCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-5 py-3.5 text-sm text-slate-900 dark:text-white cursor-pointer focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all shadow-sm dark:shadow-inner appearance-none";
+const textareaCls = "w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-[1.5rem] px-5 py-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all resize-none shadow-sm dark:shadow-inner";
 // Role presentation helpers
 const ROLE_CONFIG = {
   manager:               { label: 'Manager',              color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/20',  icon: Crown },
-  operational_manager:   { label: 'Op. Manager (Full Access)',          color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: BadgeCheck },
+  operational_manager:   { label: 'Op. Manager (Full Access)',          color: 'text-brand dark:text-brand-hover', bg: 'bg-brand-soft', border: 'border-brand/20', icon: BadgeCheck },
   operational_executive: { label: 'Op. Executive (Restricted)',        color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    icon: UserCheck },
 };
 const getRoleConfig  = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.operational_executive;
@@ -114,7 +114,7 @@ const AdminDashboard = () => {
   const [globalStats, setGlobalStats] = useState(null);
   const [dashboardSummary, setDashboardSummary] = useState(null);
   const [collabRequests, setCollabRequests] = useState([]);
-  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', isHeroFeatured: false });
+  const [jobForm, setJobForm] = useState({ applyType: 'external', expiryDays: 30, jobCategory: '', isHeroFeatured: false });
   const [editingJobId, setEditingJobId] = useState(null);
   const [companyForm, setCompanyForm] = useState({ name: '', industry: '', logo: '', companyType: '' });
   const [melaForm, setMelaForm] = useState({ title: '', date: '', venue: '', time: '', isActive: true, showPopup: true, company: '', registrationLink: '', bannerImage: '', googleMapLink: '' });
@@ -311,7 +311,7 @@ const AdminDashboard = () => {
         newJobId = res.data?.id || res.data?.job?.id || null;
         showMsg('Job Published');
       }
-      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', govtDept: '', companyId: null, isHeroFeatured: false }); 
+      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', companyId: null, isHeroFeatured: false }); 
       setEditingJobId(null); 
       setActiveTab('manage'); 
       publishFreshness('jobs', editingJobId ? 'update' : 'create', newJobId);
@@ -342,7 +342,7 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0b0f14] flex text-slate-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-[#0b0f14] flex text-slate-900 dark:text-white font-sans selection:bg-brand/20 transition-colors duration-300">
       <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} myPermissions={perms} />
       <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-[#0b0f14]">
         <AdminHeader 
