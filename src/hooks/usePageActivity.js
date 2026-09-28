@@ -28,7 +28,8 @@ function useMediaQuery(query) {
   return matches;
 }
 
-export function usePageActivity(sectionRef) {
+export function usePageActivity(sectionRef, options = {}) {
+  const { allowMobile = false } = options;
   const [isVisible, setIsVisible] = useState(true);
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
   
@@ -80,7 +81,8 @@ export function usePageActivity(sectionRef) {
     sectionVisible: isVisible,
     documentVisible: isDocumentVisible,
     prefersReducedMotion: isReducedMotion,
-    mobile: isMobile
+    mobile: isMobile,
+    allowMobile
   });
 
   return {

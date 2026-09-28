@@ -87,7 +87,7 @@ const CategoryGrid = () => {
               variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
               className="text-xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight"
             >
-              Explore by <span className="text-gradient-emerald">Path</span>
+              Explore by <span className="text-brand dark:text-brand-hover">Path</span>
             </motion.h2>
             <motion.p
               variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
@@ -105,8 +105,8 @@ const CategoryGrid = () => {
           </motion.button>
         </div>
 
-        {/* Cards */}
-        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 gap-4 md:gap-5 no-scrollbar snap-x snap-mandatory">
+        {/* Cards: 2-column grid on mobile, 4-column on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
           {CATEGORY_DEFS.map((cat, i) => {
             const ac = ACCENT_COLORS[cat.accent];
             const count = counts[i];
@@ -115,44 +115,47 @@ const CategoryGrid = () => {
             return (
               <motion.div
                 key={cat.name}
-                variants={{ hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 90 } } }}
-                whileHover={{ y: -5 }}
+                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 90 } } }}
+                whileHover={{ y: -4 }}
+                whileTap={{ scale: 0.97 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => navigate(cat.navPath)}
-                className="group relative cursor-pointer premium-surface p-4 md:p-5 rounded-xl md:rounded-2xl transition-all duration-300 min-w-[172px] md:min-w-0 flex flex-col snap-start active:scale-95"
+                className="group relative cursor-pointer premium-surface p-3.5 sm:p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between h-full active:scale-95"
               >
                 {/* Subtle hover glow */}
-                <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none bg-gradient-to-br ${cat.gradient} opacity-0 group-hover:opacity-[0.04]`} />
+                <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-br ${cat.gradient} group-hover:opacity-[0.05]`} />
 
-                {/* Icon + Count */}
-                <div className="flex justify-between items-start mb-5 relative z-10">
-                  <div className={`
-                    w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 shadow-sm
-                    ${ac.bg} ${ac.border} ${ac.icon}
-                    ${ac.hover} group-hover:shadow-lg group-hover:scale-110
-                  `}>
-                    <Icon size={22} />
+                <div>
+                  {/* Icon + Count */}
+                  <div className="flex justify-between items-start mb-3 sm:mb-5 relative z-10">
+                    <div className={`
+                      w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center border transition-all duration-300 shadow-xs
+                      ${ac.bg} ${ac.border} ${ac.icon}
+                      ${ac.hover} group-hover:scale-105
+                    `}>
+                      <Icon size={20} />
+                    </div>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className={`text-base sm:text-xl font-black tabular-nums transition-colors ${count > 0 ? ac.icon : 'text-slate-400 dark:text-slate-500'}`}>
+                        {count}
+                      </span>
+                      <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                        {count === 1 ? 'Job' : 'Jobs'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-0.5">
-                    <span className={`text-xl font-black tabular-nums transition-colors ${count > 0 ? ac.icon : 'text-slate-400 dark:text-slate-500'}`}>
-                      {count}
-                    </span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                      {count === 1 ? 'Job' : 'Jobs'}
-                    </span>
-                  </div>
+
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white mb-1 group-hover:text-brand dark:group-hover:text-brand-hover transition-colors relative z-10">
+                    {cat.name}
+                  </h3>
+                  <p className="text-[11px] sm:text-[12px] font-medium text-slate-500 dark:text-slate-400 relative z-10 leading-snug line-clamp-2">
+                    {cat.desc}
+                  </p>
                 </div>
 
-                <h3 className="text-base font-black text-slate-900 dark:text-white mb-1 group-hover:text-brand dark:group-hover:text-brand-hover transition-colors relative z-10">
-                  {cat.name}
-                </h3>
-                <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 relative z-10 leading-snug">
-                  {cat.desc}
-                </p>
-
-                {/* Arrow CTA - hidden on mobile (hover-only, no hover on touch) */}
-                <div className="hidden md:flex mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 relative z-10">
-                  Explore <ArrowRight size={11} />
+                {/* Arrow CTA */}
+                <div className="mt-3 pt-2.5 sm:pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-brand relative z-10">
+                  <span>Explore</span> <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </motion.div>
             );

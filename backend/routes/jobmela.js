@@ -91,7 +91,7 @@ router.get('/admin/list', authMiddleware, async (req, res) => {
 router.get('/active', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM job_mela WHERE isActive = true ORDER BY createdAt DESC LIMIT 1');
-    if (!rows[0]) return res.json(null);
+    if (!rows || !rows[0]) return res.json(null);
     const r = rows[0];
     res.json({
         id: r.id,
@@ -113,7 +113,8 @@ router.get('/active', async (req, res) => {
         createdByAdminName: r.createdbyadminname
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.warn('[Job Mela /active fallback]', err.message);
+    res.json(null);
   }
 });
 

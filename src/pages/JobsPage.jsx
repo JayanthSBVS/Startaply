@@ -281,32 +281,32 @@ const JobsPage = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* ── HERO SEARCH ────────────────────────────────────────── */}
-      <div className="bg-slate-950 pt-28 pb-16 px-4 border-b border-slate-800 relative overflow-hidden">
+      <div className="bg-slate-950 pt-20 sm:pt-28 pb-10 sm:pb-16 px-4 border-b border-slate-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand/20 to-slate-950 pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 text-white">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-2 sm:mb-4 text-white">
             Discover Your Next <span className="text-brand-hover">Opportunity</span>
           </h1>
-          <p className="text-slate-400 mb-8 text-lg font-medium">Browse verified openings across India</p>
+          <p className="text-slate-400 mb-6 sm:mb-8 text-xs sm:text-base md:text-lg font-medium">Browse verified openings across India</p>
 
-          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1.5 rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-brand/50 transition-all shadow-2xl">
-            <div className="flex-1 flex items-center pl-5">
-              <Search size={20} className="text-brand-hover shrink-0" />
+          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto flex bg-white/10 border border-white/20 p-1 sm:p-1.5 rounded-2xl sm:rounded-[2rem] backdrop-blur-xl focus-within:ring-2 focus-within:ring-brand/50 transition-all shadow-2xl">
+            <div className="flex-1 flex items-center pl-3 sm:pl-5 min-w-0">
+              <Search size={18} className="text-brand-hover shrink-0" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search job title, company or keyword..."
+                placeholder="Search job title, company..."
                 autoComplete="off"
                 spellCheck="false"
-                className="w-full bg-transparent px-4 py-3.5 text-white placeholder-slate-400 outline-none font-medium text-base"
+                className="w-full bg-transparent px-2.5 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-slate-400 outline-none font-medium text-xs sm:text-base min-w-0"
               />
               {search && (
-                <button type="button" onClick={() => setSearch('')} className="p-1.5 mr-2 text-slate-400 hover:text-white transition-colors">
+                <button type="button" onClick={() => setSearch('')} className="p-1.5 mr-1 text-slate-400 hover:text-white transition-colors" aria-label="Clear search">
                   <X size={16} />
                 </button>
               )}
             </div>
-            <button type="submit" className="bg-brand hover:bg-brand-hover text-on-brand px-7 py-3.5 rounded-[1.5rem] font-bold transition-colors shadow-sm text-sm">
+            <button type="submit" className="bg-brand hover:bg-brand-hover active:scale-95 text-on-brand px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-xl sm:rounded-[1.5rem] font-bold transition-all shadow-sm text-xs sm:text-sm shrink-0 min-h-[40px]">
               Search
             </button>
           </form>
@@ -314,9 +314,9 @@ const JobsPage = () => {
       </div>
 
       {/* ── SECTION TABS ────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-[65px] z-40 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-14 md:top-16 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-1.5 overflow-x-auto py-3.5 no-scrollbar">
+          <div className="flex gap-2 overflow-x-auto py-3 no-scrollbar">
             {SECTIONS.map(sec => {
               const Ic = sec.icon;
               const secColors = colorMap[sec.color];
@@ -325,13 +325,13 @@ const JobsPage = () => {
                 <button
                   key={sec.id}
                   onClick={() => { setActiveSection(sec.id); }}
-                  className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all duration-200 ${
+                  className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold border transition-all duration-150 min-h-[40px] active:scale-95 ${
                     isActive
                       ? `${secColors.pill} shadow-md border-transparent`
                       : `bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600`
                   }`}
                 >
-                  <Ic size={15} />
+                  <Ic size={14} />
                   {sec.label}
                 </button>
               );
@@ -340,37 +340,35 @@ const JobsPage = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-10">
-
-
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
 
         {/* ── MODE FILTER ─────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 px-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-1">
           <div>
             <h2
               ref={resultsHeadingRef}
               tabIndex={-1}
-              className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
+              className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5 sm:gap-3 outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
             >
-              <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
-                <IconComp size={16} />
+              <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
+                <IconComp size={15} />
               </span>
               {activeConfig.label}
-              <span className={`text-sm font-black px-3 py-1 rounded-full ${colors.idle} border`}>
+              <span className={`text-xs sm:text-sm font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full ${colors.idle} border`}>
                 {localJobs.length}{hasMore ? '+' : ''} Results
               </span>
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 pl-11 font-medium">{activeConfig.desc}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 pl-9 sm:pl-11 font-medium">{activeConfig.desc}</p>
           </div>
 
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
             {['All', 'On-site', 'Remote', 'Hybrid'].map(m => (
               <button
                 key={m}
                 onClick={() => setWorkMode(m)}
-                className={`px-3.5 py-2 rounded-full text-xs font-bold border transition-all ${
+                className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all whitespace-nowrap min-h-[38px] active:scale-95 ${
                   workMode === m
-                    ? 'bg-brand text-on-brand border-transparent shadow-sm'
+                    ? 'bg-brand text-on-brand border-transparent shadow-xs'
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
                 }`}
               >

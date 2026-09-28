@@ -20,8 +20,7 @@ const pool = getPool();
     await pool.query('INSERT INTO prep_data (id, heading, jobtype, content, contenttype, fileurl, question, answer, createdbyadminid, createdat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', ['test_prep_2', 'Top 50 React Interview Questions', 'IT Jobs', 'Here are the top React questions...', 'article', '', '', '', 'admin_jayanth', Date.now()]);
     console.log('Prep done');
     
-    // Companies
-    await pool.query('INSERT INTO companies (id, name, logo, industry, companyType, website, location, description, createdByAdminId, createdAt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', ['test_comp_1', 'TechVision Global', 'https://logo.clearbit.com/microsoft.com', 'Technology', 'MNC', 'https://microsoft.com', 'Bangalore', 'Leading tech company.', 'admin_jayanth', Date.now()]);
+    await pool.query('INSERT INTO companies (id, name, logo, industry, companyType, website, location, description, createdByAdminId, createdAt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', ['test_comp_1', 'TechVision Global', 'https://ui-avatars.com/api/?name=TechVision+Global&background=001F8E&color=fff&bold=true', 'Technology', 'MNC', 'https://microsoft.com', 'Bangalore', 'Leading tech company.', 'admin_jayanth', Date.now()]);
     console.log('Companies done');
 
     console.log('Seeding COMPLETE');

@@ -77,82 +77,80 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
   const workMode = job.workMode || null;
 
   return (
-    <div className="relative group p-[1px] rounded-[2rem] transition-all duration-500 h-full hover:bg-gradient-to-b hover:from-brand/30 hover:to-transparent hover:shadow-[0_0_30px_rgba(0,31,142,0.15)]">
+    <div className="relative group p-[1px] rounded-2xl md:rounded-[2rem] transition-all duration-300 h-full hover:bg-gradient-to-b hover:from-brand/25 hover:to-transparent hover:shadow-lg">
       <motion.div
         onClick={() => onViewDetails && onViewDetails(job)}
-        whileHover={{ y: -8, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className={`relative rounded-[1.75rem] md:rounded-[2rem] bg-white dark:bg-[#0b0f14]/80 border border-slate-200/80 dark:border-white/5 group-hover:border-brand/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-5 md:p-8' : 'p-4 md:p-5'}`}
+        className={`relative rounded-[0.95rem] md:rounded-[1.95rem] bg-white dark:bg-[#0b0f14]/90 border border-slate-200/80 dark:border-white/5 group-hover:border-brand/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-4 sm:p-6 md:p-8' : 'p-3.5 sm:p-4 md:p-5'}`}
       >
-        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brand/0 to-transparent group-hover:via-brand/50 transition-all duration-700 pointer-events-none" />
+        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brand/0 to-transparent group-hover:via-brand/50 transition-all duration-500 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col h-full">
           {/* ── Header: Logo & Badges ── */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex gap-3 min-w-0 flex-1">
-            <div className={`shrink-0 ${isHero ? 'w-14 h-14' : 'w-12 h-12'} rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-brand/20 transition-colors`}>
+        <div className="flex items-start justify-between gap-2.5 mb-3">
+          <div className="flex gap-2.5 min-w-0 flex-1">
+            <div className={`shrink-0 ${isHero ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-10 h-10 sm:w-12 sm:h-12'} rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 flex items-center justify-center overflow-hidden shadow-xs group-hover:border-brand/20 transition-colors`}>
               {companyLogo && !imageError ? (
-                <img src={companyLogo} alt={job.company} className="w-full h-full object-contain p-1.5" loading="lazy" onError={() => setImageError(true)} />
+                <img src={companyLogo} alt={job.company} className="w-full h-full object-contain p-1" loading="lazy" onError={() => setImageError(true)} />
               ) : (
-                <span className="text-slate-400 font-black text-lg uppercase">{job.company?.charAt(0) || <Building2 size={20} />}</span>
+                <span className="text-slate-400 font-black text-base uppercase">{job.company?.charAt(0) || <Building2 size={18} />}</span>
               )}
             </div>
-            <div className="min-w-0 pt-1">
+            <div className="min-w-0 pt-0.5">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <p className="text-sm font-black text-slate-800 dark:text-slate-100 truncate">{job.company || 'Company'}</p>
-                <BadgeCheck size={14} className="text-brand shrink-0" />
+                <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{job.company || 'Company'}</p>
+                <BadgeCheck size={13} className="text-brand shrink-0" />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-brand/70 dark:text-brand-hover/70 truncate">
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-brand/80 dark:text-brand-hover/80 truncate">
                 {job.category || job.jobCategory || ''}
               </p>
             </div>
           </div>
           
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <div className="flex flex-col items-end gap-1 shrink-0">
             {isNew && (
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-[9px] font-black uppercase tracking-wider">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" /> New
               </span>
             )}
             {job.isTrending && (
-              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/50 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-wider">
-                <Star size={10} className="fill-indigo-500/50" /> Hot
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/50 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
+                <Star size={9} className="fill-indigo-500/50" /> Hot
               </span>
             )}
           </div>
         </div>
 
-        <div className="mb-3">
-          <h3 className={`font-black text-slate-900 dark:text-white leading-tight group-hover:text-brand dark:group-hover:text-brand-hover transition-colors duration-300 line-clamp-2 ${isHero ? 'text-lg md:text-[1.75rem]' : 'text-sm md:text-base'}`}>
+        <div className="mb-2">
+          <h3 className={`font-bold text-slate-900 dark:text-white leading-snug group-hover:text-brand dark:group-hover:text-brand-hover transition-colors duration-200 line-clamp-2 ${isHero ? 'text-base sm:text-lg md:text-xl' : 'text-xs sm:text-sm md:text-base'}`}>
             {job.title || 'Position Title'}
           </h3>
         </div>
 
         {/* ── Description ── */}
         {job.description && (
-          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400/90 leading-relaxed line-clamp-2 mb-4 md:mb-5">
+          <p className="text-[11px] sm:text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2 mb-3">
             {job.description}
           </p>
         )}
 
         {/* ── Salary & Skills ── */}
-        <div className="mb-5 md:mb-6 space-y-3 md:space-y-4">
+        <div className="mb-3 sm:mb-4 space-y-2">
           {job.salary && (
-            <div className="flex items-center gap-1.5 text-slate-900 dark:text-brand-hover font-black text-sm md:text-base bg-brand-soft w-max px-3 py-1.5 rounded-xl border border-brand/10">
-              <IndianRupee size={14} strokeWidth={2.5} className="text-brand" />
+            <div className="flex items-center gap-1 text-slate-900 dark:text-brand-hover font-bold text-xs sm:text-sm bg-brand-soft w-max px-2.5 py-1 rounded-lg border border-brand/10">
+              <IndianRupee size={12} strokeWidth={2.5} className="text-brand" />
               {job.salary}
             </div>
           )}
           {skills.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {skills.map((skill) => (
-                <span key={skill} className="px-2.5 md:px-3 py-1 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-[10px] md:text-xs font-semibold rounded-lg border border-slate-200/60 dark:border-white/5 transition-colors">
+                <span key={skill} className="px-2 py-0.5 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-[9px] sm:text-[10px] md:text-xs font-semibold rounded-md border border-slate-200/60 dark:border-white/5">
                   {skill}
                 </span>
               ))}
               {extraSkills > 0 && (
-                <span className="px-2.5 md:px-3 py-1 text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-bold rounded-lg bg-transparent border border-dashed border-slate-300 dark:border-white/10">
+                <span className="px-2 py-0.5 text-slate-400 dark:text-slate-500 text-[9px] sm:text-[10px] font-bold rounded-md border border-dashed border-slate-300 dark:border-white/10">
                   +{extraSkills}
                 </span>
               )}
@@ -193,35 +191,35 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         </div>
 
         {/* ── Footer Action Bar ── */}
-        <div className="flex items-center justify-between pt-5 border-t border-slate-100 dark:border-white/5">
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Posted {timeAgo}</span>
+        <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-100 dark:border-white/5">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Posted {timeAgo}</span>
             {daysRemaining !== null && (
-              <span className={`text-[10px] font-bold flex items-center gap-1 ${isUrgent ? 'text-amber-500' : 'text-slate-500'}`}>
-                {isUrgent && <AlertCircle size={10} />}
+              <span className={`text-[9px] sm:text-[10px] font-bold flex items-center gap-1 ${isUrgent ? 'text-amber-500' : 'text-slate-500'}`}>
+                {isUrgent && <AlertCircle size={9} />}
                 {daysRemaining === 0 ? 'Expires today' : `${daysRemaining}d left`}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-1.5">
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={handleShare}
-              className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
               title="Share job"
               aria-label="Share this job"
-              style={{ minWidth: '44px', minHeight: '44px' }}
+              style={{ minWidth: '38px', minHeight: '38px' }}
             >
-              <Share2 size={16} />
+              <Share2 size={15} />
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={(e) => { e.stopPropagation(); onViewDetails && onViewDetails(job); }}
-              className={`flex items-center gap-1.5 font-bold text-xs md:text-sm px-4 md:px-5 py-2.5 rounded-xl transition-all ${job.applyType === 'easy' ? 'bg-brand text-on-brand shadow-md shadow-brand/20 hover:bg-brand-hover' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'}`}
-              style={{ minHeight: '44px' }}
+              className={`flex items-center gap-1 font-bold text-xs px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all ${job.applyType === 'easy' ? 'bg-brand text-on-brand shadow-sm shadow-brand/20 hover:bg-brand-hover' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'}`}
+              style={{ minHeight: '38px' }}
             >
               {job.applyType === 'easy' ? 'Easy Apply' : 'View Job'}
-              {job.applyType === 'external' ? <ExternalLink size={13} /> : <ChevronRight size={15} />}
+              {job.applyType === 'external' ? <ExternalLink size={12} /> : <ChevronRight size={14} />}
             </motion.button>
           </div>
         </div>

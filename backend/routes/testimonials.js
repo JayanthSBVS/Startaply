@@ -2,21 +2,30 @@ const express = require('express');
 const pool = require('../db');
 const router = express.Router();
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS testimonials (
-    id VARCHAR(50) PRIMARY KEY,
-    name TEXT,
-    tagline TEXT,
-    description TEXT,
-    photo TEXT,
-    createdAt BIGINT
-  )
-`).catch(console.error);
+async function initTestimonialsDb() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS testimonials (
+        id VARCHAR(50) PRIMARY KEY,
+        name TEXT,
+        tagline TEXT,
+        description TEXT,
+        photo TEXT,
+        createdByAdminId TEXT,
+        createdAt BIGINT
+      )
+    `);
+    await pool.query('ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS createdByAdminId TEXT');
+  } catch (err) {
+    console.error('Testimonials table init warning:', err.message);
+  }
+}
+initTestimonialsDb();
 
 router.get('/', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM testimonials ORDER BY createdAt DESC');
-        res.json(rows.map(r => ({
+        res.json((rows || []).map(r => ({
             id: r.id,
             name: r.name,
             tagline: r.tagline,
@@ -25,14 +34,15 @@ router.get('/', async (req, res) => {
             createdAt: Number(r.createdat)
         })));
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        console.warn('[Testimonials GET fallback]', err.message);
+        res.json([]);
     }
 });
 
 router.get('/admin/list', async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM testimonials ORDER BY createdAt DESC');
-        res.json(rows.map(r => ({
+        res.json((rows || []).map(r => ({
             id: r.id,
             name: r.name,
             tagline: r.tagline,
@@ -41,7 +51,8 @@ router.get('/admin/list', async (req, res) => {
             createdAt: Number(r.createdat)
         })));
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        console.warn('[Testimonials admin/list fallback]', err.message);
+        res.json([]);
     }
 });
 

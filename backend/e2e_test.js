@@ -15,7 +15,7 @@ async function runTests() {
       industry: 'Technology',
       location: 'Bangalore, India',
       description: 'A test company for E2E.',
-      logo: 'https://logo.clearbit.com/google.com'
+      logo: 'https://ui-avatars.com/api/?name=E2E+Test+Corp&background=001F8E&color=fff&bold=true'
     }, { headers });
     const companyId = compRes.data.id;
     console.log('✓ Company created with ID:', companyId);

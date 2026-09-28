@@ -57,16 +57,16 @@ const HowItWorks = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.05 }}
-            className="text-2xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3 md:mb-4"
+            className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2 sm:mb-4"
           >
-            Your path to <span className="text-gradient-emerald">success</span>
+            Your path to <span className="text-brand dark:text-brand-hover">success</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-xl mx-auto"
+            className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-base md:text-lg max-w-xl mx-auto"
           >
             Four simple steps between you and your next career move.
           </motion.p>
@@ -76,7 +76,7 @@ const HowItWorks = () => {
           {/* Desktop connecting line */}
           <div className="hidden lg:block absolute top-12 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700/50 to-transparent z-0" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 relative z-10">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
@@ -87,18 +87,18 @@ const HowItWorks = () => {
                 className="relative flex flex-col items-center text-center group"
               >
                 {/* Ghost number watermark */}
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-8xl font-black text-slate-900/[0.04] dark:text-white/[0.04] pointer-events-none group-hover:-translate-y-2 transition-transform duration-500">
+                <div className="absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 text-6xl sm:text-8xl font-black text-slate-900/[0.04] dark:text-white/[0.04] pointer-events-none group-hover:-translate-y-2 transition-transform duration-500">
                   {step.number}
                 </div>
 
                 {/* Icon container */}
-                <div className={`w-20 h-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg flex items-center justify-center mb-6 relative z-10 text-${step.color}-500 group-hover:-translate-y-2 transition-all duration-300`}>
-                  <div className={`absolute inset-0 bg-${step.color}-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity`} />
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md sm:shadow-lg flex items-center justify-center mb-4 sm:mb-6 relative z-10 text-${step.color}-500 group-hover:-translate-y-1 transition-all duration-300`}>
+                  <div className={`absolute inset-0 bg-${step.color}-500/10 rounded-2xl sm:rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity`} />
                   {step.icon}
                 </div>
 
-                <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 tracking-tight">{step.title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed px-2">{step.desc}</p>
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mb-1.5 sm:mb-2 tracking-tight">{step.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed px-2">{step.desc}</p>
               </motion.div>
             ))}
           </div>

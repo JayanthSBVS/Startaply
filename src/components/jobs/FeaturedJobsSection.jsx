@@ -51,25 +51,25 @@ const FeaturedJobsSection = ({ onJobClick }) => {
       <div className="max-w-[90rem] mx-auto px-4 md:px-8 relative z-10">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 sm:gap-6 mb-8 sm:mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover">
-              <Star size={13} className="fill-current" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Top Opportunities</span>
+            <div className="inline-flex items-center gap-2 mb-2.5 px-3 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover">
+              <Star size={12} className="fill-current" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Top Opportunities</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-              Featured <span className="text-gradient-emerald">Jobs</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+              Featured <span className="text-brand dark:text-brand-hover">Jobs</span>
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-base mt-2 max-w-lg">
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm md:text-base mt-1.5 max-w-lg">
               Hand-picked career openings from top employers, selected specifically to launch your career forward.
             </p>
           </div>
           <Link
             to="/jobs"
-            className="flex items-center gap-2 font-bold text-sm text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover transition-colors group whitespace-nowrap shrink-0"
+            className="flex items-center gap-2 font-bold text-xs sm:text-sm text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover transition-colors group whitespace-nowrap shrink-0 min-h-[44px]"
           >
             View all {jobs?.length || 0} jobs
-            <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 

@@ -5,12 +5,21 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { useJobs } from '../../context/JobsContext';
 import { usePageActivity } from '../../hooks/usePageActivity';
 
-const PLACEHOLDERS = [
-  'Software Engineer, Bangalore',
-  'Data Analyst, remote',
-  'Frontend Developer, startup',
-  'Product Manager, Hyderabad',
-  'HR Executive, full-time',
+const MOBILE_PLACEHOLDERS = [
+  'Search job title or role...',
+  'e.g. Software Engineer',
+  'e.g. Data Analyst',
+  'e.g. Fresher / Graduate',
+  'e.g. Remote Developer',
+  'e.g. Product Manager',
+];
+
+const DESKTOP_PLACEHOLDERS = [
+  'Search role, company, skill (e.g. Software Engineer, Bangalore)',
+  'Search role, company, skill (e.g. Data Analyst, Remote)',
+  'Search role, company, skill (e.g. Frontend Developer, Startup)',
+  'Search role, company, skill (e.g. Product Manager, Hyderabad)',
+  'Search role, company, skill (e.g. HR Executive, Full-time)',
 ];
 
 const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => {
@@ -58,7 +67,7 @@ const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => 
 
 const StaticContainer = ({ children, heroImages, currentImageIdx, isMobile }) => {
   return (
-    <div className="relative w-full h-full" style={{ minHeight: isMobile ? 'min(78vh, 580px)' : 'min(96vh, 900px)' }}>
+    <div className="relative w-full h-full" style={{ minHeight: isMobile ? 'auto' : 'min(96vh, 900px)' }}>
       <div className="absolute inset-0 z-0">
         <img
           src={(heroImages && heroImages.length > 0) ? heroImages[currentImageIdx] : "/hero-bg.png"}
@@ -66,10 +75,10 @@ const StaticContainer = ({ children, heroImages, currentImageIdx, isMobile }) =>
           className="w-full h-full object-cover object-center absolute inset-0"
           loading="eager"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/55 via-[#0b0f14]/65 to-[#0b0f14]/92" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/70 via-transparent to-[#0b0f14]/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/65 via-[#0b0f14]/75 to-[#0b0f14]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/80 via-transparent to-[#0b0f14]/40" />
       </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center pt-24 md:pt-36 pb-10 md:pb-20 h-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center pt-20 sm:pt-24 md:pt-36 pb-8 sm:pb-12 md:pb-20 h-full">
         {children}
       </div>
     </div>
@@ -89,14 +98,15 @@ const Hero = () => {
   const dropdownRef = useRef(null);
   const sectionRef = useRef(null);
 
-  const { isMobile, shouldAnimate } = usePageActivity(sectionRef);
+  const { isMobile, shouldAnimate } = usePageActivity(sectionRef, { allowMobile: true });
 
   // Cycle placeholder & images only when allowed
   useEffect(() => {
     if (!shouldAnimate) return;
-    const t = setInterval(() => setPlaceholderIdx(p => (p + 1) % PLACEHOLDERS.length), 3000);
+    const len = isMobile ? MOBILE_PLACEHOLDERS.length : DESKTOP_PLACEHOLDERS.length;
+    const t = setInterval(() => setPlaceholderIdx(p => (p + 1) % len), 3000);
     return () => clearInterval(t);
-  }, [shouldAnimate]);
+  }, [shouldAnimate, isMobile]);
 
   useEffect(() => {
     if (!shouldAnimate || !heroImages || heroImages.length <= 1) return;
@@ -152,50 +162,26 @@ const Hero = () => {
 
   const content = (
     <>
-      {/* Category Pills - compact on mobile */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="flex flex-wrap gap-1.5 mb-5 md:mb-8"
-      >
-        {[
-          { icon: <GraduationCap size={11} />, label: 'Freshers', color: 'bg-brand/15 text-blue-200 border-brand/25' },
-          { icon: <Briefcase size={11} />, label: 'Private Jobs', color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' },
-          { icon: <Sparkles size={11} />, label: 'Startups', color: 'bg-purple-500/15 text-purple-300 border-purple-500/25' },
-        ].map((pill) => (
-          <button
-            key={pill.label}
-            onClick={() => navigate('/jobs')}
-            className={`flex items-center gap-1 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-[11px] font-bold border transition-all active:scale-95 cursor-pointer ${pill.color}`}
-            style={{ minHeight: '28px' }}
-          >
-            {pill.icon}
-            {pill.label}
-          </button>
-        ))}
-      </motion.div>
-
       {/* ── Main Headline ────────────────────────────────────── */}
       <motion.h1
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="text-white font-black tracking-tight leading-[1.0] mb-4 md:mb-6 max-w-4xl"
-        style={{ fontSize: isMobile ? 'clamp(1.85rem, 8.5vw, 2.6rem)' : 'clamp(2.6rem, 6.5vw, 5.5rem)' }}
+        className="text-white font-black tracking-tight leading-[1.12] mb-3 md:mb-5 max-w-4xl"
+        style={{ fontSize: isMobile ? 'clamp(1.85rem, 8vw, 2.45rem)' : 'clamp(2.75rem, 6vw, 5rem)' }}
       >
-        Kickstart Your Career With The{' '}
-        <span className="text-gradient-emerald-cyan">Best Early Talent Roles</span>
+        Kickstart Your Career With Verified{' '}
+        <span className="text-brand-hover dark:text-[#4D84FF]">Early Talent Roles</span>
       </motion.h1>
 
-      {/* ── Subheading - truncated on mobile ────────────────────────── */}
+      {/* ── Subheading ─────────────────────────────────────────── */}
       <motion.p
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
-        className="text-slate-300 text-sm md:text-lg font-medium leading-relaxed max-w-2xl mb-6 md:mb-10 line-clamp-2 md:line-clamp-none"
+        className="text-slate-300 text-xs sm:text-sm md:text-lg font-normal leading-relaxed max-w-2xl mb-5 md:mb-8"
       >
-        Explore startup hiring drives, verified openings, internships, and fast-growing companies - all verified, all free, all on one platform.
+        Explore verified corporate job openings, internships, and walk-in drives across India — 100% free with direct recruiter applications.
       </motion.p>
 
       {/* ── Search Command Center ───────────────────────────────────── */}
@@ -203,17 +189,15 @@ const Hero = () => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-2xl relative"
+        className="w-full max-w-2xl relative mb-3"
         ref={dropdownRef}
       >
-        {/* ── MOBILE Search: Premium single-row discovery bar ──────── */}
+        {/* ── MOBILE Search Bar ──────── */}
         <div className="sm:hidden relative">
-          <div className="relative flex items-center bg-white/12 border border-white/25 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] focus-within:bg-white/18 focus-within:border-brand/60 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_3px_rgba(0,31,142,0.15)] transition-all duration-300">
-            {/* Search icon - left side */}
-            <div className="pl-4 pr-2 shrink-0">
-              <Search size={19} className="text-brand-hover" />
+          <div className="relative flex items-center bg-white/12 border border-white/20 rounded-2xl shadow-lg focus-within:bg-white/20 focus-within:border-brand-hover transition-all duration-200">
+            <div className="pl-3.5 pr-2 shrink-0">
+              <Search size={18} className="text-brand-hover" />
             </div>
-            {/* Input */}
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -221,19 +205,27 @@ const Hero = () => {
               onFocus={() => query.length >= 1 && setShowSuggestions(true)}
               autoComplete="off"
               spellCheck="false"
-              className="flex-1 py-4 text-[15px] outline-none text-white placeholder-slate-400/80 font-medium bg-transparent min-w-0"
-              placeholder={PLACEHOLDERS[placeholderIdx]}
-              style={{ minHeight: '52px' }}
+              className="flex-1 py-3.5 text-sm outline-none text-white placeholder-slate-400 font-medium bg-transparent min-w-0"
+              placeholder={MOBILE_PLACEHOLDERS[placeholderIdx % MOBILE_PLACEHOLDERS.length]}
+              style={{ minHeight: '50px' }}
             />
-            {/* Search button - right side, always visible */}
-            <div className="pr-2 shrink-0">
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="p-2 text-slate-400 hover:text-white"
+                aria-label="Clear search query"
+              >
+                ×
+              </button>
+            )}
+            <div className="pr-1.5 shrink-0">
               <button
                 onClick={() => handleSearch()}
-                className="bg-brand active:bg-brand-hover active:scale-95 text-on-brand font-black px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-brand/30 flex items-center gap-1.5 whitespace-nowrap"
-                style={{ minHeight: '44px' }}
+                className="bg-brand hover:bg-brand-hover active:bg-brand-hover active:scale-95 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-brand/30 flex items-center gap-1.5 min-h-[42px]"
               >
                 Search
-                <ArrowRight size={14} />
+                <ArrowRight size={13} />
               </button>
             </div>
           </div>
@@ -241,7 +233,7 @@ const Hero = () => {
 
         {/* ── DESKTOP Search: Full inline layout ─────────────────────── */}
         <div className="hidden sm:block relative">
-          <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-brand/40 focus-within:border-brand/40 transition-all duration-300 overflow-hidden">
+          <div className="flex bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.4)] focus-within:ring-2 focus-within:ring-brand/50 focus-within:border-brand/50 transition-all duration-300 overflow-hidden">
             <div className="flex items-center pl-4">
               <Search size={18} className="text-brand-hover shrink-0" />
             </div>
@@ -254,13 +246,13 @@ const Hero = () => {
                 autoComplete="off"
                 spellCheck="false"
                 className="w-full px-3 py-4 text-base outline-none text-white placeholder-slate-400 font-medium bg-transparent"
-                placeholder={PLACEHOLDERS[placeholderIdx]}
+                placeholder={DESKTOP_PLACEHOLDERS[placeholderIdx % DESKTOP_PLACEHOLDERS.length]}
               />
             </div>
             <div className="py-1.5 pr-1.5">
               <button
                 onClick={() => handleSearch()}
-                className="group bg-brand hover:bg-brand-hover active:scale-95 text-on-brand font-black px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-all shadow-lg shadow-brand/25 h-full"
+                className="group bg-brand hover:bg-brand-hover active:scale-95 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-all shadow-lg shadow-brand/25 h-full min-h-[44px]"
               >
                 Explore Jobs
                 <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
@@ -304,31 +296,39 @@ const Hero = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* ── CTA Buttons Row ───────────────────────────────── */}
+      {/* ── Quick Filter Tags ── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.6 }}
-        className="flex flex-wrap items-center gap-4 mt-4 md:mt-6"
+        transition={{ duration: 0.5, delay: 0.55 }}
+        className="flex flex-wrap gap-2 mb-4"
       >
-        <button
-          onClick={() => navigate('/job-melas')}
-          className="font-bold text-sm text-white/80 hover:text-white transition-colors active:opacity-70"
-          style={{ minHeight: '44px' }}
-        >
-          Upcoming Job Melas →
-        </button>
+        {[
+          { icon: <GraduationCap size={13} />, label: 'Freshers (0-1y)', path: '/jobs?section=freshers' },
+          { icon: <Briefcase size={13} />, label: 'IT & Software', path: '/category/IT%20%26%20Non-IT%20Jobs' },
+          { icon: <Sparkles size={13} />, label: 'Top Startups', path: '/companies' },
+          { icon: <ArrowRight size={13} />, label: 'Job Melas', path: '/job-melas' },
+        ].map((tag) => (
+          <button
+            key={tag.label}
+            onClick={() => navigate(tag.path)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/8 hover:bg-white/15 active:bg-white/20 text-slate-200 border border-white/12 transition-all active:scale-95 cursor-pointer min-h-[36px]"
+          >
+            {tag.icon}
+            {tag.label}
+          </button>
+        ))}
       </motion.div>
 
       {/* ── Trust Strip - horizontal scroll on mobile ─────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.9, delay: 0.8 }}
-        className="mt-5 md:mt-10 flex items-center gap-4 text-[11px] md:text-[12px] font-semibold text-slate-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-1"
+        transition={{ duration: 0.9, delay: 0.7 }}
+        className="mt-4 md:mt-8 flex items-center gap-3.5 text-[11px] md:text-[12px] font-medium text-slate-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-1"
       >
         <span className="flex items-center gap-1.5 shrink-0">
-          <ShieldCheck size={13} className="text-emerald-400" />
+          <ShieldCheck size={14} className="text-emerald-400" />
           100% Verified
         </span>
         <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
@@ -338,7 +338,7 @@ const Hero = () => {
         {totalJobs > 0 && (
           <>
             <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
-            <span className="text-emerald-400 font-bold shrink-0">{totalJobs}+ Active Jobs</span>
+            <span className="text-slate-200 font-bold shrink-0">{totalJobs}+ Active Jobs</span>
           </>
         )}
       </motion.div>

@@ -33,15 +33,18 @@ async function initDb() {
 initDb();
 
 // Get all support tickets (Admin)
-router.get('/', authMiddleware, async (req, res) => {
+const handleGetTickets = async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM support_tickets ORDER BY createdAt DESC');
-    res.json(rows);
+    res.json(rows || []);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.warn('[Support GET fallback]', err.message);
+    res.json([]);
   }
-});
+};
+
+router.get('/', authMiddleware, handleGetTickets);
+router.get('/tickets', authMiddleware, handleGetTickets);
 
 // Submit a new support ticket
 router.post('/', async (req, res) => {

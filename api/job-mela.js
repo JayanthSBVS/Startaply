@@ -81,18 +81,24 @@ app.get('/api/job-mela', async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query('SELECT * FROM job_mela ORDER BY createdAt DESC');
-    const result = rows.map(mapRow);
+    const result = (rows || []).map(mapRow).filter(Boolean);
     res.json(result);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+  } catch (err) {
+    console.warn('[api/job-mela GET fallback]', err.message);
+    res.json([]);
+  }
 });
 
 app.get('/api/job-mela/active', async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { rows } = await pool.query('SELECT * FROM job_mela WHERE isActive = true ORDER BY createdAt DESC LIMIT 1');
-    const result = mapRow(rows[0]) || null;
+    const result = rows && rows[0] ? mapRow(rows[0]) : null;
     res.json(result);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+  } catch (err) {
+    console.warn('[api/job-mela/active fallback]', err.message);
+    res.json(null);
+  }
 });
 
 app.post('/api/job-mela', authMiddleware, async (req, res) => {

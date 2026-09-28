@@ -72,6 +72,7 @@ async function initAuthDb() {
 
     // 5. DATA ATTRIBUTION MIGRATION (Link records to reconciled identity)
     try {
+      const principalManagerId = 'admin_principal';
       await pool.query(`UPDATE jobs SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
       await pool.query(`UPDATE companies SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
       await pool.query(`UPDATE prep_data SET createdByAdminId = $1 WHERE createdByAdminId = 'system' OR createdByAdminId IS NULL OR createdByAdminId = 'admin_legacy' OR createdByAdminId = 'manager_principal' OR createdByAdminId = 'admin_jayanth'`, [principalManagerId]);
@@ -422,6 +423,54 @@ router.get('/stats', authMiddleware, async (req, res) => {
       totalToday: 0,
       totalAdmins: FALLBACK_SEED_USERS.length,
       adminProductivity: []
+    });
+  }
+});
+
+// GET current user permissions
+router.get('/my-permissions', authMiddleware, async (req, res) => {
+  try {
+    const role = req.user?.role || 'operational_executive';
+    if (role === 'manager' || req.user?.email === 'admin@startaply.com') {
+      return res.json({
+        role: 'manager',
+        can_post_job: true,
+        can_edit_job: true,
+        can_delete_job: true,
+        can_view_applicants: true,
+        can_manage_companies: true,
+        can_manage_mela: true,
+        can_manage_prep: true
+      });
+    }
+
+    const { rows } = await pool.query('SELECT * FROM role_permissions WHERE role = $1', [role]);
+    if (rows && rows.length > 0) {
+      return res.json(rows[0]);
+    }
+
+    const isOpManager = role === 'operational_manager';
+    res.json({
+      role,
+      can_post_job: true,
+      can_edit_job: true,
+      can_delete_job: isOpManager,
+      can_view_applicants: true,
+      can_manage_companies: true,
+      can_manage_mela: true,
+      can_manage_prep: true
+    });
+  } catch (err) {
+    console.warn('[my-permissions fallback]', err.message);
+    res.json({
+      role: req.user?.role || 'operational_executive',
+      can_post_job: true,
+      can_edit_job: true,
+      can_delete_job: false,
+      can_view_applicants: true,
+      can_manage_companies: true,
+      can_manage_mela: true,
+      can_manage_prep: true
     });
   }
 });

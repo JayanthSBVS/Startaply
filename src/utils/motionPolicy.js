@@ -6,11 +6,11 @@
  * - Continuous decorative motion never runs with prefers-reduced-motion.
  * - Expensive decorative motion defaults off on mobile.
  */
-export function shouldRunContinuousMotion({ sectionVisible, documentVisible, prefersReducedMotion, mobile }) {
+export function shouldRunContinuousMotion({ sectionVisible, documentVisible, prefersReducedMotion, mobile, allowMobile = false }) {
   if (prefersReducedMotion) return false;
   if (!documentVisible) return false;
   if (!sectionVisible) return false;
-  if (mobile) return false;
+  if (mobile && !allowMobile) return false;
   return true;
 }
 

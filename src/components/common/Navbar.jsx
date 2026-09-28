@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, Users, PartyPopper, BookOpen, Home, LifeBuoy } from 'lucide-react';
+import { GraduationCap, Users, PartyPopper, BookOpen, Home, LifeBuoy, Search } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import SupportModal from './SupportModal';
 import BrandLogo from './BrandLogo';
@@ -35,26 +35,26 @@ const Navbar = () => {
   };
 
   return (
-    <div className={`fixed top-0 inset-x-0 z-50 h-16 bg-surface-raised border-b border-border transition-shadow duration-fast ${scrolled ? 'shadow-sm' : ''}`}>
-      <nav className="h-full w-full max-w-[1200px] mx-auto px-4 md:px-8 flex justify-between items-center">
+    <header className={`fixed top-0 inset-x-0 z-50 h-14 md:h-16 bg-white/85 dark:bg-[#0b0f14]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 transition-all duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
+      <nav className="h-full w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
 
-        {/* ── Logo ── */}
-        <Link to="/" className="flex items-center shrink-0 group focus-visible rounded-sm" aria-label="Startaply Home">
-          <BrandLogo variant="horizontal" height={34} className="group-hover:opacity-95 transition-opacity" />
+        {/* ── Brand Logo ── */}
+        <Link to="/" className="flex items-center shrink-0 group focus-visible rounded-lg" aria-label="Startaply Home">
+          <BrandLogo variant="horizontal" height={28} className="group-hover:opacity-95 transition-opacity" />
         </Link>
 
-        {/* ── Desktop Nav Links ── */}
-        <div className="hidden lg:flex items-center gap-2 text-sm font-semibold text-content-secondary">
+        {/* ── Desktop Navigation Links ── */}
+        <div className="hidden lg:flex items-center gap-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300">
           {menuItems.map((item) => {
             const active = isActive(item.path);
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                className={`relative px-4 py-2 rounded-md transition-colors duration-fast focus-visible ${
+                className={`relative px-3.5 py-2 rounded-xl transition-all duration-150 focus-visible ${
                   active
-                    ? 'text-brand bg-brand-soft'
-                    : 'hover:text-content hover:bg-surface-muted'
+                    ? 'text-brand bg-brand-soft font-bold'
+                    : 'hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-white/5'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
@@ -64,44 +64,47 @@ const Navbar = () => {
           })}
         </div>
 
-        {/* ── Desktop CTA & Theme Toggle ── */}
-        <div className="hidden lg:flex items-center gap-4 shrink-0">
+        {/* ── Desktop Actions (Support, Theme, Browse Jobs) ── */}
+        <div className="hidden lg:flex items-center gap-3.5 shrink-0">
           <button 
             onClick={() => setIsSupportOpen(true)}
-            className="flex items-center gap-1.5 text-sm font-semibold text-content-secondary hover:text-brand transition-colors focus-visible outline-none px-2 py-1"
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover transition-colors focus-visible outline-none px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+            aria-label="Contact Support"
           >
-            <LifeBuoy size={18} /> Support
+            <LifeBuoy size={16} className="text-brand" /> Support
           </button>
+          <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10" />
           <ThemeToggle />
           <Link
             to="/jobs"
-            className="flex items-center justify-center min-h-[44px] bg-brand hover:bg-brand-hover text-on-brand px-6 rounded-md text-sm font-semibold transition-colors duration-fast focus-visible shadow-xs"
+            className="flex items-center justify-center min-h-[40px] bg-brand hover:bg-brand-hover text-on-brand px-5 rounded-xl text-xs font-bold transition-all duration-150 focus-visible shadow-sm shadow-brand/20 active:scale-95"
           >
-            Browse Jobs
+            Explore Jobs
           </Link>
         </div>
 
-        {/* ── Mobile Right Side ── */}
-        <div className="flex lg:hidden items-center gap-3">
-          <button 
-            onClick={() => setIsSupportOpen(true)}
-            className="flex items-center justify-center min-h-[44px] text-content-secondary hover:text-brand transition-colors focus-visible outline-none p-1"
-            aria-label="Support"
-          >
-            <LifeBuoy size={20} />
-          </button>
+        {/* ── Mobile Right App Bar ── */}
+        <div className="flex lg:hidden items-center gap-1.5">
           <Link
             to="/jobs"
-            className="flex items-center justify-center min-h-[44px] px-4 bg-brand hover:bg-brand-hover text-on-brand text-xs font-semibold rounded-md transition-colors duration-fast focus-visible shadow-xs"
+            className="flex items-center justify-center min-h-[38px] min-w-[38px] text-slate-600 dark:text-slate-300 hover:text-brand active:bg-slate-100 dark:active:bg-white/10 rounded-xl transition-colors focus-visible outline-none"
+            aria-label="Search Jobs"
           >
-            Browse Jobs
+            <Search size={18} />
           </Link>
+          <button 
+            onClick={() => setIsSupportOpen(true)}
+            className="flex items-center justify-center min-h-[38px] min-w-[38px] text-slate-600 dark:text-slate-300 hover:text-brand active:bg-slate-100 dark:active:bg-white/10 rounded-xl transition-colors focus-visible outline-none"
+            aria-label="Help and Support"
+          >
+            <LifeBuoy size={18} />
+          </button>
           <ThemeToggle />
         </div>
 
       </nav>
       <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
-    </div>
+    </header>
   );
 };
 

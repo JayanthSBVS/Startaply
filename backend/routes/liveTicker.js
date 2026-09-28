@@ -26,10 +26,10 @@ initDb();
 router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM live_ticker ORDER BY createdAt DESC');
-    res.json(rows);
+    res.json(rows || []);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.warn('[Live Ticker GET fallback]', err.message);
+    res.json([]);
   }
 });
 

@@ -64,12 +64,12 @@ const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, bar, 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={started ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex-1 min-w-[180px] max-w-sm mx-auto w-full"
+      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative flex-1 w-full"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 p-5 md:p-7 flex flex-col gap-3 h-full shadow-sm hover:border-[#1A62FE]/40 transition-colors cursor-default">
+      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 p-3.5 sm:p-5 md:p-7 flex flex-col gap-2 md:gap-3 h-full shadow-xs hover:border-[#1A62FE]/40 transition-colors cursor-default">
         {/* Animated rise bar */}
         {started && (
           <div className="absolute left-0 bottom-0 w-1 rounded-full bg-gradient-to-t opacity-80" style={{ backgroundImage: `linear-gradient(to top, #1A62FE, transparent)` }}>
@@ -78,23 +78,23 @@ const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, bar, 
         )}
 
         {/* Micro-label */}
-        <div className="flex items-center gap-2 relative z-10">
-          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${bar} shadow-sm`} />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-1.5 md:gap-2 relative z-10">
+          <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gradient-to-r ${bar} shadow-xs`} />
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {label}
           </span>
         </div>
 
-        <div className="flex items-end gap-1 relative z-10 mt-1 mb-0.5">
-          <span className={`text-4xl md:text-6xl font-black tracking-tight leading-none ${accent}`}>
+        <div className="flex items-baseline gap-0.5 md:gap-1 relative z-10 my-0.5">
+          <span className={`text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-none ${accent}`}>
             {display}
           </span>
-          <span className={`text-xl md:text-3xl font-black mb-0.5 ${accent}`}>
+          <span className={`text-sm sm:text-xl md:text-2xl font-black ${accent}`}>
             {suffix}
           </span>
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-normal leading-relaxed relative z-10 mt-auto">
+        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-normal leading-snug md:leading-relaxed relative z-10 mt-auto">
           {sublabel}
         </p>
       </div>

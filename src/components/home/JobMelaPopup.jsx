@@ -82,21 +82,19 @@ const JobMelaPopup = () => {
             {/* Scrollable content */}
             <div className="overflow-y-auto" style={{ maxHeight: 'calc(88vh - 40px)' }}>
               {/* Banner image - compact on mobile */}
-              <div className="relative h-36 overflow-hidden">
-                {mela.image ? (
-                  <img
-                    src={mela.image}
-                    alt="Job Mela Banner"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-brand/10">
-                    <Building2 size={40} className="text-brand/30" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="relative h-40 overflow-hidden bg-slate-900">
+                <img
+                  src={mela.image || '/workspace-editorial.png'}
+                  alt="Job Mela Banner"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/workspace-editorial.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
                 <div className="absolute top-3 left-4">
-                  <span className="inline-flex items-center gap-1.5 bg-brand text-on-brand px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.15em] shadow-lg">
+                  <span className="inline-flex items-center gap-1.5 bg-brand text-on-brand px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-brand/30">
                     <BellRing size={11} className="animate-bounce" /> Mega Drive Event
                   </span>
                 </div>
@@ -191,15 +189,17 @@ const JobMelaPopup = () => {
 
             <div className="flex flex-col md:flex-row h-full relative">
               {/* Left Image Section */}
-              <div className="relative md:w-5/12 h-48 md:h-auto overflow-hidden shrink-0">
-                {mela.image ? (
-                  <img src={mela.image} alt="Job Mela Banner" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-brand/10">
-                    <Building2 size={80} className="text-brand/30" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent md:bg-gradient-to-r md:from-transparent md:to-white md:dark:to-[#0b0f14]" />
+              <div className="relative md:w-5/12 h-56 md:h-auto overflow-hidden shrink-0 bg-slate-900">
+                <img
+                  src={mela.image || '/workspace-editorial.png'}
+                  alt={mela.title || 'Job Mela Banner'}
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/workspace-editorial.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-white md:dark:to-[#0b0f14]" />
                 <div className="absolute top-5 left-5 z-10">
                   <div className="inline-flex items-center gap-2 bg-brand text-on-brand px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-brand/30 backdrop-blur-md">
                     <BellRing size={14} className="animate-bounce" /> Mega Event

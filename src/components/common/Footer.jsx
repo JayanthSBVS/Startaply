@@ -14,59 +14,59 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8">
 
         {/* ── CTA Block ── */}
-        <div className="mb-10 md:mb-16 rounded-xl p-6 md:p-12 bg-surface-raised border border-border flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-sm text-center md:text-left">
+        <div className="mb-10 md:mb-16 rounded-2xl md:rounded-3xl p-6 md:p-12 bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-sm text-center md:text-left">
           <div className="max-w-xl">
-            <h3 className="text-xl md:text-4xl font-black text-content mb-2 tracking-tight leading-tight">
-              Ready to Accelerate Your <span className="text-brand">Career?</span>
+            <h3 className="text-xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight leading-tight">
+              Ready to Accelerate Your <span className="text-brand dark:text-brand-hover">Career?</span>
             </h3>
-            <p className="text-content-secondary text-sm md:text-lg">
-              Join thousands of professionals finding their dream roles on Startaply.
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-base md:text-lg">
+              Join thousands of candidates finding verified early talent roles on Startaply.
             </p>
           </div>
           <div>
             <Link
               to="/jobs"
-              className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-on-brand font-bold px-8 py-4 rounded-md text-base transition-colors duration-fast focus-visible min-h-[44px]"
+              className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-on-brand font-bold px-7 py-3.5 rounded-xl text-sm md:text-base transition-all active:scale-95 shadow-md shadow-brand/20 min-h-[44px]"
             >
-              Explore Openings <ArrowRight size={18} />
+              Explore Openings <ArrowRight size={16} />
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-8 mb-10 md:mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-8 mb-10 md:mb-16">
 
           {/* ── Brand & Mission ── */}
-          <div className="lg:col-span-5">
-            <Link to="/" className="inline-flex items-center mb-6 focus-visible rounded-sm group" aria-label="Startaply Home">
-              <BrandLogo variant="horizontal" height={40} className="group-hover:opacity-95 transition-opacity" />
+          <div className="col-span-2 lg:col-span-5">
+            <Link to="/" className="inline-flex items-center mb-4 sm:mb-6 focus-visible rounded-lg group" aria-label="Startaply Home">
+              <BrandLogo variant="horizontal" height={36} className="group-hover:opacity-95 transition-opacity" />
             </Link>
-            <p className="text-content-secondary font-medium text-base mb-8 max-w-sm leading-relaxed">
-              India's premium opportunity ecosystem. Discover verified work that moves you, built for the ambitious.
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm md:text-base mb-6 max-w-sm leading-relaxed">
+              India's verified career and hiring ecosystem. Direct applications, zero consulting fees, built for ambitious early talent.
             </p>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <a
                 href="https://t.me/startaply"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-[44px] px-4 rounded-xl flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-xs shadow-lg shadow-sky-500/20 border border-sky-400/30 transition-all hover:scale-105 active:scale-95"
+                className="h-[42px] px-3.5 rounded-xl flex items-center gap-2 bg-[#0088cc] hover:bg-[#0077b5] text-white font-bold text-xs shadow-sm transition-all active:scale-95"
                 aria-label="Telegram Channel"
               >
-                <svg className="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.67-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.59 4.62-1.87 5.14-1.88.11 0 .37.03.54.17.14.12.18.29.2.42-.01.07.01.24 0 .38z"/>
                 </svg>
-                <span>Telegram Alerts</span>
+                <span>Telegram Channel</span>
               </a>
 
               {[
-                { icon: <Twitter size={18} />, label: 'Twitter', url: '#' },
-                { icon: <Linkedin size={18} />, label: 'LinkedIn', url: '#' },
-                { icon: <Instagram size={18} />, label: 'Instagram', url: '#' },
-                { icon: <Youtube size={18} />, label: 'YouTube', url: '#' }
+                { icon: <Twitter size={17} />, label: 'Twitter', url: '#' },
+                { icon: <Linkedin size={17} />, label: 'LinkedIn', url: '#' },
+                { icon: <Instagram size={17} />, label: 'Instagram', url: '#' },
+                { icon: <Youtube size={17} />, label: 'YouTube', url: '#' }
               ].map((social) => (
                 <a
                   key={social.label}
                   href={social.url}
-                  className="w-[44px] h-[44px] rounded-xl flex items-center justify-center bg-surface-raised border border-border text-content-muted hover:text-brand hover:border-brand-soft transition-colors duration-fast focus-visible"
+                  className="w-[42px] h-[42px] rounded-xl flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-brand hover:border-brand transition-colors focus-visible"
                   aria-label={social.label}
                 >
                   {social.icon}
@@ -76,11 +76,11 @@ const Footer = () => {
           </div>
 
           {/* ── Platform Links ── */}
-          <div className="lg:col-span-3 lg:col-start-7">
-            <h4 className="text-content font-bold uppercase tracking-widest text-xs mb-6">
+          <div className="col-span-1 lg:col-span-3 lg:col-start-7">
+            <h4 className="text-slate-900 dark:text-white font-bold uppercase tracking-widest text-xs mb-4 sm:mb-6">
               Platform
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3 sm:space-y-4">
               {[
                 { name: 'Browse Jobs', path: '/jobs' },
                 { name: 'Companies', path: '/companies' },
@@ -90,7 +90,7 @@ const Footer = () => {
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className="text-content-secondary hover:text-brand font-semibold transition-colors duration-fast inline-flex items-center gap-2 focus-visible rounded-sm min-h-[44px] sm:min-h-0"
+                    className="text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover text-xs sm:text-sm font-semibold transition-colors inline-flex items-center gap-2 focus-visible min-h-[38px] sm:min-h-0"
                   >
                     {link.name}
                   </Link>
@@ -100,21 +100,21 @@ const Footer = () => {
           </div>
 
           {/* ── Explore Links ── */}
-          <div className="lg:col-span-3">
-            <h4 className="text-content font-bold uppercase tracking-widest text-xs mb-6">
+          <div className="col-span-1 lg:col-span-3">
+            <h4 className="text-slate-900 dark:text-white font-bold uppercase tracking-widest text-xs mb-4 sm:mb-6">
               Explore
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3 sm:space-y-4">
               {[
                 { name: 'IT & Tech', path: '/category/IT%20%26%20Non-IT%20Jobs' },
-                { name: 'Freshers', path: '/jobs?fresh=true' },
+                { name: 'Freshers', path: '/jobs?section=freshers' },
                 { name: 'Private Jobs', path: '/category/Private%20Jobs' },
                 { name: 'Gig Workers', path: '/category/Gig%20%26%20Services' }
               ].map(link => (
                 <li key={link.name}>
                   <Link
                     to={link.path}
-                    className="text-content-secondary hover:text-brand font-semibold transition-colors duration-fast inline-flex items-center gap-2 focus-visible rounded-sm min-h-[44px] sm:min-h-0"
+                    className="text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover text-xs sm:text-sm font-semibold transition-colors inline-flex items-center gap-2 focus-visible min-h-[38px] sm:min-h-0"
                   >
                     {link.name}
                   </Link>
@@ -126,13 +126,13 @@ const Footer = () => {
         </div>
 
         {/* ── Legal & Copyright ── */}
-        <div className="pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
-          <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-sm font-semibold text-content-secondary">
-            <Link to="/privacy" className="hover:text-brand transition-colors duration-fast focus-visible rounded-sm p-1">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-brand transition-colors duration-fast focus-visible rounded-sm p-1">Terms of Service</Link>
-            <Link to="/about" className="hover:text-brand transition-colors duration-fast focus-visible rounded-sm p-1">About Us</Link>
+        <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
+            <Link to="/privacy" className="hover:text-brand transition-colors p-1">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-brand transition-colors p-1">Terms of Service</Link>
+            <Link to="/about" className="hover:text-brand transition-colors p-1">About Us</Link>
           </div>
-          <div className="text-content-muted font-medium text-sm">
+          <div className="text-slate-400 dark:text-slate-500 font-medium text-xs sm:text-sm">
             © {new Date().getFullYear()} Startaply. All rights reserved.
           </div>
         </div>

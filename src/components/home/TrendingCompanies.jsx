@@ -141,9 +141,7 @@ const TrendingCompanies = () => {
 
       {/* ── MOBILE: Manual scrolling unique companies ── */}
       <div className="md:hidden relative z-10 overflow-hidden pb-4">
-        <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#020617] to-transparent pointer-events-none z-10" />
-        <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#020617] to-transparent pointer-events-none z-10" />
-        <div className="flex overflow-x-auto no-scrollbar">
+        <div className="flex overflow-x-auto no-scrollbar px-4">
           {mobileCompanies.map((company, i) => (
             <MobileCompanyPill key={`${company.id}-m-${i}`} company={company} isDuplicate={false} />
           ))}

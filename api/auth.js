@@ -541,4 +541,95 @@ app.get('/api/auth/dashboard-summary', authMiddleware, async (req, res) => {
   }
 });
 
+// GET current user permissions
+app.get(['/api/auth/my-permissions', '/api/auth/my-permissions/'], authMiddleware, async (req, res) => {
+  try {
+    const role = req.user?.role || 'operational_executive';
+    if (role === 'manager' || req.user?.email === 'admin@startaply.com') {
+      return res.json({
+        role: 'manager',
+        can_post_job: true,
+        can_edit_job: true,
+        can_delete_job: true,
+        can_view_applicants: true,
+        can_manage_companies: true,
+        can_manage_mela: true,
+        can_manage_prep: true
+      });
+    }
+
+    const { rows } = await pool.query('SELECT * FROM role_permissions WHERE role = $1', [role]);
+    if (rows && rows.length > 0) {
+      return res.json(rows[0]);
+    }
+
+    const isOpManager = role === 'operational_manager';
+    res.json({
+      role,
+      can_post_job: true,
+      can_edit_job: true,
+      can_delete_job: isOpManager,
+      can_view_applicants: true,
+      can_manage_companies: true,
+      can_manage_mela: true,
+      can_manage_prep: true
+    });
+  } catch (err) {
+    console.warn('[my-permissions fallback]', err.message);
+    res.json({
+      role: req.user?.role || 'operational_executive',
+      can_post_job: true,
+      can_edit_job: true,
+      can_delete_job: false,
+      can_view_applicants: true,
+      can_manage_companies: true,
+      can_manage_mela: true,
+      can_manage_prep: true
+    });
+  }
+});
+
+// GET role permissions
+app.get(['/api/auth/permissions', '/api/auth/permissions/'], authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM role_permissions ORDER BY role');
+    res.json(Array.isArray(rows) && rows.length > 0 ? rows : [
+      { role: 'manager', can_post_job: true, can_edit_job: true, can_delete_job: true, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true },
+      { role: 'operational_manager', can_post_job: true, can_edit_job: true, can_delete_job: true, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true },
+      { role: 'operational_executive', can_post_job: true, can_edit_job: true, can_delete_job: false, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true }
+    ]);
+  } catch (err) {
+    console.warn('[Permissions fetch fallback]', err.message);
+    res.json([
+      { role: 'manager', can_post_job: true, can_edit_job: true, can_delete_job: true, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true },
+      { role: 'operational_manager', can_post_job: true, can_edit_job: true, can_delete_job: true, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true },
+      { role: 'operational_executive', can_post_job: true, can_edit_job: true, can_delete_job: false, can_view_applicants: true, can_manage_companies: true, can_manage_mela: true, can_manage_prep: true }
+    ]);
+  }
+});
+
+// PUT update role permissions (manager only)
+app.put(['/api/auth/permissions', '/api/auth/permissions/'], authMiddleware, managerMiddleware, async (req, res) => {
+  try {
+    const { role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep } = req.body;
+    const VALID_ROLES = ['manager', 'operational_manager', 'executive', 'admin'];
+    if (!role || !VALID_ROLES.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    if (role === 'manager') return res.status(400).json({ error: 'Cannot restrict manager permissions' });
+
+    await pool.query(
+      `INSERT INTO role_permissions (role, can_post_job, can_edit_job, can_delete_job, can_view_applicants, can_manage_companies, can_manage_mela, can_manage_prep, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (role) DO UPDATE SET
+         can_post_job=$2, can_edit_job=$3, can_delete_job=$4, can_view_applicants=$5,
+         can_manage_companies=$6, can_manage_mela=$7, can_manage_prep=$8, updated_at=$9`,
+      [role, !!can_post_job, !!can_edit_job, !!can_delete_job, !!can_view_applicants, !!can_manage_companies, !!can_manage_mela, !!can_manage_prep, Date.now()]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Permissions update error]', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = app;

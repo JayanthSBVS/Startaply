@@ -43,7 +43,7 @@ test('Motion Policy', async (t) => {
     assert.strictEqual(result, false);
   });
 
-  await t.test('5. Mobile disables expensive decorative motion', () => {
+  await t.test('5. Mobile disables expensive decorative motion by default', () => {
     const result = shouldRunContinuousMotion({
       sectionVisible: true,
       documentVisible: true,
@@ -51,6 +51,17 @@ test('Motion Policy', async (t) => {
       mobile: true
     });
     assert.strictEqual(result, false);
+  });
+
+  await t.test('5b. Mobile allows motion when allowMobile is explicitly set to true', () => {
+    const result = shouldRunContinuousMotion({
+      sectionVisible: true,
+      documentVisible: true,
+      prefersReducedMotion: false,
+      mobile: true,
+      allowMobile: true
+    });
+    assert.strictEqual(result, true);
   });
 
   await t.test('6. Essential non-continuous feedback can remain allowed if policy supports it', () => {

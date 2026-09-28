@@ -54,7 +54,7 @@ const CollegeCollabBanner = () => {
   };
 
   return (
-    <section className="relative py-20 md:py-28 bg-white dark:bg-[#0b0f14] overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
+    <section id="collabs" className="relative py-20 md:py-28 bg-white dark:bg-[#0b0f14] overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
       {/* Background Decorative Mesh */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-br from-[#001F8E]/5 via-[#1A62FE]/8 to-transparent dark:from-[#001F8E]/15 dark:via-[#1A62FE]/10 blur-[120px] rounded-full pointer-events-none" />
       
@@ -64,44 +64,44 @@ const CollegeCollabBanner = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="bg-gradient-to-br from-slate-50 to-[#EFF3FF]/60 dark:from-slate-900/90 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-8 md:p-14 shadow-xl shadow-slate-200/40 dark:shadow-none text-center relative overflow-hidden"
+          className="bg-gradient-to-br from-slate-50 to-brand-soft dark:from-slate-900/90 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-8 md:p-14 shadow-xl shadow-slate-200/40 dark:shadow-none text-center relative overflow-hidden"
         >
           {/* Subtle top accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#001F8E] via-[#1A62FE] to-[#4D84FF]" />
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand via-brand-hover to-blue-400" />
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] text-xs font-bold uppercase tracking-wider mb-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-4 sm:mb-6">
             <GraduationCap size={15} /> Campus to Corporate Network
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-5 tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-3 sm:mb-5 tracking-tight leading-tight">
             Bridging Campus Talent with <br className="hidden sm:inline" />
-            <span className="text-[#001F8E] dark:text-[#1A62FE]">High-Growth Corporates</span>
+            <span className="text-brand dark:text-brand-hover">High-Growth Corporates</span>
           </h2>
 
-          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg font-normal leading-relaxed mb-8 max-w-2xl mx-auto">
-            Startaply partners with leading Degree, Engineering, and Polytechnic colleges across India. We bring verified corporate hiring drives and fresher recruitment melas directly to your campus — giving students early access to top employers.
+          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-base md:text-lg font-normal leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto">
+            Startaply partners with leading Degree, Engineering, and Polytechnic colleges across India. We bring verified corporate hiring drives and fresher recruitment melas directly to your campus.
           </p>
 
           {/* Key Metrics / Highlights */}
-          <div className="flex flex-wrap gap-3 sm:gap-4 items-center justify-center mb-9">
-            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-sm">
-              <Building2 size={18} className="text-[#001F8E] dark:text-[#1A62FE] shrink-0" />
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 items-stretch sm:items-center justify-center mb-6 sm:mb-9">
+            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-xs">
+              <Building2 size={16} className="text-brand dark:text-brand-hover shrink-0" />
               <span className="text-slate-800 dark:text-white font-bold text-xs sm:text-sm">500+ Partner Colleges</span>
             </div>
-            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-sm">
-              <CalendarCheck size={18} className="text-[#1A62FE] shrink-0" />
+            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-xs">
+              <CalendarCheck size={16} className="text-brand dark:text-brand-hover shrink-0" />
               <span className="text-slate-800 dark:text-white font-bold text-xs sm:text-sm">Exclusive On-Campus Drives</span>
             </div>
-            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-sm">
-              <Award size={18} className="text-amber-500 shrink-0" />
+            <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2.5 shadow-xs">
+              <Award size={16} className="text-amber-500 shrink-0" />
               <span className="text-slate-800 dark:text-white font-bold text-xs sm:text-sm">100% Free Placement Engine</span>
             </div>
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group inline-flex items-center justify-center gap-2.5 bg-[#001F8E] hover:bg-[#1A62FE] text-white px-8 py-4 rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-[#001F8E]/25 hover:shadow-xl hover:shadow-[#1A62FE]/30 hover:-translate-y-0.5 active:translate-y-0"
+            className="group inline-flex items-center justify-center gap-2.5 bg-brand hover:bg-brand-hover text-on-brand w-full sm:w-auto px-8 py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base transition-all shadow-lg shadow-brand/25 active:scale-95 min-h-[48px]"
             aria-label="Request College Collaboration"
           >
             Partner with Startaply

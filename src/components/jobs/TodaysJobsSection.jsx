@@ -49,31 +49,31 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4">
         {/* ── Section Header ─────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-10">
           <div>
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2.5">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
-                <span className="text-[11px] font-black uppercase tracking-[0.25em] text-blue-500">Updated Today</span>
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-blue-500">Updated Today</span>
               </div>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-              Today's <span className="text-gradient-emerald-cyan">New Listings</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
+              Today's <span className="text-brand dark:text-brand-hover">New Listings</span>
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base">
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm md:text-base">
               Fresh opportunities posted in the last 24 hours.
             </p>
           </div>
           <Link
             to={`/jobs?category=${categoryQuery}&fresh=true`}
-            className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30 px-5 py-2.5 rounded-full transition-all duration-200 self-start md:self-auto whitespace-nowrap"
+            className="flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30 px-4 sm:px-5 py-2.5 rounded-full transition-all duration-200 self-start md:self-auto whitespace-nowrap min-h-[44px]"
           >
-            View All New <ArrowRight size={15} />
+            View All New <ArrowRight size={14} />
           </Link>
         </div>
 
         {/* ── Filter Tabs ─────────────────────────────────────────────── */}
-        <div className="flex gap-2 overflow-x-auto pb-6 no-scrollbar mb-8">
+        <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-6 sm:mb-8">
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -82,7 +82,7 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 whileTap={{ scale: 0.96 }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 min-h-[44px] ${
                   isActive
                     ? `bg-gradient-to-r ${tab.color} text-white shadow-[0_4px_16px_rgba(6,182,212,0.25)]`
                     : 'bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'

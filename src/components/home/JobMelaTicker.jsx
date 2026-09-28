@@ -24,8 +24,8 @@ const JobMelaTicker = () => {
   const [badgeIdx, setBadgeIdx] = useState(0);
 
   const sectionRef = useRef(null);
-  const { shouldAnimate, isReducedMotion, isMobile } = usePageActivity(sectionRef);
-  const staticMode = isReducedMotion || isMobile;
+  const { shouldAnimate, isReducedMotion } = usePageActivity(sectionRef, { allowMobile: true });
+  const staticMode = isReducedMotion;
 
   useEffect(() => {
     axios.get('/api/job-mela/active')
@@ -41,25 +41,24 @@ const JobMelaTicker = () => {
     if (!shouldAnimate || staticMode) return;
     const t = setInterval(() => setBadgeIdx(p => (p + 1) % TYPE_BADGES.length), 3500);
     return () => clearInterval(t);
-  }, [shouldAnimate]);
+  }, [shouldAnimate, staticMode]);
 
   const primaryText = activeMela?.tickerText ||
     '🚀 Verified Early Talent Openings  •  Direct HR Connect Drives  •  Urgent IT & Tech Openings  •  Corporate Hiring Live  •  Job Mela Registrations Live  •  Top Startup Roles  •  Amazon 1000+ Openings  •  TCS Digital Fresh Drive';
 
   const currentBadge = TYPE_BADGES[badgeIdx];
 
-  // For seamless loops, 2 copies is usually enough.
-  // The first item is accessible, the rest are duplicates.
+  // 2 repeats are required for continuous seamless loop
   const primaryRepeats = staticMode ? 1 : 2;
   const primaryItems = [...Array(primaryRepeats)].map((_, i) => (
-    <span key={i} className="flex items-center gap-8 px-6 shrink-0" aria-hidden={i > 0 ? "true" : undefined}>
-      <span className="flex items-center gap-2 text-slate-100 text-sm font-semibold tracking-tight whitespace-nowrap">
-        <Sparkles size={14} className="text-brand-hover shrink-0" />
+    <span key={i} className="flex items-center gap-6 sm:gap-8 px-4 sm:px-6 shrink-0" aria-hidden={i > 0 ? "true" : undefined}>
+      <span className="flex items-center gap-2 text-slate-100 text-xs sm:text-sm font-semibold tracking-tight whitespace-nowrap">
+        <Sparkles size={13} className="text-brand-hover shrink-0" />
         {primaryText}
       </span>
       <Link
         to="/job-melas"
-        className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/10 px-3 py-1 rounded-full text-[10px] font-bold transition-all shrink-0 uppercase tracking-wider"
+        className="flex items-center gap-1 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border border-white/15 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold transition-all shrink-0 uppercase tracking-wider"
         onClick={e => e.stopPropagation()}
         tabIndex={i > 0 ? -1 : 0}
       >
@@ -78,7 +77,6 @@ const JobMelaTicker = () => {
   const rawArray = tickerItems.map(t => t.text).filter(t => t && t.trim() !== '');
   const tickerArray = rawArray.length > 0 ? rawArray : defaultSecondaryItems;
 
-  // Define an explicit minimum array length to ensure full-width marquee coverage.
   const targetSecondaryItems = staticMode ? tickerArray.length : (tickerArray.length > 0 ? getBoundedRepeatCount(tickerArray.length, TICKER_SECONDARY_MIN, TICKER_SECONDARY_MAX) : 0);
 
   const repeatToCount = (arr, count) => {
@@ -91,7 +89,7 @@ const JobMelaTicker = () => {
   };
 
   const secondaryItems = repeatToCount(tickerArray, targetSecondaryItems).map((text, i) => (
-    <span key={i} className="flex items-center gap-4 px-8 shrink-0 text-slate-400 text-xs font-semibold whitespace-nowrap" aria-hidden={i >= tickerArray.length ? "true" : undefined}>
+    <span key={i} className="flex items-center gap-3 sm:gap-4 px-4 sm:px-8 shrink-0 text-slate-400 text-[11px] sm:text-xs font-semibold whitespace-nowrap" aria-hidden={i >= tickerArray.length ? "true" : undefined}>
       <span className="w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
       {text}
     </span>
@@ -102,36 +100,26 @@ const JobMelaTicker = () => {
       {/* Top accent line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent" />
 
-      {/* Shimmer background */}
-      {!staticMode && (
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-brand/5 to-transparent opacity-50 ticker-shimmer"
-          style={{
-            animationPlayState: shouldAnimate ? 'running' : 'paused'
-          }}
-        />
-      )}
-
-      <div className="flex">
-        {/* ── Live Intelligence Badge ── */}
-        <div className="relative z-20 flex flex-col justify-center gap-1.5 px-5 py-3 bg-[#020617] border-r border-slate-800 shrink-0 min-w-[100px] shadow-[10px_0_20px_rgba(2,6,23,0.8)]">
+      <div className="flex items-stretch">
+        {/* ── Live Intelligence Badge (Compact on mobile) ── */}
+        <div className="relative z-20 flex flex-col sm:flex-col justify-center items-center sm:items-start gap-1 px-3 sm:px-5 py-2 sm:py-3 bg-[#020617] border-r border-slate-800 shrink-0 min-w-[70px] sm:min-w-[100px] shadow-[6px_0_15px_rgba(2,6,23,0.8)]">
           {/* Ping dot */}
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0">
               {!staticMode && (
                 <span
-                  className="absolute inline-flex h-full w-full rounded-full bg-brand-hover opacity-75 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"
+                  className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"
                   style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }}
                 />
               )}
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand shadow-[0_0_8px_rgba(0,31,142,0.8)]" />
+              <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
             </span>
-            <span className="text-white text-[10px] font-black uppercase tracking-widest">Live Feed</span>
+            <span className="text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider">Live</span>
           </div>
           {/* Rotating type badge */}
           <span
             key={badgeIdx}
-            className={`px-2 py-0.5 rounded flex items-center justify-center text-[9px] font-black uppercase tracking-wider border ${staticMode ? '' : 'animate-[badge-fade_3.5s_ease-in-out_infinite]'} ${currentBadge.color}`}
+            className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black uppercase tracking-wider border ${staticMode ? '' : 'animate-[badge-fade_3.5s_ease-in-out_infinite]'} ${currentBadge.color}`}
             style={{ animationPlayState: shouldAnimate ? 'running' : 'paused' }}
           >
             {currentBadge.label}
@@ -139,9 +127,9 @@ const JobMelaTicker = () => {
         </div>
 
         {/* ── Ticker Tracks ── */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-w-0">
           {/* Primary track (LTR) */}
-          <div className="relative overflow-hidden py-2.5 border-b border-slate-900/80">
+          <div className="relative overflow-hidden py-2 sm:py-2.5 border-b border-slate-900/80">
             <div
               className={staticMode ? "flex overflow-x-auto no-scrollbar" : "ticker-wrapper"}
               style={!staticMode ? { animationPlayState: shouldAnimate ? 'running' : 'paused' } : {}}
@@ -150,15 +138,15 @@ const JobMelaTicker = () => {
             </div>
             {!staticMode && (
               <>
-                <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
               </>
             )}
           </div>
 
-          {/* Secondary track (RTL, slower) */}
+          {/* Secondary track (RTL) */}
           {tickerArray.length > 0 && (
-            <div className="relative overflow-hidden py-1.5 bg-[#03081c]">
+            <div className="relative overflow-hidden py-1 sm:py-1.5 bg-[#03081c]">
               <div
                 className={staticMode ? "flex overflow-x-auto no-scrollbar" : "ticker-wrapper-rtl"}
                 style={
@@ -171,8 +159,8 @@ const JobMelaTicker = () => {
               </div>
               {!staticMode && (
                 <>
-                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#03081c] to-transparent z-10 pointer-events-none" />
-                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#03081c] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#03081c] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#03081c] to-transparent z-10 pointer-events-none" />
                 </>
               )}
             </div>

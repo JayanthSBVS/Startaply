@@ -408,6 +408,10 @@ async function seedAllEntities() {
         description = EXCLUDED.description,
         venue = EXCLUDED.venue,
         date = EXCLUDED.date,
+        time = EXCLUDED.time,
+        image = EXCLUDED.image,
+        company = EXCLUDED.company,
+        tickerText = EXCLUDED.tickerText,
         isActive = EXCLUDED.isActive,
         showPopup = EXCLUDED.showPopup
     `, [now]);

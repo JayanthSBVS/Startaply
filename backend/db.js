@@ -11,7 +11,14 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({
     connectionString: dbUrl,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000
+});
+
+pool.on('error', (err) => {
+    console.warn('[DB Pool Warning]', err.message);
 });
 
 module.exports = pool;

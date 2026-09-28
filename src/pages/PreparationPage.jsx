@@ -192,53 +192,53 @@ const PreparationPage = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-gradient-to-b from-[#001F8E] via-[#00176b] to-slate-900 pt-28 pb-24 px-4 text-center relative overflow-hidden"
+        className="bg-gradient-to-b from-brand via-[#00176b] to-slate-900 pt-20 sm:pt-28 pb-14 sm:pb-24 px-4 text-center relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#1A62FE]/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-brand-hover/20 via-transparent to-transparent" />
         <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 text-xs font-bold text-blue-100 uppercase tracking-wider mb-6">
-            <Sparkles size={13} className="text-[#1A62FE]" /> Career Resources & Guides
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3.5 py-1 text-[11px] sm:text-xs font-bold text-blue-100 uppercase tracking-wider mb-4 sm:mb-6">
+            <Sparkles size={13} className="text-brand-hover" /> Career Resources & Guides
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-2 sm:mb-4 leading-tight">
             Interview & Skill <br className="hidden sm:inline" />
-            <span className="text-[#EFF3FF] font-extrabold">Preparation Hub</span>
+            <span className="text-blue-100 font-extrabold">Preparation Hub</span>
           </h1>
-          <p className="text-blue-100/80 font-normal max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+          <p className="text-blue-100/80 font-normal max-w-xl mx-auto text-xs sm:text-base leading-relaxed">
             Curated study materials, verified interview Q&As, and comprehensive company preparation kits to help you ace your hiring process.
           </p>
         </div>
       </motion.div>
 
-      <div className="max-w-5xl mx-auto px-4 -mt-8 relative z-10 pb-24">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 -mt-6 sm:-mt-8 relative z-10 pb-20 sm:pb-24">
 
         {/* Category Tabs */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/40 border border-slate-200 dark:border-slate-800 p-2 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-slate-950/40 border border-slate-200 dark:border-slate-800 p-1.5 sm:p-2 mb-4 sm:mb-6 flex gap-2 overflow-x-auto no-scrollbar">
           {CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex-1 flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-150 min-h-[44px] active:scale-95 ${
                 activeCategory === cat.id
-                  ? 'bg-[#001F8E] text-white shadow-md shadow-[#001F8E]/20'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFF3FF] dark:hover:bg-slate-800 hover:text-[#001F8E] dark:hover:text-white'
+                  ? 'bg-brand text-on-brand shadow-md shadow-brand/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-brand-soft dark:hover:bg-slate-800 hover:text-brand dark:hover:text-white'
               }`}
             >
-              <cat.icon size={16} className="flex-shrink-0" /> {cat.id}
+              <cat.icon size={15} className="flex-shrink-0" /> {cat.id}
             </button>
           ))}
         </div>
 
         {/* Role Tabs */}
         {roles.length > 1 && (
-          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4 overflow-x-auto no-scrollbar pb-1">
             {roles.map(role => (
               <button
                 key={role}
                 onClick={() => setActiveRole(role)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border min-h-[38px] active:scale-95 ${
                   activeRole === role
-                    ? 'bg-[#001F8E] text-white border-[#001F8E] shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-[#1A62FE]/40'
+                    ? 'bg-brand text-on-brand border-brand shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-brand/40'
                 }`}
               >
                 {role}
@@ -248,15 +248,15 @@ const PreparationPage = () => {
         )}
 
         {/* Content Type Sub-tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-1">
+        <div className="flex gap-2 mb-5 sm:mb-6 overflow-x-auto no-scrollbar pb-1">
           {contentTabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveContentTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap border transition-all flex-shrink-0 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap border transition-all flex-shrink-0 min-h-[40px] active:scale-95 ${
                 activeContentTab === tab.id
-                  ? 'bg-[#EFF3FF] dark:bg-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] border-[#001F8E]/30 dark:border-[#1A62FE]/30 shadow-sm'
-                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-800 dark:hover:text-slate-200'
+                  ? 'bg-brand-soft text-brand dark:text-brand-hover border-brand/30 shadow-xs'
+                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
               <tab.icon size={14} /> {tab.label}

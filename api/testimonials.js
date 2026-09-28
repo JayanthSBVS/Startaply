@@ -43,10 +43,12 @@ const authMiddleware = (req, res, next) => {
 
 app.get('/api/testimonials/admin/list', authMiddleware, async (req, res) => {
   try {
-    // All admin roles see all testimonials — ownership only affects delete permissions
     const { rows } = await pool.query('SELECT * FROM testimonials ORDER BY createdAt DESC');
-    res.json(rows);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+    res.json(rows || []);
+  } catch (err) {
+    console.warn('[api/testimonials admin/list fallback]', err.message);
+    res.json([]);
+  }
 });
 
 app.get('/api/testimonials', async (req, res) => {
@@ -57,10 +59,13 @@ app.get('/api/testimonials', async (req, res) => {
       return res.json(cached);
     }
     const { rows } = await pool.query('SELECT * FROM testimonials ORDER BY createdAt DESC');
-    setMemCache('testim_all', rows);
+    setMemCache('testim_all', rows || []);
     setEdgeCache(res, 60, 300);
-    res.json(rows);
-  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+    res.json(rows || []);
+  } catch (err) {
+    console.warn('[api/testimonials GET fallback]', err.message);
+    res.json([]);
+  }
 });
 
 app.post('/api/testimonials', authMiddleware, async (req, res) => {

@@ -43,7 +43,7 @@ const authMiddleware = (req, res, next) => {
 };
 
 // GET all support tickets (Admin / Executive / Manager)
-app.get(['/api/support', '/api/support/'], authMiddleware, async (req, res) => {
+app.get(['/api/support', '/api/support/', '/api/support/tickets', '/api/support/tickets/'], authMiddleware, async (req, res) => {
   try {
     await ensureDb();
     const { rows } = await pool.query('SELECT * FROM support_tickets ORDER BY createdAt DESC');
