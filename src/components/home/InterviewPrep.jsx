@@ -25,7 +25,7 @@ const InterviewPrep = () => {
   }, []);
 
   return (
-    <section className="py-14 md:py-20 bg-slate-50 dark:bg-[#0b0f14] transition-colors">
+    <section className="py-14 md:py-20 bg-slate-50 dark:bg-black transition-colors border-b border-slate-200/80 dark:border-[#1f1f1f]">
       <div className="max-w-6xl mx-auto px-4">
 
         {/* Header */}
@@ -54,9 +54,9 @@ const InterviewPrep = () => {
           {CATEGORIES.map((cat, i) => {
             const count = i === 0 ? counts.IT : i === 1 ? counts.NonIT : counts.Aptitude;
             const colorMap = {
-              brand:  { bg: 'bg-brand-soft', border: 'border-brand/20', icon: 'bg-brand/10 text-brand', badge: 'bg-brand', hover: 'hover:border-brand/40 hover:shadow-brand/10' },
-              blue:   { bg: 'bg-blue-50 dark:bg-blue-500/10',    border: 'border-blue-200 dark:border-blue-500/20',    icon: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400',    badge: 'bg-blue-600',    hover: 'hover:border-blue-400 hover:shadow-blue-100' },
-              indigo: { bg: 'bg-indigo-50 dark:bg-indigo-500/10',border: 'border-indigo-200 dark:border-indigo-500/20',icon: 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',badge: 'bg-indigo-500',  hover: 'hover:border-indigo-400 hover:shadow-indigo-100' },
+              brand:  { bg: 'bg-brand-soft dark:bg-[#0a0a0a]',  border: 'border-brand/20 dark:border-[#1f1f1f]',    icon: 'bg-brand/10 text-brand', badge: 'bg-brand', hover: 'hover:border-brand/40 hover:shadow-brand/10' },
+              blue:   { bg: 'bg-blue-50 dark:bg-[#0a0a0a]',     border: 'border-blue-200 dark:border-[#1f1f1f]',     icon: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400',    badge: 'bg-blue-600',    hover: 'hover:border-blue-400 hover:shadow-blue-100' },
+              indigo: { bg: 'bg-indigo-50 dark:bg-[#0a0a0a]',   border: 'border-indigo-200 dark:border-[#1f1f1f]',   icon: 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',badge: 'bg-indigo-500',  hover: 'hover:border-indigo-400 hover:shadow-indigo-100' },
             }[cat.color];
 
             return (
@@ -70,15 +70,15 @@ const InterviewPrep = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h3 className="font-extrabold text-slate-900 text-sm md:text-base leading-snug">{cat.id}</h3>
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-sm md:text-base leading-snug">{cat.id}</h3>
                     {count > 0 && (
                       <span className={`text-white text-[10px] font-black px-2 py-0.5 rounded-full ${colorMap.badge}`}>
                         {count}
                       </span>
                     )}
                   </div>
-                  <p className="text-slate-500 text-xs font-medium leading-relaxed">{cat.desc}</p>
-                  <div className="flex items-center gap-1 mt-3 text-xs font-black text-slate-700 group-hover:gap-2 transition-all">
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-medium leading-relaxed">{cat.desc}</p>
+                  <div className="flex items-center gap-1 mt-3 text-xs font-black text-slate-700 dark:text-slate-300 group-hover:gap-2 transition-all">
                     Start Learning <ArrowRight size={12} />
                   </div>
                 </div>
@@ -89,7 +89,7 @@ const InterviewPrep = () => {
 
         {/* Stats Row */}
         {counts.total > 0 && (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 md:gap-8 py-4 border-t border-slate-200 dark:border-slate-800">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 md:gap-8 py-4 border-t border-slate-200 dark:border-[#1f1f1f]">
             {[
               { icon: FileText, label: 'Articles', val: counts.total, color: 'text-brand' },
               { icon: HelpCircle, label: 'Q&As', val: counts.total, color: 'text-blue-600 dark:text-blue-400' },

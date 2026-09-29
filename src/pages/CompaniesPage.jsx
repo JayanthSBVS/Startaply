@@ -57,10 +57,10 @@ const CompaniesPage = () => {
   }, [companies, search, industry, companyType, jobs]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black font-sans transition-colors duration-300">
 
       {/* HEADER */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-28 pb-14 transition-colors relative overflow-hidden">
+      <div className="bg-white dark:bg-[#0a0a0a] border-b border-slate-200 dark:border-neutral-800 pt-28 pb-14 transition-colors relative overflow-hidden">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand/5 dark:bg-brand/10 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-xs font-black uppercase tracking-wider mb-4">
@@ -68,7 +68,7 @@ const CompaniesPage = () => {
             Verified Employer Network
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
-            Top <span className="text-gradient-emerald">Workplaces</span>
+            Top <span className="text-brand dark:text-brand-hover">Workplaces</span>
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
             Explore {companies.length}+ leading companies actively hiring across diverse technology and business sectors.
@@ -82,7 +82,7 @@ const CompaniesPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoComplete="off"
-              className="w-full pl-14 pr-12 py-4 border border-slate-200 dark:border-slate-700 rounded-full text-slate-900 dark:text-white bg-slate-50 dark:bg-[#0b0f14] focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all shadow-sm font-medium"
+              className="w-full pl-14 pr-12 py-4 border border-slate-200 dark:border-neutral-800 rounded-full text-slate-900 dark:text-white bg-slate-50 dark:bg-[#121212] focus:bg-white dark:focus:bg-black focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all shadow-sm font-medium"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 p-1 rounded-full transition-colors" aria-label="Clear search">
@@ -115,7 +115,7 @@ const CompaniesPage = () => {
       </div>
 
       {/* COMPANY TYPE FILTER */}
-      <div className="bg-slate-50 dark:bg-[#0b0f14] border-b border-slate-200 dark:border-slate-800">
+      <div className="bg-slate-50 dark:bg-black border-b border-slate-200 dark:border-neutral-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2.5 overflow-x-auto py-3 no-scrollbar">
             <span className="shrink-0 flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 pr-3">
@@ -130,7 +130,7 @@ const CompaniesPage = () => {
                   className={`shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border transition-all ${
                     active
                       ? 'bg-brand text-on-brand border-transparent shadow-sm'
-                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                      : 'bg-white dark:bg-[#0a0a0a] border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-neutral-700'
                   }`}
                 >
                   {t}
@@ -158,8 +158,8 @@ const CompaniesPage = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-[#0b0f14] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+          <div className="text-center py-24 bg-white dark:bg-[#0a0a0a] rounded-[2rem] border border-slate-200 dark:border-neutral-800 shadow-sm">
+            <div className="w-16 h-16 bg-slate-50 dark:bg-[#121212] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-neutral-800">
               <Building2 size={24} className="text-slate-400 dark:text-slate-600" />
             </div>
             <p className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">No companies found</p>

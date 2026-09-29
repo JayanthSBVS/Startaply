@@ -2,19 +2,19 @@ import React from 'react';
 
 const TermsOfService = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-sans transition-colors duration-300">
 
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-32 pb-16 transition-colors">
+      <div className="bg-white dark:bg-[#0a0a0a] border-b border-slate-200 dark:border-neutral-800 pt-32 pb-16 transition-colors">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Terms of <span className="text-gradient-emerald">Service</span>
+            Terms of <span className="text-brand dark:text-brand-hover">Service</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-6 font-medium">Last updated: {new Date().toLocaleDateString()}</p>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-20">
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="bg-white dark:bg-[#0a0a0a] rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200 dark:border-neutral-800 transition-colors">
           <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-10 font-medium">
             Welcome to Startaply. By accessing our centralized job discovery and application platform, you agree to these Terms of Service. Our mission is to provide you with clear, reliable job updates and help you apply easily.
           </p>

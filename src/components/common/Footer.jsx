@@ -14,7 +14,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8">
 
         {/* ── CTA Block ── */}
-        <div className="mb-10 md:mb-16 rounded-2xl md:rounded-3xl p-6 md:p-12 bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-sm text-center md:text-left">
+        <div className="mb-10 md:mb-16 rounded-2xl md:rounded-3xl p-6 md:p-12 bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-sm text-center md:text-left">
           <div className="max-w-xl">
             <h3 className="text-xl md:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight leading-tight">
               Ready to Accelerate Your <span className="text-brand dark:text-brand-hover">Career?</span>
@@ -66,7 +66,7 @@ const Footer = () => {
                 <a
                   key={social.label}
                   href={social.url}
-                  className="w-[42px] h-[42px] rounded-xl flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-brand hover:border-brand transition-colors focus-visible"
+                  className="w-[42px] h-[42px] rounded-xl flex items-center justify-center bg-white dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 text-slate-500 dark:text-slate-400 hover:text-brand hover:border-brand transition-colors focus-visible"
                   aria-label={social.label}
                 >
                   {social.icon}

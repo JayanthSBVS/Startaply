@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Sliders, Crown, Unlock, Lock } from 'lucide-react';
 import { getRoleConfig } from './adminConstants';
 import axios from 'axios';
@@ -8,8 +8,35 @@ const AdminPermissions = React.memo(({
   data, formState, handlers, API, getConfig, toast
 }) => {
   const { permissions } = data || {};
-  const { permForm, setPermForm, permSaving, setPermSaving, permSeeded, setPermSeeded } = formState || {};
+  const { permForm = {}, setPermForm, permSaving = {}, setPermSaving, permSeeded = {}, setPermSeeded } = formState || {};
   const { refreshPermissions } = handlers || {};
+
+  useEffect(() => {
+    if (!Array.isArray(permissions) || permissions.length === 0) return;
+
+    ['operational_manager', 'operational_executive'].forEach(role => {
+      const serverRow = permissions.find(p => p.role === role);
+      if (serverRow && !permSeeded?.[role] && Object.keys(serverRow).length > 0) {
+        if (setPermSeeded) {
+          setPermSeeded(s => ({ ...s, [role]: true }));
+        }
+        if (setPermForm) {
+          setPermForm(prev => ({
+            ...prev,
+            [role]: {
+              can_post_job:        serverRow.can_post_job        !== undefined ? !!serverRow.can_post_job        : true,
+              can_edit_job:        serverRow.can_edit_job        !== undefined ? !!serverRow.can_edit_job        : true,
+              can_delete_job:      serverRow.can_delete_job      !== undefined ? !!serverRow.can_delete_job      : false,
+              can_view_applicants: serverRow.can_view_applicants !== undefined ? !!serverRow.can_view_applicants : true,
+              can_manage_companies:serverRow.can_manage_companies!== undefined ? !!serverRow.can_manage_companies: true,
+              can_manage_mela:     serverRow.can_manage_mela     !== undefined ? !!serverRow.can_manage_mela     : true,
+              can_manage_prep:     serverRow.can_manage_prep     !== undefined ? !!serverRow.can_manage_prep     : true,
+            }
+          }));
+        }
+      }
+    });
+  }, [permissions, permSeeded, setPermSeeded, setPermForm]);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-5 space-y-8">
@@ -25,22 +52,6 @@ const AdminPermissions = React.memo(({
           const rc = getRoleConfig(role);
           const RoleIcon = rc.icon;
           const serverRow = (Array.isArray(permissions) ? permissions : []).find(p => p.role === role) || {};
-
-          if (!permSeeded[role] && serverRow && Object.keys(serverRow).length > 0) {
-            setPermSeeded(s => ({ ...s, [role]: true }));
-            setPermForm(prev => ({
-              ...prev,
-              [role]: {
-                can_post_job:        serverRow.can_post_job        !== undefined ? !!serverRow.can_post_job        : true,
-                can_edit_job:        serverRow.can_edit_job        !== undefined ? !!serverRow.can_edit_job        : true,
-                can_delete_job:      serverRow.can_delete_job      !== undefined ? !!serverRow.can_delete_job      : false,
-                can_view_applicants: serverRow.can_view_applicants !== undefined ? !!serverRow.can_view_applicants : true,
-                can_manage_companies:serverRow.can_manage_companies!== undefined ? !!serverRow.can_manage_companies: true,
-                can_manage_mela:     serverRow.can_manage_mela     !== undefined ? !!serverRow.can_manage_mela     : true,
-                can_manage_prep:     serverRow.can_manage_prep     !== undefined ? !!serverRow.can_manage_prep     : true,
-              }
-            }));
-          }
 
           const local = permForm[role] || {
             can_post_job:        serverRow.can_post_job        !== undefined ? !!serverRow.can_post_job        : true,

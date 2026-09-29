@@ -41,13 +41,13 @@ const CompanyProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] pt-32 pb-20">
+      <div className="min-h-screen bg-slate-50 dark:bg-black pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="h-64 bg-slate-200 dark:bg-slate-900 rounded-[3rem] animate-pulse mb-8" />
+          <div className="h-64 bg-slate-200 dark:bg-[#0a0a0a] rounded-[3rem] animate-pulse mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-1 space-y-6">
-              <div className="h-40 bg-white dark:bg-slate-900 rounded-3xl animate-pulse" />
-              <div className="h-64 bg-white dark:bg-slate-900 rounded-3xl animate-pulse" />
+              <div className="h-40 bg-white dark:bg-[#0a0a0a] rounded-3xl animate-pulse" />
+              <div className="h-64 bg-white dark:bg-[#0a0a0a] rounded-3xl animate-pulse" />
             </div>
             <div className="md:col-span-2 space-y-6">
               {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
@@ -60,13 +60,13 @@ const CompanyProfilePage = () => {
 
   if (error || !company) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-black flex flex-col items-center justify-center p-4">
         <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mb-6">
           <Building2 size={40} />
         </div>
         <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Company Not Found</h2>
         <p className="text-slate-500 dark:text-slate-400 mb-8">{error || "The company you're looking for doesn't exist."}</p>
-        <Link to="/companies" className="bg-slate-900 dark:bg-emerald-600 text-white font-black px-8 py-4 rounded-full transition-all flex items-center gap-2">
+        <Link to="/companies" className="bg-brand text-white font-black px-8 py-4 rounded-full transition-all flex items-center gap-2">
           <ArrowLeft size={18} /> Back to Companies
         </Link>
       </div>
@@ -74,7 +74,7 @@ const CompanyProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white selection:bg-brand/30 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white selection:bg-brand/30 transition-colors">
       {/* Premium Header Section */}
       <div className="relative pt-20 sm:pt-32 pb-10 sm:pb-16 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-brand/5 to-transparent dark:from-brand/10 pointer-events-none" />
@@ -212,8 +212,8 @@ const CompanyProfilePage = () => {
                 ))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-800">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-[#0b0f14] rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="bg-white dark:bg-[#0a0a0a] rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200 dark:border-neutral-800">
+                <div className="w-20 h-20 bg-slate-50 dark:bg-[#121212] rounded-full flex items-center justify-center mx-auto mb-6">
                   <Briefcase size={32} className="text-slate-300 dark:text-slate-700" />
                 </div>
                 <h3 className="text-xl font-black mb-2">No Active Openings</h3>

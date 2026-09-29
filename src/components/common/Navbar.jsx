@@ -21,10 +21,10 @@ const Navbar = () => {
 
   const menuItems = [
     { name: 'Home', path: '/', icon: Home },
-    { name: 'IT & Tech', path: '/category/IT%20%26%20Non-IT%20Jobs', icon: GraduationCap },
+    { name: 'Jobs', path: '/jobs', icon: GraduationCap },
     { name: 'Companies', path: '/companies', icon: Users },
-    { name: 'Melas', path: '/job-melas', icon: PartyPopper },
-    { name: 'Prep', path: '/preparation', icon: BookOpen },
+    { name: 'Job Melas', path: '/job-melas', icon: PartyPopper },
+    { name: 'Preparation', path: '/preparation', icon: BookOpen },
   ];
 
   const isActive = (path) => {
@@ -35,7 +35,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className={`fixed top-0 inset-x-0 z-50 h-14 md:h-16 bg-white/85 dark:bg-[#0b0f14]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 transition-all duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
+    <header className={`fixed top-0 inset-x-0 z-50 h-14 md:h-16 bg-white/85 dark:bg-black/85 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 transition-all duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
       <nav className="h-full w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
 
         {/* ── Brand Logo ── */}

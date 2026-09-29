@@ -13,11 +13,11 @@ const EmptyState = ({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="flex flex-col items-center justify-center py-24 px-6 text-center bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-300"
+      className="flex flex-col items-center justify-center py-24 px-6 text-center bg-white dark:bg-[#0a0a0a] rounded-[2rem] border border-slate-100 dark:border-[#1f1f1f] shadow-sm transition-colors duration-300"
     >
       <div className="relative mb-8">
-        <div className="absolute inset-0 bg-emerald-100 dark:bg-emerald-900/40 rounded-full blur-[30px] opacity-40 dark:opacity-20 animate-pulse" />
-        <div className="relative w-28 h-28 bg-slate-50 dark:bg-[#0b0f14] rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-inner overflow-hidden">
+        <div className="absolute inset-0 bg-brand/20 dark:bg-brand/10 rounded-full blur-[30px] opacity-40 dark:opacity-20 animate-pulse" />
+        <div className="relative w-28 h-28 bg-slate-50 dark:bg-[#121212] rounded-full flex items-center justify-center border border-slate-100 dark:border-[#1f1f1f] shadow-inner overflow-hidden">
           <motion.div
             animate={{
               rotate: [0, -5, 5, -5, 0],

@@ -342,9 +342,9 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0b0f14] flex text-slate-900 dark:text-white font-sans selection:bg-brand/20 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-black flex text-slate-900 dark:text-white font-sans selection:bg-brand/20 transition-colors duration-300">
       <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} myPermissions={perms} />
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-[#0b0f14]">
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-black">
         <AdminHeader 
           activeTab={activeTab} setIsMobileMenuOpen={setIsMobileMenuOpen}
           toast={toast} getRoleLabel={getRoleLabel} user={user}

@@ -10,7 +10,7 @@ const CATEGORY_DEFS = [
     name: 'IT & Tech',
     desc: 'Software, Design, Cloud & Data',
     icon: Monitor,
-    navPath: '/category/IT %26 Non-IT Jobs',
+    navPath: '/jobs?section=it',
     accent: 'blue',
     gradient: 'from-blue-500 to-cyan-400',
     filter: j => {
@@ -32,7 +32,7 @@ const CATEGORY_DEFS = [
     name: 'Private Jobs',
     desc: 'Corporate and enterprise roles',
     icon: Briefcase,
-    navPath: '/category/Private Jobs',
+    navPath: '/jobs?section=nonit',
     accent: 'indigo',
     gradient: 'from-indigo-500 to-violet-400',
     filter: j => {
@@ -44,7 +44,7 @@ const CATEGORY_DEFS = [
     name: 'Gig Works',
     desc: 'Flexible and on-demand roles',
     icon: Zap,
-    navPath: '/category/Gig %26 Services',
+    navPath: '/jobs?section=gig',
     accent: 'rose',
     gradient: 'from-rose-500 to-pink-400',
     filter: j => {
@@ -55,10 +55,10 @@ const CATEGORY_DEFS = [
 ];
 
 const ACCENT_COLORS = {
-  blue:  { icon: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-500/10',   border: 'border-blue-100 dark:border-blue-500/15',   hover: 'group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-blue-500/30' },
-  brand: { icon: 'text-brand',      bg: 'bg-brand-soft dark:bg-brand-soft',  border: 'border-brand/10 dark:border-brand/15',       hover: 'group-hover:bg-brand group-hover:text-on-brand group-hover:shadow-brand/30' },
-  indigo:{ icon: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10',border: 'border-indigo-100 dark:border-indigo-500/15',hover: 'group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-indigo-500/30' },
-  rose:  { icon: 'text-rose-500',   bg: 'bg-rose-50 dark:bg-rose-500/10',   border: 'border-rose-100 dark:border-rose-500/15',   hover: 'group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-rose-500/30' },
+  blue:  { icon: 'text-blue-500 dark:text-blue-400',   bg: 'bg-blue-50 dark:bg-blue-500/10',   border: 'border-blue-100 dark:border-transparent',   hover: 'group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-blue-500/30' },
+  brand: { icon: 'text-brand dark:text-brand-hover', bg: 'bg-brand-soft dark:bg-brand-soft',  border: 'border-brand/10 dark:border-transparent',       hover: 'group-hover:bg-brand group-hover:text-on-brand group-hover:shadow-brand/30' },
+  indigo:{ icon: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10',border: 'border-indigo-100 dark:border-transparent',hover: 'group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-indigo-500/30' },
+  rose:  { icon: 'text-rose-500 dark:text-rose-400',   bg: 'bg-rose-50 dark:bg-rose-500/10',   border: 'border-rose-100 dark:border-transparent',   hover: 'group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-rose-500/30' },
 };
 
 const CategoryGrid = () => {

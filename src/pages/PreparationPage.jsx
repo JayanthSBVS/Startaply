@@ -186,13 +186,13 @@ const PreparationPage = () => {
   }, [prepData, activeCategory, activeContentTab, activeRole]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-gradient-to-b from-brand via-[#00176b] to-slate-900 pt-20 sm:pt-28 pb-14 sm:pb-24 px-4 text-center relative overflow-hidden"
+        className="bg-gradient-to-b from-brand via-[#00176b] to-black pt-20 sm:pt-28 pb-14 sm:pb-24 px-4 text-center relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-brand-hover/20 via-transparent to-transparent" />
         <div className="relative z-10 max-w-3xl mx-auto">

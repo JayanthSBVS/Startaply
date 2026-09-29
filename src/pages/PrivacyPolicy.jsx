@@ -2,19 +2,19 @@ import React from 'react';
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-sans transition-colors duration-300">
 
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-32 pb-16 transition-colors">
+      <div className="bg-white dark:bg-[#0a0a0a] border-b border-slate-200 dark:border-neutral-800 pt-32 pb-16 transition-colors">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Privacy <span className="text-gradient-emerald">Policy</span>
+            Privacy <span className="text-brand dark:text-brand-hover">Policy</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-6 font-medium">Last updated: {new Date().toLocaleDateString()}</p>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-20">
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="bg-white dark:bg-[#0a0a0a] rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-200 dark:border-neutral-800 transition-colors">
           <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-10 font-medium">
             At Startaply, our mission is to make job searching simple, fast, and accessible. In providing you with reliable and easy-to-understand job information, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
           </p>

@@ -278,11 +278,11 @@ const JobsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* ── HERO SEARCH ────────────────────────────────────────── */}
-      <div className="bg-slate-950 pt-20 sm:pt-28 pb-10 sm:pb-16 px-4 border-b border-slate-800 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand/20 to-slate-950 pointer-events-none" />
+      <div className="bg-black pt-20 sm:pt-28 pb-10 sm:pb-16 px-4 border-b border-neutral-850 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand/20 to-black pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-2 sm:mb-4 text-white">
             Discover Your Next <span className="text-brand-hover">Opportunity</span>
@@ -432,9 +432,9 @@ const JobsPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-24 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm"
+            className="text-center py-24 bg-white dark:bg-[#0a0a0a] rounded-[3rem] border border-slate-200 dark:border-neutral-800 shadow-sm"
           >
-            <div className="w-20 h-20 bg-slate-50 dark:bg-[#0b0f14] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 dark:border-slate-800">
+            <div className="w-20 h-20 bg-slate-50 dark:bg-[#121212] rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 border border-slate-100 dark:border-neutral-800">
               <Search size={30} className="text-slate-300 dark:text-slate-700" />
             </div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">No jobs match your criteria</h3>

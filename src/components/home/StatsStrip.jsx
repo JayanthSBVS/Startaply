@@ -69,7 +69,7 @@ const StatPanel = ({ target, suffix, label, sublabel, start, accent, glow, bar, 
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
       className="group relative flex-1 w-full"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 p-3.5 sm:p-5 md:p-7 flex flex-col gap-2 md:gap-3 h-full shadow-xs hover:border-[#1A62FE]/40 transition-colors cursor-default">
+      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-[#1f1f1f] p-3.5 sm:p-5 md:p-7 flex flex-col gap-2 md:gap-3 h-full shadow-xs hover:border-[#1A62FE]/40 transition-colors cursor-default">
         {/* Animated rise bar */}
         {started && (
           <div className="absolute left-0 bottom-0 w-1 rounded-full bg-gradient-to-t opacity-80" style={{ backgroundImage: `linear-gradient(to top, #1A62FE, transparent)` }}>
@@ -107,7 +107,7 @@ const StatsStrip = () => {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section className="relative py-12 md:py-20 bg-slate-50 dark:bg-[#0b0f14] border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 overflow-hidden">
+    <section className="relative py-12 md:py-20 bg-slate-50 dark:bg-black border-b border-slate-200/80 dark:border-[#1f1f1f] transition-colors duration-300 overflow-hidden">
       <div ref={ref} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         
         {/* Section Header */}

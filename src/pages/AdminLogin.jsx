@@ -30,7 +30,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans transition-colors duration-300">
       <div className="absolute top-0 w-full h-[400px] bg-brand/5 dark:bg-brand/10 blur-[100px] -z-10 transform -translate-y-1/2 rounded-full"></div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 flex flex-col items-center">
@@ -47,7 +47,7 @@ const AdminLogin = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white dark:bg-slate-900 py-10 px-6 shadow-2xl sm:rounded-[2rem] sm:px-10 border border-slate-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-[#0a0a0a] py-10 px-6 shadow-2xl sm:rounded-[2rem] sm:px-10 border border-slate-200 dark:border-neutral-800">
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
               <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm p-4 rounded-2xl border border-red-100 dark:border-red-900/50 font-medium">
@@ -68,7 +68,7 @@ const AdminLogin = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-[#0b0f14] border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-brand focus:border-brand rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
+                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-[#121212] border-slate-200 dark:border-neutral-800 border focus:ring-2 focus:ring-brand focus:border-brand rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
                   placeholder="admin@startaply.com"
                 />
               </div>
@@ -87,7 +87,7 @@ const AdminLogin = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-[#0b0f14] border-slate-200 dark:border-slate-800 border focus:ring-2 focus:ring-brand focus:border-brand rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
+                  className="block w-full pl-14 sm:text-sm bg-slate-50 dark:bg-[#121212] border-slate-200 dark:border-neutral-800 border focus:ring-2 focus:ring-brand focus:border-brand rounded-full py-4 pr-5 outline-none text-slate-900 dark:text-white transition-all font-medium"
                   placeholder="••••••••"
                 />
               </div>

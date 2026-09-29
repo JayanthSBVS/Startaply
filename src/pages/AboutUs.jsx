@@ -12,10 +12,10 @@ const AboutUs = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] text-slate-900 dark:text-white font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-sans transition-colors duration-300">
 
       {/* ── HERO BANNER ────────────────────────────────────────── */}
-      <div className="relative pt-32 pb-20 overflow-hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+      <div className="relative pt-32 pb-20 overflow-hidden bg-white dark:bg-[#0a0a0a] border-b border-slate-200 dark:border-neutral-800">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-20 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand rounded-full blur-[120px]"></div>
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500 rounded-full blur-[120px]"></div>
@@ -49,7 +49,7 @@ const AboutUs = () => {
               { val: '100%', label: 'Free Applications', icon: Award },
               { val: '24 hrs', label: 'Daily New Openings', icon: ShieldCheck }
             ].map((stat, i) => (
-              <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#0b0f14]/60 border border-slate-200 dark:border-slate-800 flex flex-col items-center">
+              <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 flex flex-col items-center">
                 <stat.icon size={20} className="text-brand mb-1.5" />
                 <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{stat.val}</span>
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</span>
@@ -86,12 +86,12 @@ const AboutUs = () => {
       </div>
 
       {/* Category Integration */}
-      <div className="bg-white dark:bg-[#0b0f14] border-y border-slate-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-black border-y border-slate-200 dark:border-neutral-800">
         <CategoryGrid />
       </div>
 
       {/* ── MISSION & VISION ───────────────────────────────────── */}
-      <div className="bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+      <div className="bg-slate-50 dark:bg-[#0a0a0a] transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -104,7 +104,7 @@ const AboutUs = () => {
               </p>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-neutral-800 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">
                 <Eye size={16} /> Our Vision
               </div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">The Opportunity Ecosystem</h2>
@@ -119,7 +119,7 @@ const AboutUs = () => {
       <CollegeCollabBanner />
 
       {/* ── BOTTOM CTA ────────────────────────────────────────── */}
-      <div className="bg-white dark:bg-[#0b0f14] border-t border-slate-200 dark:border-slate-800 transition-colors">
+      <div className="bg-white dark:bg-black border-t border-slate-200 dark:border-neutral-800 transition-colors">
         <div className="max-w-4xl mx-auto px-4 py-24 text-center">
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">Ready to launch your career?</h2>
           <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto mb-8 font-medium">

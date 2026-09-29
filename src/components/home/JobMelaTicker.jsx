@@ -96,13 +96,13 @@ const JobMelaTicker = () => {
   ));
 
   return (
-    <div ref={sectionRef} className="relative z-40 bg-slate-950 border-y border-slate-900 overflow-hidden select-none">
+    <div ref={sectionRef} className="relative z-40 bg-black border-y border-neutral-850 overflow-hidden select-none">
       {/* Top accent line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent" />
 
       <div className="flex items-stretch">
         {/* ── Live Intelligence Badge (Compact on mobile) ── */}
-        <div className="relative z-20 flex flex-col sm:flex-col justify-center items-center sm:items-start gap-1 px-3 sm:px-5 py-2 sm:py-3 bg-[#020617] border-r border-slate-800 shrink-0 min-w-[70px] sm:min-w-[100px] shadow-[6px_0_15px_rgba(2,6,23,0.8)]">
+        <div className="relative z-20 flex flex-col sm:flex-col justify-center items-center sm:items-start gap-1 px-3 sm:px-5 py-2 sm:py-3 bg-[#050505] border-r border-neutral-800 shrink-0 min-w-[70px] sm:min-w-[100px] shadow-[6px_0_15px_rgba(0,0,0,0.8)]">
           {/* Ping dot */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5 shrink-0">
@@ -129,7 +129,7 @@ const JobMelaTicker = () => {
         {/* ── Ticker Tracks ── */}
         <div className="flex-1 overflow-hidden min-w-0">
           {/* Primary track (LTR) */}
-          <div className="relative overflow-hidden py-2 sm:py-2.5 border-b border-slate-900/80">
+          <div className="relative overflow-hidden py-2 sm:py-2.5 border-b border-neutral-900">
             <div
               className={staticMode ? "flex overflow-x-auto no-scrollbar" : "ticker-wrapper"}
               style={!staticMode ? { animationPlayState: shouldAnimate ? 'running' : 'paused' } : {}}
@@ -138,15 +138,15 @@ const JobMelaTicker = () => {
             </div>
             {!staticMode && (
               <>
-                <div className="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
               </>
             )}
           </div>
 
           {/* Secondary track (RTL) */}
           {tickerArray.length > 0 && (
-            <div className="relative overflow-hidden py-1 sm:py-1.5 bg-[#03081c]">
+            <div className="relative overflow-hidden py-1 sm:py-1.5 bg-[#080808]">
               <div
                 className={staticMode ? "flex overflow-x-auto no-scrollbar" : "ticker-wrapper-rtl"}
                 style={
@@ -159,8 +159,8 @@ const JobMelaTicker = () => {
               </div>
               {!staticMode && (
                 <>
-                  <div className="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#03081c] to-transparent z-10 pointer-events-none" />
-                  <div className="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#03081c] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#080808] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#080808] to-transparent z-10 pointer-events-none" />
                 </>
               )}
             </div>
@@ -169,7 +169,7 @@ const JobMelaTicker = () => {
       </div>
 
       {/* Bottom accent */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
     </div>
   );
 };

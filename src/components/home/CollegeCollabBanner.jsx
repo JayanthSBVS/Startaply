@@ -54,7 +54,7 @@ const CollegeCollabBanner = () => {
   };
 
   return (
-    <section id="collabs" className="relative py-20 md:py-28 bg-white dark:bg-[#0b0f14] overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
+    <section id="collabs" className="relative py-20 md:py-28 bg-white dark:bg-black overflow-hidden border-b border-slate-200/80 dark:border-neutral-800 transition-colors duration-300">
       {/* Background Decorative Mesh */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-br from-[#001F8E]/5 via-[#1A62FE]/8 to-transparent dark:from-[#001F8E]/15 dark:via-[#1A62FE]/10 blur-[120px] rounded-full pointer-events-none" />
       
@@ -64,7 +64,7 @@ const CollegeCollabBanner = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="bg-gradient-to-br from-slate-50 to-brand-soft dark:from-slate-900/90 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 sm:p-8 md:p-14 shadow-xl shadow-slate-200/40 dark:shadow-none text-center relative overflow-hidden"
+          className="bg-gradient-to-br from-slate-50 to-brand-soft dark:from-[#0a0a0a] dark:to-[#050505] border border-slate-200/80 dark:border-neutral-800 rounded-3xl p-5 sm:p-8 md:p-14 shadow-xl shadow-slate-200/40 dark:shadow-none text-center relative overflow-hidden"
         >
           {/* Subtle top accent bar */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand via-brand-hover to-blue-400" />

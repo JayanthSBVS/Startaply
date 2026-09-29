@@ -114,7 +114,7 @@ const TrendingCompanies = () => {
   };
 
   return (
-    <section ref={sectionRef} className="py-12 md:py-24 relative overflow-hidden bg-[#020617] transition-colors duration-500">
+    <section ref={sectionRef} className="py-12 md:py-24 relative overflow-hidden bg-black transition-colors duration-500">
       {/* Glow */}
       <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[400px] bg-[#1A62FE]/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -150,8 +150,8 @@ const TrendingCompanies = () => {
 
       {/* ── DESKTOP: Marquee tracks ── */}
       <div className="hidden md:flex relative z-10 flex-col gap-4 pb-10">
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#020617] to-transparent z-20 pointer-events-none" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#020617] to-transparent z-20 pointer-events-none" />
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
 
         {/* Track 1 - LTR */}
         <div className="overflow-hidden">

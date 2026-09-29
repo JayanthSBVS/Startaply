@@ -53,8 +53,8 @@ const AdminLogin        = lazyRetry(() => import('./pages/AdminLogin'));
 
 // Simple full-screen spinner used by Suspense
 const PageLoader = () => (
-  <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex items-center justify-center transition-colors">
-    <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+  <div className="min-h-screen bg-slate-50 dark:bg-black flex items-center justify-center transition-colors">
+    <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
   </div>
 );
 
@@ -76,16 +76,22 @@ function App() {
               <Route path="/job-melas"      element={<JobMelaPage />} />
               <Route path="/job-mela"       element={<JobMelaPage />} />
               <Route path="/job-mela/:id"   element={<JobMelaDetailPage />} />
+              <Route path="/job-melas/:id"  element={<JobMelaDetailPage />} />
               <Route path="/category/:categoryName" element={<CategoryJobsPage />} />
               <Route path="/admin"          element={<AdminDashboard />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin-login"    element={<AdminLogin />} />
+              <Route path="/login"          element={<AdminLogin />} />
+              <Route path="/admin/login"    element={<AdminLogin />} />
               <Route path="/preparation"    element={<PreparationPage />} />
               <Route path="/prep"           element={<PreparationPage />} />
               <Route path="/interview-prep" element={<PreparationPage />} />
               <Route path="/about"          element={<AboutUs />} />
+              <Route path="/about-us"       element={<AboutUs />} />
               <Route path="/privacy"        element={<PrivacyPolicy />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms"          element={<TermsOfService />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

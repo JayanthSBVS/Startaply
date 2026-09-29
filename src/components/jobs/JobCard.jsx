@@ -13,7 +13,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
   const [imageError, setImageError] = React.useState(false);
 
   if (!job) return (
-    <div className="animate-pulse bg-slate-100 dark:bg-[#121821] border border-slate-200/60 dark:border-white/5 rounded-[2rem] h-64 md:h-[26rem] w-full" />
+    <div className="animate-pulse bg-slate-100 dark:bg-[#0a0a0a] border border-slate-200/60 dark:border-white/5 rounded-[2rem] h-64 md:h-[26rem] w-full" />
   );
 
   const companyLogo = useMemo(() => {
@@ -28,9 +28,25 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
   }, [job, companies]);
 
   const rawSkills = useMemo(() => {
-    const src = job.requiredSkills || job.skills || '';
-    return src.split(',').map(s => s.trim()).filter(Boolean);
-  }, [job.requiredSkills, job.skills]);
+    const src = job.requiredSkills || job.skills || job.tags || '';
+    if (Array.isArray(src)) {
+      return src.map(s => String(s).trim()).filter(Boolean);
+    }
+    if (typeof src === 'string') {
+      const trimmed = src.trim();
+      if (!trimmed) return [];
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            return parsed.map(s => String(s).trim()).filter(Boolean);
+          }
+        } catch {}
+      }
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [];
+  }, [job.requiredSkills, job.skills, job.tags]);
   const skills = rawSkills.slice(0, 3);
   const extraSkills = rawSkills.length > 3 ? rawSkills.length - 3 : 0;
 
@@ -81,7 +97,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
       <motion.div
         onClick={() => onViewDetails && onViewDetails(job)}
         whileTap={{ scale: 0.98 }}
-        className={`relative rounded-[0.95rem] md:rounded-[1.95rem] bg-white dark:bg-[#0b0f14]/90 border border-slate-200/80 dark:border-white/5 group-hover:border-brand/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-4 sm:p-6 md:p-8' : 'p-3.5 sm:p-4 md:p-5'}`}
+        className={`relative rounded-[0.95rem] md:rounded-[1.95rem] bg-white dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-white/10 group-hover:border-brand/40 flex flex-col cursor-pointer overflow-hidden h-full ${isHero ? 'p-4 sm:p-6 md:p-8' : 'p-3.5 sm:p-4 md:p-5'}`}
       >
         <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brand/0 to-transparent group-hover:via-brand/50 transition-all duration-500 pointer-events-none" />
 
@@ -89,7 +105,7 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
           {/* ── Header: Logo & Badges ── */}
         <div className="flex items-start justify-between gap-2.5 mb-3">
           <div className="flex gap-2.5 min-w-0 flex-1">
-            <div className={`shrink-0 ${isHero ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-10 h-10 sm:w-12 sm:h-12'} rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 flex items-center justify-center overflow-hidden shadow-xs group-hover:border-brand/20 transition-colors`}>
+            <div className={`shrink-0 ${isHero ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-10 h-10 sm:w-12 sm:h-12'} rounded-xl bg-slate-50 dark:bg-[#141414] border border-slate-100 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-xs group-hover:border-brand/20 transition-colors`}>
               {companyLogo && !imageError ? (
                 <img src={companyLogo} alt={job.company} className="w-full h-full object-contain p-1" loading="lazy" onError={() => setImageError(true)} />
               ) : (
@@ -164,13 +180,13 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
         <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 mb-4 md:mb-6">
           {job.location && (
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 text-slate-400"><MapPin size={12} /></div>
+              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-400"><MapPin size={12} /></div>
               <span className="truncate">{job.location}</span>
             </div>
           )}
           {workMode && (
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 text-slate-400">
+              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-400">
                 {workMode.toLowerCase().includes('remote') ? <Globe size={12} /> : <Briefcase size={12} />}
               </div>
               <span>{workMode}</span>
@@ -178,13 +194,13 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
           )}
           {experience && (
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 text-slate-400"><GraduationCap size={12} /></div>
+              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-400"><GraduationCap size={12} /></div>
               <span>{experience}</span>
             </div>
           )}
           {jobType && (
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800/50 text-slate-400"><Clock size={12} /></div>
+              <div className="p-1.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-400"><Clock size={12} /></div>
               <span>{jobType}</span>
             </div>
           )}

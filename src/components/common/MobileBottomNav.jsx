@@ -25,7 +25,7 @@ const PRIMARY_TABS = [
 
 const MORE_ITEMS = [
   { label: 'Preparation Hub', path: '/preparation', icon: BookOpen },
-  { label: 'IT & Software',   path: '/category/IT%20%26%20Non-IT%20Jobs', icon: GraduationCap },
+  { label: 'IT & Software',   path: '/jobs?section=it', icon: GraduationCap },
   { label: 'College Collabs', path: '/#collabs', icon: GraduationCap, isHash: true },
   { label: 'About Us',        path: '/about',       icon: Info },
 ];
@@ -120,7 +120,7 @@ const MobileBottomNav = () => {
               <div className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all ${
                 active
                   ? 'bg-brand text-on-brand border-brand shadow-sm'
-                  : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'bg-slate-50 dark:bg-[#121212] border-slate-200/80 dark:border-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-800'
               }`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                   active ? 'bg-white/20 text-white' : 'bg-brand-soft text-brand dark:text-brand-hover'
@@ -159,7 +159,7 @@ const MobileBottomNav = () => {
       </div>
 
       {/* ── Bottom Bar Dock ── */}
-      <nav className="fixed bottom-0 inset-x-0 h-16 bg-white/95 dark:bg-[#0b0f14]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-white/10 z-40 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]" aria-label="Mobile navigation">
+      <nav className="fixed bottom-0 inset-x-0 h-16 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-white/10 z-40 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]" aria-label="Mobile navigation">
         <div className="flex w-full h-full max-w-[500px] mx-auto px-2 justify-around items-center pb-[env(safe-area-inset-bottom)]">
           {PRIMARY_TABS.map(({ id, label, path, icon: Icon }) => {
             const active = isRouteActive(path, location.pathname);

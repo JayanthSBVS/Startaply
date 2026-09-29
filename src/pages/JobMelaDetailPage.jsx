@@ -71,12 +71,12 @@ const JobMelaDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col transition-colors duration-300">
+      <div className="min-h-screen bg-slate-50 dark:bg-black flex flex-col transition-colors duration-300">
         <div className="flex-1 flex items-center justify-center">
           <div className="space-y-4 w-full max-w-3xl px-6 pt-32">
-            <div className="h-72 bg-white dark:bg-slate-900 rounded-[2.5rem] animate-pulse border border-slate-100 dark:border-slate-800" />
-            <div className="h-8 bg-white dark:bg-slate-900 rounded-full w-2/3 animate-pulse mt-8 border border-slate-100 dark:border-slate-800" />
-            <div className="h-5 bg-white dark:bg-slate-900 rounded-full w-1/2 animate-pulse border border-slate-100 dark:border-slate-800" />
+            <div className="h-72 bg-white dark:bg-[#0a0a0a] rounded-[2.5rem] animate-pulse border border-slate-100 dark:border-neutral-800" />
+            <div className="h-8 bg-white dark:bg-[#0a0a0a] rounded-full w-2/3 animate-pulse mt-8 border border-slate-100 dark:border-neutral-800" />
+            <div className="h-5 bg-white dark:bg-[#0a0a0a] rounded-full w-1/2 animate-pulse border border-slate-100 dark:border-neutral-800" />
           </div>
         </div>
       </div>
@@ -85,14 +85,14 @@ const JobMelaDetailPage = () => {
 
   if (!mela) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] flex flex-col transition-colors duration-300">
+      <div className="min-h-screen bg-slate-50 dark:bg-black flex flex-col transition-colors duration-300">
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-32">
           <Megaphone size={56} className="text-slate-300 dark:text-slate-700 mb-6" />
           <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Event Not Found</h2>
           <p className="text-slate-500 dark:text-slate-400 mb-8">This Job Mela may have been removed or is no longer active.</p>
           <button
             onClick={() => navigate('/job-melas')}
-            className="bg-[#001F8E] hover:bg-[#1A62FE] text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-[#001F8E]/20"
+            className="bg-brand hover:bg-brand-hover text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-brand/20"
           >
             ← Back to Job Melas
           </button>
@@ -102,7 +102,7 @@ const JobMelaDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans text-slate-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black font-sans text-slate-900 dark:text-white transition-colors duration-300">
 
       {/* ── Hero Banner ── */}
       <div className="relative w-full h-[50vh] min-h-[340px] max-h-[520px] overflow-hidden border-b border-slate-200 dark:border-slate-800">

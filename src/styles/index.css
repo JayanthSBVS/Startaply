@@ -88,25 +88,25 @@
 
 .dark {
   /* Legacy compatibility aliases */
-  --bg-base:         #0b0f14;
-  --bg-surface:      #0b0f14;
-  --bg-card:         #121821;
-  --bg-elevated:     #171e29;
+  --bg-base:         #000000;
+  --bg-surface:      #050505;
+  --bg-card:         #0a0a0a;
+  --bg-elevated:     #121212;
   --text-primary:    #f8fafc;
   --text-secondary:  #cbd5e1;
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.1);
-  --shadow-hover:    0 4px 6px rgba(0,0,0,0.1), 0 20px 48px rgba(0,0,0,0.15);
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-hover:    0 4px 6px rgba(0,0,0,0.5), 0 20px 48px rgba(0,0,0,0.6);
 
   /* Semantic Dark Tokens */
   --color-bg: #000000;
-  --color-surface: #020617;
-  --color-surface-raised: #0F172A;
-  --color-surface-muted: #1E293B;
+  --color-surface: #050505;
+  --color-surface-raised: #0c0c0c;
+  --color-surface-muted: #141414;
   --color-text: #F8FAFC;
   --color-text-secondary: #CBD5E1;
   --color-text-muted: #94A3B8;
-  --color-border: #1E293B;
-  --color-border-strong: #334155;
+  --color-border: #1f1f1f;
+  --color-border-strong: #2e2e2e;
   --color-brand: #1A62FE;
   --color-brand-hover: #4D84FF;
   --color-brand-soft: rgba(26, 98, 254, 0.12);
@@ -116,7 +116,7 @@
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --color-info: #3B82F6;
-  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-overlay: rgba(0, 0, 0, 0.8);
 }
 
 /* ── 2. Reset & Base ───────────────────────────────────────────── */
@@ -213,8 +213,8 @@ body {
 }
 
 .dark .premium-surface {
-  background: rgba(15,23,42,0.75);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
@@ -226,16 +226,16 @@ body {
 }
 
 .dark .glass-card {
-  background: rgba(15,23,42,0.7);
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 8px 32px rgba(0,0,0,0.5);
 }
 
 .glass-card-dark {
-  background: rgba(2, 6, 23, 0.85);
+  background: rgba(5, 5, 5, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ── 6. Section Backgrounds ────────────────────────────────────── */
@@ -614,9 +614,9 @@ body {
   will-change: transform;
 }
 .dark .mobile-nav-sheet {
-  background-color: #0b0f14;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+  background-color: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.7);
 }
 .mobile-nav-sheet--open {
   transform: translateY(0);

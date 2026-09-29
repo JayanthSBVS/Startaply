@@ -20,7 +20,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-slate-50 dark:bg-[#0b0f14] transition-colors duration-300">
+    <div className="relative flex flex-col min-h-screen bg-slate-50 dark:bg-black transition-colors duration-300">
       {/* Hero Section - with backend banner carousel */}
       <Hero />
 

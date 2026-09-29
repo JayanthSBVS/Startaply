@@ -46,8 +46,8 @@ const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => 
             loading="eager"
           />
         </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/55 via-[#0b0f14]/65 to-[#0b0f14]/92" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/70 via-transparent to-[#0b0f14]/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/70 to-black/95" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/30" />
 
         <div className="hidden md:block absolute top-0 right-[20%] w-[600px] h-[400px] rounded-full bg-brand/8 blur-[100px] pointer-events-none" />
         <div className="hidden md:block absolute bottom-0 left-[10%] w-[500px] h-[300px] rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
@@ -75,8 +75,8 @@ const StaticContainer = ({ children, heroImages, currentImageIdx, isMobile }) =>
           className="w-full h-full object-cover object-center absolute inset-0"
           loading="eager"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f14]/65 via-[#0b0f14]/75 to-[#0b0f14]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f14]/80 via-transparent to-[#0b0f14]/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/75 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/40" />
       </div>
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center pt-20 sm:pt-24 md:pt-36 pb-8 sm:pb-12 md:pb-20 h-full">
         {children}
@@ -269,7 +269,7 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute left-0 right-0 mt-2 bg-[#0f1621]/95 border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-[100] py-2"
+              className="absolute left-0 right-0 mt-2 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[100] py-2"
             >
               <div className="px-4 py-2 mb-1 flex items-center justify-between border-b border-white/5">
                 <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Suggestions</span>
@@ -358,7 +358,7 @@ const Hero = () => {
       )}
 
       {/* Bottom atmospheric fade into next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-[#0b0f14] to-transparent z-20 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none" />
     </section>
   );
 };

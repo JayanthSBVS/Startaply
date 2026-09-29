@@ -240,30 +240,30 @@ const JobDetailsPanel = ({ job, onClose }) => {
               <form id="applyForm" onSubmit={submitApplication} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Name *</label>
-                  <input required type="text" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors({ ...errors, name: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#0b0f14] dark:text-white ${errors.name ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-brand focus:ring-2 focus:ring-brand/20'}`} />
+                  <input required type="text" value={formData.name} onChange={e => { setFormData({ ...formData, name: e.target.value }); setErrors({ ...errors, name: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#121212] dark:text-white ${errors.name ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-neutral-800 focus:border-brand focus:ring-2 focus:ring-brand/20'}`} />
                   {errors.name && <p className="text-rose-500 text-xs font-medium mt-1 flex items-center gap-1"><AlertCircle size={12} /> {errors.name}</p>}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Email *</label>
-                  <input required type="email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors({ ...errors, email: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#0b0f14] dark:text-white ${errors.email ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-brand focus:ring-2 focus:ring-brand/20'}`} />
+                  <input required type="email" value={formData.email} onChange={e => { setFormData({ ...formData, email: e.target.value }); setErrors({ ...errors, email: null }); }} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#121212] dark:text-white ${errors.email ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-neutral-800 focus:border-brand focus:ring-2 focus:ring-brand/20'}`} />
                   {errors.email && <p className="text-rose-500 text-xs font-medium mt-1 flex items-center gap-1"><AlertCircle size={12} /> {errors.email}</p>}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Phone (10 Digits)</label>
-                  <input type="tel" placeholder="e.g. 9876543210" value={formData.phone} onChange={handlePhoneChange} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#0b0f14] dark:text-white ${errors.phone ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-700 focus:border-brand focus:ring-2 focus:ring-brand/20'}`} />
+                  <input type="tel" placeholder="e.g. 9876543210" value={formData.phone} onChange={handlePhoneChange} className={`w-full border rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#121212] dark:text-white ${errors.phone ? 'border-rose-400 focus:ring-rose-500/20' : 'border-slate-200 dark:border-neutral-800 focus:border-brand focus:ring-2 focus:ring-brand/20'}`} />
                   {errors.phone && <p className="text-rose-500 text-xs font-medium mt-1 flex items-center gap-1"><AlertCircle size={12} /> {errors.phone}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">City / Location</label>
-                    <input type="text" placeholder="e.g. Hyderabad" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#0b0f14] dark:text-white focus:border-brand" />
+                    <input type="text" placeholder="e.g. Hyderabad" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="w-full border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#121212] dark:text-white focus:border-brand" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Vehicle Status</label>
-                    <select value={formData.vehicleStatus} onChange={e => setFormData({ ...formData, vehicleStatus: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#0b0f14] dark:text-white focus:border-brand">
+                    <select value={formData.vehicleStatus} onChange={e => setFormData({ ...formData, vehicleStatus: e.target.value })} className="w-full border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 outline-none transition-all text-sm font-medium dark:bg-[#121212] dark:text-white focus:border-brand">
                       <option value="">Select Option</option>
                       <option value="Two Wheeler">Two Wheeler</option>
                       <option value="Four Wheeler">Four Wheeler</option>
@@ -274,19 +274,19 @@ const JobDetailsPanel = ({ job, onClose }) => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">Resume (PDF/Doc)</label>
-                  <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-600 dark:text-slate-400 dark:bg-[#0b0f14] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-soft file:text-brand hover:file:bg-brand/20 cursor-pointer" />
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="w-full border border-slate-200 dark:border-neutral-800 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-600 dark:text-slate-400 dark:bg-[#121212] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-soft file:text-brand hover:file:bg-brand/20 cursor-pointer" />
                 </div>
               </form>
             )}
           </div>
         ) : (
-          <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar bg-white dark:bg-slate-900 transition-colors">
+          <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto flex-1 custom-scrollbar bg-white dark:bg-[#0a0a0a] transition-colors">
 
             {/* TAGS */}
             <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-              {displayJob.location && <span className="bg-brand-soft dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-1.5"><MapPin size={13} className="text-brand" /> {displayJob.location}</span>}
-              {displayJob.type && <span className="bg-brand-soft dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-1.5"><Briefcase size={13} className="text-brand" /> {displayJob.type}</span>}
-              {displayJob.salary && <span className="bg-brand-soft dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-1.5"><IndianRupee size={13} className="text-brand" /> {displayJob.salary}</span>}
+              {displayJob.location && <span className="bg-brand-soft dark:bg-[#141414] text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 flex items-center gap-1.5"><MapPin size={13} className="text-brand" /> {displayJob.location}</span>}
+              {displayJob.type && <span className="bg-brand-soft dark:bg-[#141414] text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 flex items-center gap-1.5"><Briefcase size={13} className="text-brand" /> {displayJob.type}</span>}
+              {displayJob.salary && <span className="bg-brand-soft dark:bg-[#141414] text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 flex items-center gap-1.5"><IndianRupee size={13} className="text-brand" /> {displayJob.salary}</span>}
               {displayJob.expiryDays && (
                 <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center gap-1.5">
                   <CalendarDays size={13} className="text-amber-600 dark:text-amber-400" /> Apply by: {(() => {
@@ -300,10 +300,10 @@ const JobDetailsPanel = ({ job, onClose }) => {
             {/* MAP LOCATION FOR VOICE/NON-VOICE PROCESSES */}
             {(displayJob.processType === 'Voice Process' || displayJob.processType === 'Non-Voice Process') && displayJob.mapLocationUrl && (
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-brand dark:text-brand-hover mb-2.5 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-1.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-brand dark:text-brand-hover mb-2.5 border-b border-slate-100 dark:border-neutral-800 pb-2 flex items-center gap-1.5">
                   <MapPin size={14} /> Interview Walk-in Location
                 </h3>
-                <div className="w-full h-48 sm:h-56 bg-slate-100 dark:bg-[#0b0f14] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
+                <div className="w-full h-48 sm:h-56 bg-slate-100 dark:bg-black rounded-xl overflow-hidden border border-slate-200 dark:border-neutral-800 shadow-inner">
                   {displayJob.mapLocationUrl.includes('<iframe') || displayJob.mapLocationUrl.includes('embed') ? (
                     <iframe
                       src={displayJob.mapLocationUrl.match(/src="([^"]+)"/)?.[1] || displayJob.mapLocationUrl}

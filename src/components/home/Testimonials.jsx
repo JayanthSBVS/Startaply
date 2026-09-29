@@ -36,9 +36,9 @@ const DesktopBubble = ({ t, className, index }) => {
         scale: { duration: 0.7, delay: Math.min(index * 0.1, 0.4), ease: [0.16, 1, 0.3, 1] },
         y: { duration: 0.7, delay: Math.min(index * 0.1, 0.4), ease: [0.16, 1, 0.3, 1] }
       }}
-      className={`group relative p-6 md:p-7 rounded-2xl bg-white dark:bg-slate-800/95 shadow-lg shadow-slate-200/50 dark:shadow-slate-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-[#1A62FE]/40 dark:hover:border-[#1A62FE]/40 hover:shadow-xl transition-all flex flex-col hover:z-30 w-full ${className}`}
+      className={`group relative p-6 md:p-7 rounded-2xl bg-white dark:bg-[#0a0a0a] shadow-lg shadow-slate-200/50 dark:shadow-black/60 border border-slate-200/80 dark:border-[#1f1f1f] hover:border-[#1A62FE]/40 dark:hover:border-[#1A62FE]/40 hover:shadow-xl transition-all flex flex-col hover:z-30 w-full ${className}`}
     >
-      <div className="absolute -top-5 -left-4 w-12 h-12 rounded-2xl border-2 border-white dark:border-slate-800 shadow-md overflow-hidden bg-[#EFF3FF] dark:bg-[#1A62FE]/15 flex items-center justify-center group-hover:scale-105 transition-transform origin-bottom-right">
+      <div className="absolute -top-5 -left-4 w-12 h-12 rounded-2xl border-2 border-white dark:border-[#1f1f1f] shadow-md overflow-hidden bg-[#EFF3FF] dark:bg-[#1A62FE]/15 flex items-center justify-center group-hover:scale-105 transition-transform origin-bottom-right">
         {t.photo ? (
           <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
         ) : (
@@ -77,9 +77,9 @@ const MobileBubbleComposition = ({ testimonials }) => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="relative bg-white dark:bg-slate-800/95 rounded-2xl p-6 shadow-md border border-slate-200/80 dark:border-slate-700/60"
+        className="relative bg-white dark:bg-[#0a0a0a] rounded-2xl p-6 shadow-md border border-slate-200/80 dark:border-[#1f1f1f]"
       >
-        <div className="absolute -top-4 -left-2 w-12 h-12 rounded-xl border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden bg-[#EFF3FF] dark:bg-[#1A62FE]/15 flex items-center justify-center">
+        <div className="absolute -top-4 -left-2 w-12 h-12 rounded-xl border-2 border-white dark:border-[#1f1f1f] shadow-sm overflow-hidden bg-[#EFF3FF] dark:bg-[#1A62FE]/15 flex items-center justify-center">
           {featured.photo ? (
             <img src={featured.photo} alt={featured.name} className="w-full h-full object-cover" />
           ) : (
@@ -91,7 +91,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
           <p className="text-slate-700 dark:text-slate-200 font-normal leading-relaxed text-xs sm:text-sm">
             "{featured.description}"
           </p>
-          <div className="mt-4 flex items-center gap-2 border-t border-slate-100 dark:border-slate-700/50 pt-3">
+          <div className="mt-4 flex items-center gap-2 border-t border-slate-100 dark:border-[#1f1f1f] pt-3">
             <div>
               <p className="font-bold text-slate-900 dark:text-white text-xs">{featured.name}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
@@ -116,7 +116,7 @@ const MobileBubbleComposition = ({ testimonials }) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05, duration: 0.3 }}
-              className="relative text-left bg-white dark:bg-slate-800/80 rounded-xl p-3.5 shadow-sm border border-slate-200/80 dark:border-slate-700/50 active:scale-95 transition-transform"
+              className="relative text-left bg-white dark:bg-[#0a0a0a] rounded-xl p-3.5 shadow-sm border border-slate-200/80 dark:border-[#1f1f1f] active:scale-95 transition-transform"
               style={{ minHeight: '44px' }}
               aria-label={`View testimonial by ${t.name}`}
             >
@@ -160,7 +160,7 @@ const Testimonials = () => {
   }, []);
 
   return (
-    <section className="py-16 md:py-24 bg-slate-50 dark:bg-[#0b0f14] relative overflow-hidden transition-colors duration-300 border-b border-slate-200/80 dark:border-slate-800/80">
+    <section className="py-16 md:py-24 bg-slate-50 dark:bg-black relative overflow-hidden transition-colors duration-300 border-b border-slate-200/80 dark:border-[#1f1f1f]">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 text-center mb-10 md:mb-14 relative z-20">
         <motion.div
@@ -197,7 +197,7 @@ const Testimonials = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
         >
-          <div className="max-w-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-slate-200/80 dark:border-slate-800 shadow-xl text-center">
+          <div className="max-w-xl bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-slate-200/80 dark:border-[#1f1f1f] shadow-xl text-center">
             <h2 className="text-3xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
               Real candidates. <br />
               Verified hires. <br />

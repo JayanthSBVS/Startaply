@@ -24,8 +24,8 @@ const JobMelaPage = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans transition-colors duration-300">
-            <div className="bg-white dark:bg-slate-900 pt-20 sm:pt-32 pb-12 sm:pb-24 text-center px-4 sm:px-6 border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="min-h-screen bg-slate-50 dark:bg-black font-sans transition-colors duration-300">
+            <div className="bg-white dark:bg-[#0a0a0a] pt-20 sm:pt-32 pb-12 sm:pb-24 text-center px-4 sm:px-6 border-b border-slate-200 dark:border-neutral-800 transition-colors">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-soft text-brand dark:text-brand-hover rounded-full text-[10px] font-black uppercase tracking-widest mb-4 sm:mb-6 border border-brand/20">
                     <Megaphone size={12} className="animate-pulse" /> Official Hiring Drives
                 </div>
@@ -73,7 +73,7 @@ const JobMelaPage = () => {
                             const hasMap = !!(mela.googlemaplink || mela.googleMapLink);
 
                             return (
-                                <div key={mela.id} className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-[2.5rem] shadow-lg sm:shadow-xl shadow-slate-200/50 dark:shadow-slate-950/40 border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col group hover:border-brand/40 transition-all duration-300">
+                                <div key={mela.id} className="bg-white dark:bg-[#0a0a0a] rounded-2xl sm:rounded-[2.5rem] shadow-lg sm:shadow-xl shadow-slate-200/50 dark:shadow-black/40 border border-slate-100 dark:border-neutral-800 overflow-hidden flex flex-col group hover:border-brand/40 transition-all duration-300">
                                     <div className="relative h-48 sm:h-64 overflow-hidden">
                                         <img
                                             src={thumbnail}
@@ -97,7 +97,7 @@ const JobMelaPage = () => {
                                             </div>
                                         )}
                                         <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium mb-5 sm:mb-8 leading-relaxed flex-1 line-clamp-3">{mela.description}</p>
-                                        <div className="space-y-2 sm:space-y-3 bg-slate-50 dark:bg-[#0b0f14] p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-slate-800 group-hover:bg-brand-soft/50 dark:group-hover:bg-brand-soft/10 group-hover:border-brand/20 transition-colors">
+                                        <div className="space-y-2 sm:space-y-3 bg-slate-50 dark:bg-[#121212] p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-neutral-800 group-hover:bg-brand-soft/50 dark:group-hover:bg-brand-soft/10 group-hover:border-brand/20 transition-colors">
                                             {mela.date && <p className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300"><Calendar className="text-brand" size={16} /> {mela.date}</p>}
                                             {mela.time && <p className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300"><Clock className="text-brand" size={16} /> {mela.time}</p>}
                                             {mela.venue && <p className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300"><MapPin className="text-brand" size={16} /> {mela.venue}</p>}

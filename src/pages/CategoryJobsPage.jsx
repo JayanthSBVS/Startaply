@@ -132,10 +132,10 @@ const CategoryJobsPage = () => {
   }, [isItNonItCategory, itType, filtered, itJobs, nonItJobs]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f14] font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-black font-sans transition-colors duration-300">
 
       {/* HERO */}
-      <div className="relative bg-slate-950 text-white pt-24 md:pt-32 pb-12 md:pb-20 text-center border-b border-slate-900 px-4 overflow-hidden">
+      <div className="relative bg-black text-white pt-24 md:pt-32 pb-12 md:pb-20 text-center border-b border-neutral-850 px-4 overflow-hidden">
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[120px] opacity-20 pointer-events-none ${theme.glow}`} />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto relative z-10">
           <div className={`w-14 h-14 md:w-20 md:h-20 mx-auto rounded-[1.25rem] md:rounded-[1.5rem] flex items-center justify-center mb-4 md:mb-6 border ${theme.border} ${theme.bg}`}>
