@@ -30,10 +30,6 @@ const AboutUs = () => {
             <BrandLogo variant="vertical" height={84} className="hover:scale-105 transition-transform duration-300" />
           </div>
 
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-xs font-black uppercase tracking-wider mb-5">
-            <Sparkles size={14} /> The Next-Gen Career Ecosystem
-          </span>
-
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-tight">
             Connecting Talent with <span className="text-brand">Opportunity</span>
           </h1>
@@ -95,18 +91,12 @@ const AboutUs = () => {
         <div className="max-w-6xl mx-auto px-4 py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
             <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-xs font-bold uppercase tracking-wider mb-6">
-                <Target size={16} /> Our Mission
-              </div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">Democratizing Career Growth</h2>
               <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed italic border-l-4 border-brand pl-6 font-medium">
                 "To make career discovery transparent, fast, and accessible for everyone across India by providing reliable, verified, and high-growth opportunities."
               </p>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-neutral-800 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">
-                <Eye size={16} /> Our Vision
-              </div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">The Opportunity Ecosystem</h2>
               <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed font-medium">
                 To build the single most trusted employment and talent platform where candidates discover top roles, prepare for rigorous assessments, and launch meaningful careers.

@@ -1,5 +1,7 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect, useMemo } from 'react';
 import { useJobs } from '../../context/JobsContext';
+import { useAuth } from '../../context/AuthContext';
+import { getCandidateProfile } from '../../utils/candidatePersonalization';
 import JobCard from './JobCard';
 import SkeletonCard from '../common/SkeletonCard';
 import { Link } from 'react-router-dom';
@@ -14,13 +16,17 @@ const TABS = [
 
 const TodaysJobsSection = memo(({ onViewDetails }) => {
   const { jobs, loading } = useJobs();
+  const { user } = useAuth();
+  const candidateProfile = useMemo(() => getCandidateProfile(user), [user]);
+  const isCandidate = candidateProfile.isCandidate;
+
   const [activeTab, setActiveTab] = useState('All');
 
   const safeJobs  = Array.isArray(jobs) ? jobs : [];
   const freshList = safeJobs.filter(j => j.isToday || j.isFresh);
   const freshJobs = freshList.length > 0 ? freshList : safeJobs;
 
-  const filtered  = activeTab === 'All'
+  const filtered  = (isCandidate || activeTab === 'All')
     ? freshJobs
     : freshJobs.filter(j => {
         const cat = (j.jobCategory || j.category || '').toLowerCase();
@@ -35,8 +41,40 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
       });
 
   const safeFiltered = Array.isArray(filtered) ? filtered : [];
-  const categoryQuery = activeTab === 'All' ? 'All Categories' : encodeURIComponent(activeTab === 'IT & Tech' ? 'IT & Non-IT Jobs' : activeTab);
   const activeTabData = TABS.find(t => t.key === activeTab) || TABS[0];
+
+  // Personalized copy & link
+  let headerTitle = "New Listings";
+  let headerDesc = "Fresh opportunities posted in the last 24 hours.";
+  let viewAllPath = "/jobs?section=today";
+  let viewAllLabel = "View All Today's";
+
+  if (candidateProfile.isItFresher) {
+    headerTitle = "IT Fresher Openings";
+    headerDesc = "Fresh entry-level software & tech roles posted in the last 24 hours.";
+    viewAllPath = "/jobs?section=it-freshers";
+    viewAllLabel = "View All IT Freshers";
+  } else if (candidateProfile.isItExperienced) {
+    headerTitle = "Tech Openings";
+    headerDesc = "Fresh software, cloud & engineering roles posted in the last 24 hours.";
+    viewAllPath = "/jobs?section=it";
+    viewAllLabel = "View All Tech Jobs";
+  } else if (candidateProfile.isNonItFresher) {
+    headerTitle = "Non-IT Graduate Roles";
+    headerDesc = "Fresh entry-level operational, sales & HR roles posted in the last 24 hours.";
+    viewAllPath = "/jobs?section=freshers";
+    viewAllLabel = "View All Graduate Roles";
+  } else if (candidateProfile.isNonItExperienced) {
+    headerTitle = "Operations & Corporate Roles";
+    headerDesc = "Fresh enterprise, BPO & corporate roles posted in the last 24 hours.";
+    viewAllPath = "/jobs?section=nonit";
+    viewAllLabel = "View All Corporate Roles";
+  } else if (candidateProfile.isGig) {
+    headerTitle = "Gig & Freelance Projects";
+    headerDesc = "Fresh contract, remote & flexible projects posted in the last 24 hours.";
+    viewAllPath = "/jobs?section=gig";
+    viewAllLabel = "View All Gigs";
+  }
 
   return (
     <section className="py-16 md:py-24 bg-white dark:bg-black border-b border-slate-200 dark:border-neutral-850 overflow-hidden relative transition-colors duration-300">
@@ -51,29 +89,24 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
         {/* ── Section Header ─────────────────────────────────────────── */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-10">
           <div>
-            <div className="flex items-center gap-2 mb-2.5">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
-                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-blue-500">Updated Today</span>
-              </div>
-            </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
-              Today's <span className="text-brand dark:text-brand-hover">New Listings</span>
+              Today's <span className="text-brand dark:text-brand-hover">{headerTitle}</span>
             </h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm md:text-base">
-              Fresh opportunities posted in the last 24 hours.
+              {headerDesc}
             </p>
           </div>
           <Link
-            to={`/jobs?category=${categoryQuery}&fresh=true`}
+            to={viewAllPath}
             className="flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200/50 dark:border-blue-800/30 px-4 sm:px-5 py-2.5 rounded-full transition-all duration-200 self-start md:self-auto whitespace-nowrap min-h-[44px]"
           >
-            View All New <ArrowRight size={14} />
+            {viewAllLabel} <ArrowRight size={14} />
           </Link>
         </div>
 
         {/* ── Filter Tabs ─────────────────────────────────────────────── */}
-        <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-6 sm:mb-8">
+        {!isCandidate && (
+          <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-6 sm:mb-8">
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -94,6 +127,7 @@ const TodaysJobsSection = memo(({ onViewDetails }) => {
             );
           })}
         </div>
+        )}
 
         {/* ── Job Cards Grid ──────────────────────────────────────────── */}
         {loading && safeFiltered.length === 0 ? (

@@ -24,9 +24,6 @@ const Categories = ({ categoriesData, onCategoryFilter }) => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div ref={sectionRef} className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-4">
-            <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">Explore Categories</span>
-          </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4 tracking-tight">
             Your Path, <span className="text-emerald-400">Your Choice</span>
           </h2>

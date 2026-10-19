@@ -63,10 +63,6 @@ const CompaniesPage = () => {
       <div className="bg-white dark:bg-[#0a0a0a] border-b border-slate-200 dark:border-neutral-800 pt-28 pb-14 transition-colors relative overflow-hidden">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand/5 dark:bg-brand/10 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-xs font-black uppercase tracking-wider mb-4">
-            <Sparkles size={13} />
-            Verified Employer Network
-          </div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
             Top <span className="text-brand dark:text-brand-hover">Workplaces</span>
           </h1>

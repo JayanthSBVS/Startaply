@@ -26,9 +26,6 @@ const JobMelaPage = () => {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-black font-sans transition-colors duration-300">
             <div className="bg-white dark:bg-[#0a0a0a] pt-20 sm:pt-32 pb-12 sm:pb-24 text-center px-4 sm:px-6 border-b border-slate-200 dark:border-neutral-800 transition-colors">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-soft text-brand dark:text-brand-hover rounded-full text-[10px] font-black uppercase tracking-widest mb-4 sm:mb-6 border border-brand/20">
-                    <Megaphone size={12} className="animate-pulse" /> Official Hiring Drives
-                </div>
                 <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight mb-3 sm:mb-6 text-slate-900 dark:text-white">
                     Upcoming <span className="text-brand">Job Melas</span>
                 </h1>

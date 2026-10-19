@@ -77,7 +77,7 @@ function App() {
         <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* Public Guest Routes */}
+              {/* Public & Candidate Homepage */}
               <Route path="/"               element={user ? <Home /> : <LandingPage />} />
               <Route path="/landing"        element={<LandingPage />} />
               <Route path="/login"          element={user ? <Navigate to="/" replace /> : <LoginPage />} />

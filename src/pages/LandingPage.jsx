@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
+import {
   ArrowRight, ShieldCheck, ChevronRight, CheckCircle2,
   Menu, X, Sparkles, Check, CheckCheck, Target, XCircle,
   Laptop, Briefcase, GraduationCap, Globe, Compass, Quote, Zap,
-  Layers, Users, Building2, Truck, Bike
+  Layers, Users, Building2, Truck, Bike, User
 } from 'lucide-react';
 import BrandLogo from '../components/common/BrandLogo';
 import ThemeToggle from '../components/common/ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 // ── 1. CANDIDATE & TALENT PERSONAS (GRADUATES, PROFESSIONALS, GIG & DELIVERY) ──
 const CANDIDATE_PERSONAS = [
@@ -206,6 +207,7 @@ const ENTERPRISE_LOGOS = [
 const LandingPage = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   // Navigation & UI States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -244,11 +246,11 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#F4F6FB] dark:bg-[#070B14] text-[#0A0F1D] dark:text-[#F8FAFC] font-sans selection:bg-brand selection:text-white overflow-x-hidden antialiased transition-colors duration-200">
-      
+
       {/* ── 1. CLEAN MODERN NAVBAR (BALANCED, NO PILL BADGES, PERFECT BUTTON ALIGNMENT) ── */}
       <header className="sticky top-0 z-50 w-full bg-white/90 dark:bg-[#070B14]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          
+
           {/* Left: Clean Brand Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center shrink-0" aria-label="Startaply Home">
@@ -258,32 +260,32 @@ const LandingPage = () => {
 
           {/* Center: Precision Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-            <button 
-              onClick={() => scrollToSection('how-it-works')} 
+            <button
+              onClick={() => scrollToSection('how-it-works')}
               className="px-3.5 py-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 font-semibold text-[13px] transition-all cursor-pointer"
             >
               How It Works
             </button>
-            <button 
-              onClick={() => scrollToSection('candidates')} 
+            <button
+              onClick={() => scrollToSection('candidates')}
               className="px-3.5 py-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 font-semibold text-[13px] transition-all cursor-pointer"
             >
               Who It's For
             </button>
-            <button 
-              onClick={() => scrollToSection('disciplines')} 
+            <button
+              onClick={() => scrollToSection('disciplines')}
               className="px-3.5 py-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 font-semibold text-[13px] transition-all cursor-pointer"
             >
               Disciplines
             </button>
-            <button 
-              onClick={() => scrollToSection('candidates')} 
+            <button
+              onClick={() => scrollToSection('candidates')}
               className="px-3.5 py-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 font-semibold text-[13px] transition-all cursor-pointer"
             >
               Gig &amp; Delivery
             </button>
-            <button 
-              onClick={() => scrollToSection('stories')} 
+            <button
+              onClick={() => scrollToSection('stories')}
               className="px-3.5 py-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 font-semibold text-[13px] transition-all cursor-pointer"
             >
               Stories
@@ -298,20 +300,50 @@ const LandingPage = () => {
 
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
 
-            <Link
-              to="/login"
-              className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-brand dark:hover:text-white transition-colors whitespace-nowrap"
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-2.5">
+                <Link
+                  to="/"
+                  className="h-8 px-3.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all"
+                >
+                  <span>Go to Jobs Feed</span>
+                  <ArrowRight size={13} />
+                </Link>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs font-bold text-slate-800 dark:text-slate-200">
+                  <User size={13} className="text-brand" />
+                  <span>{user.name ? user.name.split(' ')[0] : 'Candidate'}</span>
+                  {user.careerTrack && (
+                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-brand/10 text-brand dark:text-blue-400">
+                      {user.careerTrack}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-brand dark:hover:text-white transition-colors whitespace-nowrap"
+                >
+                  Sign In
+                </Link>
 
-            <Link
-              to="/signup"
-              className="h-9 px-5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-brand/20 active:scale-95 inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all"
-            >
-              <span>Join Free</span>
-              <ArrowRight size={14} className="shrink-0" />
-            </Link>
+                <Link
+                  to="/signup"
+                  className="h-9 px-5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-brand/20 active:scale-95 inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all"
+                >
+                  <span>Join Free</span>
+                  <ArrowRight size={14} className="shrink-0" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -333,48 +365,67 @@ const LandingPage = () => {
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-6 py-6 flex flex-col gap-3 shadow-2xl text-left animate-in fade-in slide-in-from-top-2 duration-150">
-            <button 
-              onClick={() => scrollToSection('how-it-works')} 
+            <button
+              onClick={() => scrollToSection('how-it-works')}
               className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
             >
               <Compass size={17} className="text-brand shrink-0" />
               <span>How Direct Mobility Works</span>
             </button>
-            <button 
-              onClick={() => scrollToSection('candidates')} 
+            <button
+              onClick={() => scrollToSection('candidates')}
               className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
             >
               <Users size={17} className="text-brand shrink-0" />
               <span>Who Startaply Is For</span>
             </button>
-            <button 
-              onClick={() => scrollToSection('disciplines')} 
+            <button
+              onClick={() => scrollToSection('disciplines')}
               className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
             >
               <Layers size={17} className="text-brand shrink-0" />
               <span>Career &amp; Gig Disciplines</span>
             </button>
-            <button 
-              onClick={() => scrollToSection('stories')} 
+            <button
+              onClick={() => scrollToSection('stories')}
               className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
             >
               <Quote size={17} className="text-brand shrink-0" />
               <span>Verified Stories</span>
             </button>
-            
-            <div className="flex flex-col gap-2.5 pt-4">
-              <Link 
-                to="/login" 
-                className="w-full py-3 text-center text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800"
-              >
-                Sign In to Account
-              </Link>
-              <Link 
-                to="/signup" 
-                className="w-full py-3 text-center text-xs font-bold rounded-xl bg-brand text-white shadow-xs"
-              >
-                Create Free Candidate Profile
-              </Link>
+
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+              {user ? (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-100">
+                    <User size={15} className="text-brand" />
+                    <span>{user.name || 'Candidate'}</span>
+                  </div>
+                  <button
+                    onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                    className="text-xs font-bold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-3 text-center text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-800"
+                  >
+                    Sign In to Account
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-3 text-center text-xs font-bold rounded-xl bg-brand text-white shadow-xs"
+                  >
+                    Create Free Candidate Profile
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -382,17 +433,17 @@ const LandingPage = () => {
 
       {/* ── 2. HERO: EDITORIAL SPLIT WITH THE DIRECT PASSPORT SIMULATOR ── */}
       <section id="how-it-works" className="relative w-full pt-12 pb-16 md:pt-16 md:pb-24 border-b border-slate-200/90 dark:border-slate-800 bg-field-gradient relative overflow-hidden">
-        
+
         {/* Cropped Radial Gradient Background Accent */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-cropped-radial pointer-events-none opacity-80" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-            
+
             {/* Left Broadsheet Editorial Column (7 cols) */}
             <div className="lg:col-span-7 flex flex-col items-start text-left">
-              
+
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-slate-950 dark:text-white leading-[1.05]">
                 Welcome to India’s <br />
@@ -446,7 +497,7 @@ const LandingPage = () => {
 
             {/* Right Product Console: DIRECT CAREER PASSPORT SIMULATOR */}
             <div className="lg:col-span-5 w-full perspective-1000">
-              
+
               {/* Persona Selector Tabs for the Simulator (Only Graduate, Professional, Gig & Delivery) */}
               <div className="flex items-center justify-between mb-3 px-1 text-xs font-bold text-slate-500">
                 <span className="uppercase tracking-wider">Simulate Track:</span>
@@ -486,7 +537,7 @@ const LandingPage = () => {
 
               {/* 3D DEPTH SIMULATOR CARD */}
               <div className="card-stack-depth rounded-3xl bg-translucent-gradient border-2 border-slate-300 dark:border-slate-700 soft-shadow p-6 sm:p-7 relative overflow-hidden text-left min-h-[460px] flex flex-col justify-between">
-                
+
                 {/* Header */}
                 <div className="pb-4 border-b border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -509,7 +560,7 @@ const LandingPage = () => {
 
                 {/* 4-Stage Trajectory Flow */}
                 <div className="py-4 space-y-3">
-                  
+
                   {/* Stage 1 */}
                   <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-blue-100 text-brand font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
@@ -537,7 +588,7 @@ const LandingPage = () => {
                         {passportPersona === 'gig' ? 'Route Allocation & Hub Dispatch Onboarding' : 'Free Company Interview Intelligence Hub'}
                       </div>
                       <div className="text-[11px] text-slate-500 mt-0.5">
-                        {passportPersona === 'gig' 
+                        {passportPersona === 'gig'
                           ? 'Direct digital assignment to localized dark-stores, delivery zones, and customer dispatch hubs.'
                           : 'Practice real corporate technical questions, architecture reviews, and HR STAR frameworks.'}
                       </div>
@@ -603,7 +654,7 @@ const LandingPage = () => {
       {/* ── 3. UNIQUE, COMPACT ENTERPRISE RECRUITER LOGO SHOWCASE (NOT BIG, CLEAN & UNIQUE) ── */}
       <section className="w-full py-7 sm:py-8 border-b border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#070B14]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          
+
           <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-5">
             DIRECT HIRING DRIVES &amp; VERIFIED HUB PASSES POWERED ACROSS
           </p>
@@ -611,7 +662,7 @@ const LandingPage = () => {
           {/* Compact, clean horizontal logo showcase with authentic branding */}
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-12">
             {ENTERPRISE_LOGOS.map((company, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="group flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-all duration-200 cursor-default select-none"
               >
@@ -631,7 +682,7 @@ const LandingPage = () => {
       {/* ── 4. WHO IS STARTAPLY FOR? (FRESHERS, LATERALS, GIG & DELIVERY) ── */}
       <section id="candidates" className="w-full py-16 md:py-20 border-b border-slate-200/90 dark:border-slate-800 bg-[#F4F6FB] dark:bg-[#070B14] grid-lines">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="max-w-3xl mb-12 text-left">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-950 dark:text-white tracking-tight">
               Engineered for every candidate seeking genuine opportunity.
@@ -644,7 +695,7 @@ const LandingPage = () => {
           {/* Symmetrical 3-Card Grid (No Pill Badges) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
             {CANDIDATE_PERSONAS.map((persona) => (
-              <div 
+              <div
                 key={persona.id}
                 className="p-7 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow flex flex-col justify-between hover:border-brand/40 transition-all group"
               >
@@ -705,7 +756,7 @@ const LandingPage = () => {
       {/* ── 5. INTERACTIVE CAREER STAGE ROADMAP (ZERO HARDCODED SALARY) ── */}
       <section className="w-full py-16 md:py-20 border-b border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0B1120]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="max-w-3xl mb-12 text-left">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 dark:text-white tracking-tight">
               Select Your Track &amp; Map Your Path
@@ -753,7 +804,7 @@ const LandingPage = () => {
           {/* Roadmap Card */}
           <div className="p-8 sm:p-10 rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow text-left">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              
+
               <div className="space-y-2">
                 <span className="text-xs font-mono font-bold text-brand uppercase">CORE PREPARATION FOCUS</span>
                 <h4 className="text-base font-bold text-slate-950 dark:text-white">{currentRoadmap.title}</h4>
@@ -788,7 +839,7 @@ const LandingPage = () => {
       {/* ── 6. "THE DIRECT ADVANTAGE": TRADITIONAL CONSULTANCIES VS STARTAPLY DIRECT ── */}
       <section className="w-full py-16 md:py-20 border-b border-slate-200/90 dark:border-slate-800 bg-[#F4F6FB] dark:bg-[#070B14]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="max-w-3xl mb-12 text-left">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 dark:text-white tracking-tight">
               The Broken Status Quo vs Startaply Direct
@@ -799,7 +850,7 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
-            
+
             {/* The Broken Traditional Way */}
             <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-950/40 soft-shadow space-y-5">
               <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-red-600">
@@ -870,7 +921,7 @@ const LandingPage = () => {
       {/* ── 7. INTERACTIVE KNOWLEDGE FLASHCARD ("TEST YOUR READINESS") ── */}
       <section className="w-full py-16 md:py-20 border-b border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0B1120]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="max-w-3xl mb-12 text-left">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 dark:text-white tracking-tight">
               Test Your Knowledge Before Interview Day
@@ -947,7 +998,7 @@ const LandingPage = () => {
       {/* ── 8. CAREER DISCIPLINES: TOPIC EXPLORATION (STRICTLY SINGLE-LINE JOIN TRACK BUTTON) ── */}
       <section id="disciplines" className="w-full py-16 md:py-20 border-b border-slate-200/90 dark:border-slate-800 bg-[#F4F6FB] dark:bg-[#070B14]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 text-left">
             <div>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 dark:text-white tracking-tight">
@@ -1007,8 +1058,8 @@ const LandingPage = () => {
                       {d.compensation}
                     </div>
                   </div>
-                  <Link 
-                    to="/signup" 
+                  <Link
+                    to="/signup"
                     className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white font-bold text-xs transition-all shadow-xs active:scale-95 group"
                   >
                     <span>Join Track</span>
@@ -1024,12 +1075,12 @@ const LandingPage = () => {
 
       {/* ── 9. CANDIDATE STORIES (ONE UNIFIED HIGH-FIDELITY TESTIMONIAL SUITE - NO PILL BADGES) ── */}
       <section id="stories" className="w-full py-16 md:py-20 border-b border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0B1120] relative overflow-hidden">
-        
+
         {/* Background Mesh Gradient */}
         <div className="absolute inset-0 bg-mesh-gradient pointer-events-none opacity-60" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          
+
           <div className="max-w-3xl mb-12 text-left">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-950 dark:text-white tracking-tight">
               Verified Placements. Zero Brokerage.
@@ -1042,7 +1093,7 @@ const LandingPage = () => {
           {/* Unified High-Fidelity 3-Card Testimonial Grid (Clean text, no pill badges) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
             {TESTIMONIALS.map((t, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow flex flex-col justify-between"
               >
@@ -1112,7 +1163,7 @@ const LandingPage = () => {
 
       {/* ── 11. STREAMLINED FOOTER (CANDIDATE & COMMUNITY DIRECTORY) ── */}
       <footer className="w-full border-t border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#070B14] pt-16 pb-12 text-xs text-slate-500 dark:text-slate-400 relative overflow-hidden">
-        
+
         {/* Subtle Watermark Typography */}
         <div className="w-full text-center select-none pointer-events-none opacity-[0.04] dark:opacity-[0.03] overflow-hidden">
           <span className="text-[14vw] font-black tracking-tighter uppercase whitespace-nowrap leading-none block">
@@ -1122,7 +1173,7 @@ const LandingPage = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            
+
             {/* Brand Column */}
             <div className="flex flex-col items-start pr-4 text-left">
               <Link to="/" className="mb-4" aria-label="Startaply Home">
@@ -1163,7 +1214,7 @@ const LandingPage = () => {
               <Link to="/about" className="btn-underline text-slate-500 hover:text-brand">About Startaply</Link>
               <Link to="/privacy" className="btn-underline text-slate-500 hover:text-brand">Privacy Policy</Link>
               <Link to="/terms" className="btn-underline text-slate-500 hover:text-brand">Terms of Service</Link>
-              <Link to="/admin/login" className="btn-underline text-slate-500 hover:text-brand">Staff Portal</Link>
+              <Link to="/#faq" className="btn-underline text-slate-500 hover:text-brand">Direct Guarantee &amp; FAQ</Link>
             </div>
 
           </div>

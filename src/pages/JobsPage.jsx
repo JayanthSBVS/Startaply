@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import { subscribeToFreshness } from '../utils/dataFreshness';
+import { useAuth } from '../context/AuthContext';
+import { getCandidateProfile, isJobMatchingCandidate, getComboBadgeInfo } from '../utils/candidatePersonalization';
 import axios from 'axios';
 
 // ─── Section definitions ───────────────────────────────────────────────────
@@ -31,15 +33,36 @@ const colorMap = {
   orange:  { pill: 'bg-orange-600 text-white shadow-orange-600/20',   idle: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',     dot: 'bg-orange-500',  iconBg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
 };
 
-// ─── Derive initial state from URL ─────────────────────────────────────────
+// ─── Derive initial state from URL or Cached Candidate Preference ─────────
 function getInitialState(searchParams) {
-  const section = searchParams.get('section') || 'all';
+  let section = searchParams.get('section');
+  if (!section) {
+    try {
+      const stored = localStorage.getItem('startaply_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        const tr = (u?.careerTrack || '').toLowerCase();
+        const sub = (u?.subTrack || '').toLowerCase();
+        let lvl = '';
+        if (u?.preferences) {
+          const p = typeof u.preferences === 'object' ? u.preferences : JSON.parse(u.preferences);
+          lvl = (p?.level || '').toLowerCase();
+        }
+        if (tr === 'it' && (lvl === 'fresher' || sub.includes('fresher'))) {
+          section = 'it-freshers';
+        }
+      }
+    } catch {}
+  }
+  if (!section) section = 'all';
+
   const search = searchParams.get('search') || searchParams.get('company') || searchParams.get('q') || '';
   const workMode = searchParams.get('workMode') || 'All';
   return { section, search, workMode };
 }
 
 const JobsPage = () => {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Use a ref to track if we've initialized to avoid re-syncing on every render
@@ -49,6 +72,74 @@ const JobsPage = () => {
   const [activeSection, setActiveSection] = useState(init.section);
   const [workMode, setWorkMode]         = useState(init.workMode);
   const [selectedJob, setSelectedJob]   = useState(null);
+
+  // Personalized Candidate Track Detection
+  const candidateProfile = useMemo(() => getCandidateProfile(user), [user]);
+  const isItFresher = candidateProfile.isItFresher;
+  const comboBadge = useMemo(() => getComboBadgeInfo(candidateProfile), [candidateProfile]);
+
+  const defaultSection = useMemo(() => {
+    if (!candidateProfile.isCandidate) return 'all';
+    if (candidateProfile.isItFresher) return 'it-freshers';
+    if (candidateProfile.isItExperienced) return 'it';
+    if (candidateProfile.isNonItFresher) return 'freshers';
+    if (candidateProfile.isNonItExperienced) return 'nonit';
+    if (candidateProfile.isGig) return 'gig';
+    return 'all';
+  }, [candidateProfile]);
+
+  // If candidate is logged in and has no section parameter in URL, ensure default to candidate's track
+  useEffect(() => {
+    if (candidateProfile.isCandidate && (!searchParams.get('section') || activeSection === 'all')) {
+      setActiveSection(defaultSection);
+    }
+  }, [candidateProfile, defaultSection, searchParams, activeSection]);
+
+  const dynamicSections = useMemo(() => {
+    if (!candidateProfile.isCandidate) return SECTIONS;
+
+    if (candidateProfile.isItFresher) {
+      return [
+        { id: 'it-freshers', label: 'All IT Freshers', icon: GraduationCap, color: 'brand', desc: 'All verified entry-level software, tech & developer openings' },
+        { id: 'today',       label: "Today's IT Freshers", icon: Zap, color: 'amber', desc: 'Fresh IT graduate roles posted in the last 24 hours' },
+        { id: 'featured',    label: 'Featured IT Freshers', icon: Star, color: 'rose', desc: 'Top verified IT fresher opportunities' },
+      ];
+    }
+
+    if (candidateProfile.isItExperienced) {
+      return [
+        { id: 'it',          label: 'All IT & Software', icon: Monitor, color: 'blue', desc: 'Senior developers, QA, DevOps, Cloud & AI engineers' },
+        { id: 'today',       label: "Today's Tech Jobs", icon: Zap, color: 'amber', desc: 'Tech roles posted in the last 24 hours' },
+        { id: 'featured',    label: 'Featured Tech Roles', icon: Star, color: 'rose', desc: 'Hand-picked corporate & enterprise IT roles' },
+      ];
+    }
+
+    if (candidateProfile.isNonItFresher) {
+      return [
+        { id: 'freshers',    label: 'All Non-IT Freshers', icon: GraduationCap, color: 'purple', desc: 'Graduate & entry-level roles in ops, sales, HR & banking' },
+        { id: 'today',       label: "Today's Non-IT Jobs", icon: Zap, color: 'amber', desc: 'New operational roles posted in the last 24 hours' },
+        { id: 'featured',    label: 'Featured Opportunities', icon: Star, color: 'rose', desc: 'Top non-IT entry opportunities' },
+      ];
+    }
+
+    if (candidateProfile.isNonItExperienced) {
+      return [
+        { id: 'nonit',       label: 'All Non-IT & Ops', icon: Briefcase, color: 'purple', desc: 'Operations, BPO, HR, Corporate Sales & Banking roles' },
+        { id: 'today',       label: "Today's Openings", icon: Zap, color: 'amber', desc: 'Openings posted in the last 24 hours' },
+        { id: 'featured',    label: 'Featured Roles', icon: Star, color: 'rose', desc: 'Top verified enterprise roles' },
+      ];
+    }
+
+    if (candidateProfile.isGig) {
+      return [
+        { id: 'gig',         label: 'All Gigs & Contract', icon: Zap, color: 'orange', desc: 'Verified freelance, remote & contract assignments' },
+        { id: 'today',       label: "Today's Gigs", icon: Zap, color: 'amber', desc: 'Gigs posted in the last 24 hours' },
+        { id: 'featured',    label: 'Featured Gigs', icon: Star, color: 'rose', desc: 'Hand-picked contract opportunities' },
+      ];
+    }
+
+    return SECTIONS;
+  }, [candidateProfile]);
 
   const [localJobs, setLocalJobs] = useState([]);
   const [page, setPage]           = useState(1);
@@ -193,13 +284,14 @@ const JobsPage = () => {
       setFailed(false);
       try {
         const routeMap = {
-          'all':        '/api/jobs',
-          'it':         '/api/jobs/it',
-          'nonit':      '/api/jobs/non-it',
-          'gig':        '/api/jobs/gig',
-          'freshers':   '/api/jobs/freshers',
-          'today':      '/api/jobs/today',
-          'featured':   '/api/jobs/featured',
+          'all':         '/api/jobs',
+          'it-freshers': '/api/jobs/it-freshers',
+          'it':          '/api/jobs/it',
+          'nonit':       '/api/jobs/non-it',
+          'gig':         '/api/jobs/gig',
+          'freshers':    '/api/jobs/freshers',
+          'today':       '/api/jobs/today',
+          'featured':    '/api/jobs/featured',
         };
         const endpoint = routeMap[activeSection] || '/api/jobs';
         let queryParams = `?page=${page}&limit=20`;
@@ -208,12 +300,24 @@ const JobsPage = () => {
           queryParams += `&search=${encodeURIComponent(debouncedSearch)}`;
         }
 
+        if (candidateProfile.isCandidate) {
+          if (candidateProfile.track) {
+            queryParams += `&track=${encodeURIComponent(candidateProfile.track)}`;
+          }
+          if (candidateProfile.level) {
+            queryParams += `&level=${encodeURIComponent(candidateProfile.level)}`;
+          }
+        }
+
         const res = await axios.get(`${endpoint}${queryParams}`, {
           signal: abortController.signal
         });
 
         if (!abortController.signal.aborted && requestSequenceRef.current === currentSequence) {
-          const newJobs = Array.isArray(res.data) ? res.data : [];
+          let newJobs = Array.isArray(res.data) ? res.data : [];
+          if (candidateProfile.isCandidate) {
+            newJobs = newJobs.filter(j => isJobMatchingCandidate(j, candidateProfile));
+          }
           if (page === 1) {
             setHasMore(newJobs.length >= 20);
           } else {
@@ -258,7 +362,7 @@ const JobsPage = () => {
       }
       abortController.abort();
     };
-  }, [activeSection, debouncedSearch, page, refreshCounter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeSection, debouncedSearch, page, refreshCounter, candidateProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     return localJobs.filter(job => {
@@ -267,13 +371,13 @@ const JobsPage = () => {
     });
   }, [localJobs, workMode]);
 
-  const activeConfig = SECTIONS.find(s => s.id === activeSection) || SECTIONS[0];
-  const colors       = colorMap[activeConfig.color];
+  const activeConfig = dynamicSections.find(s => s.id === activeSection) || dynamicSections[0];
+  const colors       = colorMap[activeConfig.color] || colorMap.brand;
   const IconComp     = activeConfig.icon;
 
   const handleClearFilters = () => {
     setSearch('');
-    setActiveSection('all');
+    setActiveSection(defaultSection);
     setWorkMode('All');
   };
 
@@ -317,9 +421,9 @@ const JobsPage = () => {
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-14 md:top-16 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-2 overflow-x-auto py-3 no-scrollbar">
-            {SECTIONS.map(sec => {
+            {dynamicSections.map(sec => {
               const Ic = sec.icon;
-              const secColors = colorMap[sec.color];
+              const secColors = colorMap[sec.color] || colorMap.brand;
               const isActive = activeSection === sec.id;
               return (
                 <button
@@ -341,6 +445,28 @@ const JobsPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
+
+        {/* ── PROFILE MATCHED HERO BANNER ──────────────── */}
+        {candidateProfile.isCandidate && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-brand/5 dark:bg-brand/10 border border-brand/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand text-on-brand flex items-center justify-center shrink-0 shadow-sm">
+                {candidateProfile.isGig ? <Zap size={20} /> : candidateProfile.isFresher ? <GraduationCap size={20} /> : <Briefcase size={20} />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-brand">Candidate Preference Filter</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand/10 text-brand dark:text-brand-hover">
+                    {comboBadge.fullTitle}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                  Your profile is set to <strong>{comboBadge.fullTitle}</strong>. You are exclusively viewing openings matching this specific track across the platform.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── MODE FILTER ─────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-1">

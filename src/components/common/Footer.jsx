@@ -2,12 +2,15 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Twitter, Linkedin, Instagram, Youtube, ArrowRight } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { useAuth } from '../../context/AuthContext';
 
 const Footer = () => {
   const location = useLocation();
+  const { user } = useAuth();
 
   const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/admin-login');
-  if (isAdminRoute) return null;
+  const isLandingRoute = location.pathname === '/landing' || (!user && location.pathname === '/');
+  if (isAdminRoute || isLandingRoute) return null;
 
   return (
     <footer className="bg-surface-muted border-t border-border-strong pt-12 md:pt-24 pb-6 md:pb-8 transition-colors duration-base">

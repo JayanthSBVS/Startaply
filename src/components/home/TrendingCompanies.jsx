@@ -120,10 +120,6 @@ const TrendingCompanies = () => {
 
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 relative z-10 mb-8 md:mb-14 text-center">
-        <div className="inline-flex items-center gap-2 mb-3.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 shadow-sm text-xs font-bold uppercase tracking-wider text-blue-200">
-          <Users size={13} className="text-[#1A62FE]" />
-          <span>The Startaply Partner Network</span>
-        </div>
         <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
           Verified Hiring <span className="text-[#1A62FE]">Ecosystem</span>
         </h2>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, LayoutDashboard, PlusCircle, Briefcase, FileText, Building2, MapPin, BookOpen, MessageSquareQuote, Handshake, MessageSquare, Users2, Sliders, History, BarChart3, Image as ImageIcon, Zap, LogOut, Ticket } from 'lucide-react';
+import { X, LayoutDashboard, PlusCircle, Briefcase, FileText, Building2, MapPin, BookOpen, MessageSquareQuote, Handshake, MessageSquare, Users, Users2, Sliders, History, BarChart3, Image as ImageIcon, Zap, LogOut, Ticket } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 
 import BrandLogo from '../common/BrandLogo';
@@ -12,7 +12,8 @@ const AdminSidebar = ({
   const isMgr = isManager ? isManager() : false;
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard',    label: 'Dashboard',         icon: LayoutDashboard },
+    { id: 'candidates',   label: 'Candidates Roster', icon: Users },
     ...(isMgr ? [
       { id: 'team',        label: 'Team Management', icon: Users2 },
       { id: 'permissions', label: 'Role Permissions', icon: Sliders },

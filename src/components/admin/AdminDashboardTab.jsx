@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, Users, Building2, Megaphone, Activity, FileText } from 'lucide-react';
+import { Briefcase, Users, Building2, Megaphone, Activity, FileText, UserCheck } from 'lucide-react';
 import { getRoleConfig } from './adminConstants';
 
 const AdminDashboardTab = ({
@@ -17,9 +17,10 @@ const AdminDashboardTab = ({
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5">
       {/* Primary Performance Multipliers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         {[
           { label: 'Active Jobs', val: dashboardSummary ? dashboardSummary.totalJobs : jobs.length, icon: Briefcase, col: 'text-[#001F8E] dark:text-[#1A62FE]', bg: 'bg-[#EFF3FF] dark:bg-[#1A62FE]/10' },
+          { label: 'Registered Candidates', val: dashboardSummary ? (dashboardSummary.totalCandidates ?? 0) : 0, icon: UserCheck, col: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
           { label: 'Total Applicants', val: dashboardSummary ? dashboardSummary.totalApplications : applications.length, icon: Users, col: 'text-[#1A62FE] dark:text-[#1A62FE]', bg: 'bg-blue-50 dark:bg-blue-500/10' },
           { label: 'Partner Network', val: dashboardSummary ? dashboardSummary.totalCompanies : companies.length, icon: Building2, col: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-500/10' },
           { label: 'Job Melas', val: dashboardSummary ? dashboardSummary.totalMelas : melas.length, icon: Megaphone, col: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' }

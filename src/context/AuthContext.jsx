@@ -31,9 +31,18 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Fetch role permissions from server
+  // Fetch role permissions from server (Internal administrative / staff roles only)
   const fetchPermissions = async (token) => {
     try {
+      const storedUser = localStorage.getItem('startaply_user');
+      if (storedUser) {
+        try {
+          const u = JSON.parse(storedUser);
+          // Candidates and end-users do not use staff RBAC permissions table
+          if (u.role === 'candidate' || u.role === 'user') return;
+        } catch {}
+      }
+
       const t = token || localStorage.getItem('startaply_token');
       if (!t) return;
       const res = await axios.get('/api/auth/permissions', {
@@ -44,7 +53,14 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       if (err?.response?.status === 401) {
-        // Token is expired or invalid - clear auth state gracefully
+        const storedUser = localStorage.getItem('startaply_user');
+        if (storedUser) {
+          try {
+            const u = JSON.parse(storedUser);
+            if (u.role === 'candidate' || u.role === 'user') return;
+          } catch {}
+        }
+        // Token is expired or invalid for staff - clear auth state gracefully
         localStorage.removeItem('startaply_token');
         localStorage.removeItem('startaply_user');
         setUser(null);
@@ -60,8 +76,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('startaply_token', token);
     localStorage.setItem('startaply_user', JSON.stringify(normalizedUser));
     setUser(normalizedUser);
-    // Fetch permissions right after login
-    fetchPermissions(token).catch(() => {});
+    // Fetch permissions right after login only if not candidate
+    if (normalizedUser.role !== 'candidate' && normalizedUser.role !== 'user') {
+      fetchPermissions(token).catch(() => {});
+    }
   };
 
   const logout = async () => {
@@ -128,9 +146,33 @@ export const AuthProvider = ({ children }) => {
     fetchPermissions(token).catch(() => {});
   };
 
+  // ── UPDATE PROFILE & PREFERENCES ───────────────────────────────────────────
+  const updateProfile = async (updates) => {
+    try {
+      const token = localStorage.getItem('startaply_token');
+      if (!token) throw new Error('Not authenticated');
+
+      const res = await axios.put('/api/auth/profile', updates, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data && res.data.user) {
+        const updatedUser = res.data.user;
+        setUser(updatedUser);
+        localStorage.setItem('startaply_user', JSON.stringify(updatedUser));
+        return { success: true, user: updatedUser };
+      }
+      return { success: false, error: 'No user data returned' };
+    } catch (err) {
+      console.error('Update profile error:', err);
+      const errMsg = err?.response?.data?.error || err.message || 'Failed to update preferences';
+      return { success: false, error: errMsg };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
-      user, loading, login, logout,
+      user, loading, login, logout, updateProfile,
       // Role checks
       isManager, isOpManager, isExecutive,
       // Permission checks

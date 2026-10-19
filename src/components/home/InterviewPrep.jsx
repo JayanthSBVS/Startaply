@@ -31,10 +31,7 @@ const InterviewPrep = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 md:mb-10">
           <div>
-            <span className="text-xs font-black uppercase tracking-widest text-brand bg-brand-soft border border-brand/20 px-3 py-1 rounded-full">
-              Preparation Hub
-            </span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mt-3 leading-tight">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">
               Ace Your Next<br className="sm:hidden" /> <span className="text-brand">Interview & Assessment</span>
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-2">

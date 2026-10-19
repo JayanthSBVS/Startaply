@@ -196,9 +196,6 @@ const PreparationPage = () => {
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-brand-hover/20 via-transparent to-transparent" />
         <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3.5 py-1 text-[11px] sm:text-xs font-bold text-blue-100 uppercase tracking-wider mb-4 sm:mb-6">
-            <Sparkles size={13} className="text-brand-hover" /> Career Resources & Guides
-          </div>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-2 sm:mb-4 leading-tight">
             Interview & Skill <br className="hidden sm:inline" />
             <span className="text-blue-100 font-extrabold">Preparation Hub</span>

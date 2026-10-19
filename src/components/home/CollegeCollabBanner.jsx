@@ -69,11 +69,6 @@ const CollegeCollabBanner = () => {
           {/* Subtle top accent bar */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand via-brand-hover to-blue-400" />
 
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-4 sm:mb-6">
-            <GraduationCap size={15} /> Campus to Corporate Network
-          </div>
-
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-3 sm:mb-5 tracking-tight leading-tight">
             Bridging Campus Talent with <br className="hidden sm:inline" />
             <span className="text-brand dark:text-brand-hover">High-Growth Corporates</span>

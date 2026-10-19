@@ -3,6 +3,7 @@ import AdminHeader from '../components/admin/AdminHeader';
 import AdminCompanyModal from '../components/admin/AdminCompanyModal';
 import ConfirmDeleteModal from '../components/common/ConfirmDeleteModal';
 import AdminDashboardTab from '../components/admin/AdminDashboardTab';
+import AdminCandidates from '../components/admin/AdminCandidates';
 import AdminJobForm from '../components/admin/AdminJobForm';
 import AdminManageJobs from '../components/admin/AdminManageJobs';
 import AdminApplications from '../components/admin/AdminApplications';
@@ -311,9 +312,9 @@ const AdminDashboard = () => {
         newJobId = res.data?.id || res.data?.job?.id || null;
         showMsg('Job Published');
       }
-      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', companyId: null, isHeroFeatured: false }); 
-      setEditingJobId(null); 
-      setActiveTab('manage'); 
+      setJobForm({ applyType: 'external', expiryDays: 30, jobCategory: '', companyId: null, isHeroFeatured: false });
+      setEditingJobId(null);
+      setActiveTab('manage');
       publishFreshness('jobs', editingJobId ? 'update' : 'create', newJobId);
       fetchData();
     } catch (err) { toast.error('Error saving job data'); }
@@ -325,7 +326,7 @@ const AdminDashboard = () => {
       fetchData(); showMsg('Job Removed');
     });
   };
-  
+
   const isMgr = isManager();
   const perms = myPermissions || getMyPermissions() || {};
 
@@ -345,21 +346,30 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-white dark:bg-black flex text-slate-900 dark:text-white font-sans selection:bg-brand/20 transition-colors duration-300">
       <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} activeTab={activeTab} setActiveTab={setActiveTab} logout={logout} navigate={navigate} isManager={isManager} myPermissions={perms} />
       <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 dark:bg-black">
-        <AdminHeader 
+        <AdminHeader
           activeTab={activeTab} setIsMobileMenuOpen={setIsMobileMenuOpen}
           toast={toast} getRoleLabel={getRoleLabel} user={user}
         />
         <main className="p-4 md:p-8">
           {activeTab === 'dashboard' && (
-            <AdminDashboardTab 
+            <AdminDashboardTab
               dashboardSummary={dashboardSummary} jobs={jobs} applications={applications}
               companies={companies} melas={melas} isManager={isManager} globalStats={globalStats}
               logs={logs} admins={admins} isMobileMenuOpen={isMobileMenuOpen}
             />
           )}
+          {activeTab === 'candidates' && (
+            <AdminCandidates
+              confirmAction={confirmAction}
+              showMsg={showMsg}
+              getConfig={getConfig}
+              userProfile={user}
+              isManager={isManager}
+            />
+          )}
           {activeTab === 'add' && (
             (!isMgr && perms.can_post_job === false) ? renderAccessDenied('Post Job') : (
-              <AdminJobForm 
+              <AdminJobForm
                 jobForm={jobForm} setJobForm={setJobForm} editingJobId={editingJobId}
                 companySearch={companySearch} setCompanySearch={setCompanySearch}
                 showCompanyList={showCompanyList} setShowCompanyList={setShowCompanyList}
@@ -369,7 +379,7 @@ const AdminDashboard = () => {
             )
           )}
           {activeTab === 'manage' && (
-            <AdminManageJobs 
+            <AdminManageJobs
               jobs={jobs} setJobForm={setJobForm} setEditingJobId={setEditingJobId}
               setActiveTab={setActiveTab} handleJobDelete={handleJobDelete}
               handleToggle={handleToggle} setCompanySearch={setCompanySearch}
@@ -377,7 +387,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'applications' && (
             (!isMgr && perms.can_view_applicants === false) ? renderAccessDenied('Applications') : (
-              <AdminApplications 
+              <AdminApplications
                 applications={applications} confirmAction={confirmAction}
                 fetchData={fetchData} showMsg={showMsg} getConfig={getConfig}
               />
@@ -385,7 +395,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'companies' && (
             (!isMgr && perms.can_manage_companies === false) ? renderAccessDenied('Companies') : (
-              <AdminCompanies 
+              <AdminCompanies
                 companies={companies} companyForm={companyForm} setCompanyForm={setCompanyForm}
                 getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
                 confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
@@ -395,7 +405,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'jobmela' && (
             (!isMgr && perms.can_manage_mela === false) ? renderAccessDenied('Job Fair') : (
-              <AdminJobMela 
+              <AdminJobMela
                 melas={melas} melaForm={melaForm} setMelaForm={setMelaForm}
                 getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
                 confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
@@ -404,7 +414,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'prep' && (
             (!isMgr && perms.can_manage_prep === false) ? renderAccessDenied('Preparation Material') : (
-              <AdminPrepData 
+              <AdminPrepData
                 prepData={prepData} prepForm={prepForm} setPrepForm={setPrepForm}
                 getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
                 confirmAction={confirmAction} API={API}
@@ -412,14 +422,14 @@ const AdminDashboard = () => {
             )
           )}
           {activeTab === 'testimonials' && (
-            <AdminTestimonials 
+            <AdminTestimonials
               testimonials={testimonials} testimonialForm={testimonialForm} setTestimonialForm={setTestimonialForm}
               getConfig={getConfig} fetchData={fetchData} showMsg={showMsg}
               confirmAction={confirmAction} handleImageCompression={compressImage} API={API}
             />
           )}
           {activeTab === 'collabs' && (
-            <AdminCollabs 
+            <AdminCollabs
               data={{ collabRequests }}
               formState={{}}
               handlers={{ fetchData, confirmAction, showMsg }}
@@ -427,7 +437,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'support' && (
-            <AdminSupportTickets 
+            <AdminSupportTickets
               data={{ supportTickets }}
               formState={{}}
               handlers={{ fetchData, confirmAction, showMsg }}
@@ -435,7 +445,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'liveticker' && (
-            <AdminLiveTicker 
+            <AdminLiveTicker
               data={{ liveTickerItems }}
               formState={{ tickerForm, setTickerForm }}
               handlers={{ fetchData, confirmAction, showMsg }}
@@ -443,7 +453,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'herobanners' && (
-            <AdminHeroBanners 
+            <AdminHeroBanners
               data={{ heroBanners }}
               formState={{}}
               handlers={{ fetchData, confirmAction, showMsg, handleImageCompression: compressImage }}
@@ -451,7 +461,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'logs' && isManager() && (
-            <AdminActivityLogs 
+            <AdminActivityLogs
               data={{ logs }}
               formState={{}}
               handlers={{ fetchData, confirmAction, showMsg }}
@@ -459,7 +469,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'team' && isManager() && (
-            <AdminTeamManagement 
+            <AdminTeamManagement
               data={{ admins }}
               formState={{ teamForm, setTeamForm, showTeamModal, setShowTeamModal }}
               handlers={{ fetchData, confirmAction, showMsg }}
@@ -467,7 +477,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'permissions' && isManager() && (
-            <AdminPermissions 
+            <AdminPermissions
               data={{ ROLE_CONFIG, permissions }}
               formState={{ permForm, setPermForm, permSaving, setPermSaving, permSeeded, setPermSeeded }}
               handlers={{ fetchData, showMsg, refreshPermissions }}
@@ -475,7 +485,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === 'global_stats' && isManager() && (
-            <AdminGlobalStats 
+            <AdminGlobalStats
               data={{ globalStats }}
               formState={{}}
               handlers={{ fetchData, confirmAction, showMsg }}
@@ -486,7 +496,7 @@ const AdminDashboard = () => {
       </div>
       {/* Inline Company Creation Modal */}
       {isCompanyModalOpen && (
-        <AdminCompanyModal 
+        <AdminCompanyModal
           companyForm={companyForm} setCompanyForm={setCompanyForm}
           setIsCompanyModalOpen={setIsCompanyModalOpen} setJobForm={setJobForm}
           jobForm={jobForm} setCompanySearch={setCompanySearch}
@@ -494,7 +504,7 @@ const AdminDashboard = () => {
         />
       )}
       {/* Global Custom Delete Confirmation Modal */}
-      <ConfirmDeleteModal 
+      <ConfirmDeleteModal
         isOpen={deleteModal.isOpen}
         title={deleteModal.title}
         message={deleteModal.message}

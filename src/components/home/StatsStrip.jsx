@@ -112,14 +112,6 @@ const StatsStrip = () => {
         
         {/* Section Header */}
         <div className="text-center mb-12 md:mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 mb-3.5 px-3.5 py-1.5 rounded-full bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] text-xs font-bold uppercase tracking-wider shadow-sm"
-          >
-            <BarChart3 size={14} /> Platform Metrics
-          </motion.div>
           
           <motion.h2 
             initial={{ opacity: 0, y: 15 }}

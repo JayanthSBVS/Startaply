@@ -131,33 +131,219 @@ const FALLBACK_SEED_USERS = [
   { id: 'op_executive_demo', name: 'Operations Executive', email: 'executive@startaply.com', pass: 'executive123', role: 'operational_executive' }
 ];
 
+// ── CANDIDATE SIGNUP ENDPOINT ─────────────────────────────
+router.post('/signup', async (req, res) => {
+  const {
+    name,
+    email,
+    password,
+    phone,
+    city,
+    linkedinUrl,
+    whatsappSync = true,
+    careerTrack,
+    subTrack,
+    qualification,
+    skills,
+    preferences = {}
+  } = req.body;
+
+  // 1. Mandatory Baseline Validation
+  if (!name || name.trim().length < 3) {
+    return res.status(400).json({ error: 'Full name is required and must be at least 3 characters.' });
+  }
+
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+    return res.status(400).json({ error: 'A valid email address is required.' });
+  }
+
+  const cleanPhone = (phone || '').replace(/\D/g, '');
+  if (cleanPhone.length !== 10) {
+    return res.status(400).json({ error: 'A valid 10-digit mobile number is required.' });
+  }
+
+  // 2. Strict Password Policy Verification (Senior Security Spec)
+  // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+  if (!password || !passwordRegex.test(password)) {
+    return res.status(400).json({
+      error: 'Password does not meet strict security criteria (minimum 8 characters, uppercase, lowercase, number, and special character required).'
+    });
+  }
+
+  // 3. Compulsory LinkedIn Profile Verification
+  const cleanLinkedin = (linkedinUrl || '').trim();
+  const linkedinRegex = /^(https?:\/\/)?([a-z0-9-]+\.)?linkedin\.com\/.+/i;
+  if (!cleanLinkedin || !linkedinRegex.test(cleanLinkedin)) {
+    return res.status(400).json({
+      error: 'A verified LinkedIn profile URL is compulsory (e.g., https://www.linkedin.com/in/username).'
+    });
+  }
+
+  // 4. Validate Career Track
+  const validTracks = ['it', 'non-it', 'gig', 'others'];
+  const sanitizedTrack = (careerTrack || 'it').toLowerCase();
+  if (!validTracks.includes(sanitizedTrack)) {
+    return res.status(400).json({ error: 'Invalid career track selected.' });
+  }
+
+  try {
+    // 5. Duplicate Identity Check (Email & Phone)
+    const existingCheck = await pool.query(
+      'SELECT id, email, phone FROM candidates WHERE LOWER(email) = $1 OR phone = $2 LIMIT 1',
+      [normalizedEmail, cleanPhone]
+    );
+
+    if (existingCheck.rows.length > 0) {
+      const match = existingCheck.rows[0];
+      if (match.email.toLowerCase() === normalizedEmail) {
+        return res.status(409).json({ error: 'An account with this email address already exists. Please sign in.' });
+      }
+      return res.status(409).json({ error: 'An account with this mobile number already exists.' });
+    }
+
+    // 6. Secure Password Hashing
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // 7. Generate Distributed ID & Timestamps
+    const candidateId = `cand_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const now = Date.now();
+
+    // 8. DB Persistence
+    const insertQuery = `
+      INSERT INTO candidates (
+        id, name, email, password, phone, city, linkedin_url,
+        whatsapp_sync, career_track, sub_track, qualification,
+        skills, preferences, status, created_at, updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+      ) RETURNING id, name, email, phone, city, linkedin_url as "linkedinUrl",
+                  whatsapp_sync as "whatsappSync", career_track as "careerTrack",
+                  sub_track as "subTrack", qualification, skills, preferences,
+                  status, created_at as "createdAt"
+    `;
+
+    const insertValues = [
+      candidateId,
+      name.trim(),
+      normalizedEmail,
+      hashedPassword,
+      cleanPhone,
+      (city || 'Bengaluru').trim(),
+      cleanLinkedin,
+      Boolean(whatsappSync),
+      sanitizedTrack,
+      (subTrack || '').trim(),
+      (qualification || '').trim(),
+      typeof skills === 'string' ? skills : Array.isArray(skills) ? skills.join(', ') : '',
+      typeof preferences === 'object' ? JSON.stringify(preferences) : preferences,
+      'REGISTERED',
+      now,
+      now
+    ];
+
+    const { rows } = await pool.query(insertQuery, insertValues);
+    const candidate = rows[0];
+
+    // 9. Sign Secure Session JWT
+    const token = jwt.sign(
+      {
+        id: candidate.id,
+        email: candidate.email,
+        role: 'candidate',
+        name: candidate.name,
+        career_track: candidate.careerTrack
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 10. Realtime Operational Notification to Manager & Executive Panels
+    if (req.io) {
+      req.io.emit('DATA_UPDATED', {
+        module: 'Candidates',
+        action: 'signup',
+        candidate: {
+          id: candidate.id,
+          name: candidate.name,
+          email: candidate.email,
+          careerTrack: candidate.careerTrack,
+          subTrack: candidate.subTrack,
+          createdAt: candidate.createdAt
+        }
+      });
+    }
+
+    // 11. Structured Audit Log
+    await logActivity(
+      candidate.id,
+      candidate.name,
+      'candidate',
+      'Candidates',
+      `New candidate registered: ${candidate.name} (${candidate.careerTrack.toUpperCase()})`,
+      candidate.id
+    ).catch(() => {});
+
+    return res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: candidate.id,
+        name: candidate.name,
+        email: candidate.email,
+        phone: candidate.phone,
+        city: candidate.city,
+        linkedinUrl: candidate.linkedinUrl,
+        whatsappSync: candidate.whatsappSync,
+        careerTrack: candidate.careerTrack,
+        subTrack: candidate.subTrack,
+        qualification: candidate.qualification,
+        skills: candidate.skills,
+        preferences: candidate.preferences,
+        status: candidate.status,
+        role: 'candidate'
+      }
+    });
+  } catch (err) {
+    console.error('[Candidate Signup Error]', err);
+    return res.status(500).json({ error: 'Server error processing registration. Please try again.' });
+  }
+});
+
+// ── UNIFIED LOGIN ENDPOINT (STAFF & CANDIDATES) ───────────
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
+  const normalizedIdentifier = email.trim().toLowerCase();
+
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
+    // 1. Check Administrative Users (Manager, Op Manager, Op Executive)
+    const { rows: userRows } = await pool.query(
+      'SELECT * FROM users WHERE LOWER(email) = $1',
+      [normalizedIdentifier]
     );
 
-    if (rows && rows.length > 0) {
-      if (!(await bcrypt.compare(password, rows[0].password))) {
+    if (userRows && userRows.length > 0) {
+      if (!(await bcrypt.compare(password, userRows[0].password))) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      if (!rows[0].isactive) {
+      if (!userRows[0].isactive) {
         return res.status(403).json({ error: 'Your account is currently disabled. Contact Operational Manager.' });
       }
 
-      const user = rows[0];
+      const user = userRows[0];
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role, name: user.name },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
 
-      // Update last login (ignore failure if DB write fails)
+      // Update last login
       await pool.query('UPDATE users SET lastLogin = $1 WHERE id = $2', [Date.now(), user.id]).catch(() => {});
       
       // Log Activity & Emit Update
@@ -169,12 +355,67 @@ router.post('/login', async (req, res) => {
         user: { id: user.id, email: user.email, role: user.role, name: user.name } 
       });
     }
+
+    // 2. Check Candidate Roster (By Email or Phone)
+    const cleanPhone = email.replace(/\D/g, '');
+    const { rows: candRows } = await pool.query(
+      'SELECT * FROM candidates WHERE LOWER(email) = $1 OR (phone = $2 AND $2 <> \'\') LIMIT 1',
+      [normalizedIdentifier, cleanPhone]
+    );
+
+    if (candRows && candRows.length > 0) {
+      const candidate = candRows[0];
+
+      if (!(await bcrypt.compare(password, candidate.password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign(
+        {
+          id: candidate.id,
+          email: candidate.email,
+          role: 'candidate',
+          name: candidate.name,
+          career_track: candidate.career_track
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Update last login
+      await pool.query('UPDATE candidates SET last_login = $1 WHERE id = $2', [Date.now(), candidate.id]).catch(() => {});
+
+      if (req.io) {
+        req.io.emit('DATA_UPDATED', { module: 'Candidates', action: 'login', candidateName: candidate.name });
+      }
+
+      return res.json({
+        token,
+        user: {
+          id: candidate.id,
+          email: candidate.email,
+          name: candidate.name,
+          role: 'candidate',
+          phone: candidate.phone,
+          city: candidate.city,
+          linkedinUrl: candidate.linkedin_url,
+          whatsappSync: candidate.whatsapp_sync,
+          careerTrack: candidate.career_track,
+          subTrack: candidate.sub_track,
+          qualification: candidate.qualification,
+          skills: candidate.skills,
+          preferences: candidate.preferences,
+          status: candidate.status
+        }
+      });
+    }
+
   } catch (dbErr) {
     console.warn('[Auth DB Query Warning]', dbErr.message);
   }
 
-  // Fallback to built-in accounts if DB is offline or account not found in DB
-  const matched = FALLBACK_SEED_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+  // 3. Fallback to built-in staff accounts if DB is offline or account not found in DB
+  const matched = FALLBACK_SEED_USERS.find(u => u.email.toLowerCase() === normalizedIdentifier);
   if (matched && matched.pass === password) {
     const token = jwt.sign(
       { id: matched.id, email: matched.email, role: matched.role, name: matched.name },
@@ -187,7 +428,7 @@ router.post('/login', async (req, res) => {
     });
   }
 
-  return res.status(401).json({ error: 'Invalid credentials' });
+  return res.status(401).json({ error: 'Invalid credentials. Please verify your email/phone and password.' });
 });
 
 router.post('/logout', authMiddleware, async (req, res) => {
@@ -202,6 +443,164 @@ router.post('/logout', authMiddleware, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Logout failed' });
+  }
+});
+
+// ── CANDIDATE PROFILE & PREFERENCES ───────────────────────
+
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userEmail = req.user.email;
+
+    const { rows: candRows } = await pool.query(
+      'SELECT id, name, email, phone, city, linkedin_url as "linkedinUrl", whatsapp_sync as "whatsappSync", career_track as "careerTrack", sub_track as "subTrack", qualification, skills, preferences, status, created_at as "createdAt", updated_at as "updatedAt" FROM candidates WHERE id = $1 OR LOWER(email) = LOWER($2) LIMIT 1',
+      [userId, userEmail]
+    );
+
+    if (candRows && candRows.length > 0) {
+      const cand = candRows[0];
+      let parsedPrefs = cand.preferences;
+      if (typeof parsedPrefs === 'string') {
+        try { parsedPrefs = JSON.parse(parsedPrefs); } catch {}
+      }
+      return res.json({
+        ...cand,
+        preferences: parsedPrefs,
+        role: 'candidate'
+      });
+    }
+
+    res.json({ id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role });
+  } catch (err) {
+    console.error('[Get Profile Error]', err);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userEmail = req.user.email;
+    const {
+      name,
+      phone,
+      city,
+      linkedinUrl,
+      careerTrack,
+      subTrack,
+      qualification,
+      skills,
+      preferences
+    } = req.body;
+
+    const now = Date.now();
+    const cleanPhone = phone !== undefined ? phone.replace(/\D/g, '') : null;
+    const cleanLinkedin = linkedinUrl !== undefined ? linkedinUrl.trim() : null;
+    const serializedPrefs = typeof preferences === 'object' ? JSON.stringify(preferences) : preferences;
+
+    // Check if user is in candidates table
+    const { rows: existingCand } = await pool.query(
+      'SELECT * FROM candidates WHERE id = $1 OR LOWER(email) = LOWER($2) LIMIT 1',
+      [userId, userEmail]
+    );
+
+    if (existingCand && existingCand.length > 0) {
+      const cand = existingCand[0];
+      const updateQuery = `
+        UPDATE candidates SET
+          name = COALESCE($1, name),
+          phone = COALESCE($2, phone),
+          city = COALESCE($3, city),
+          linkedin_url = COALESCE($4, linkedin_url),
+          career_track = COALESCE($5, career_track),
+          sub_track = COALESCE($6, sub_track),
+          qualification = COALESCE($7, qualification),
+          skills = COALESCE($8, skills),
+          preferences = COALESCE($9, preferences),
+          updated_at = $10
+        WHERE id = $11
+        RETURNING id, name, email, phone, city, linkedin_url as "linkedinUrl",
+                  whatsapp_sync as "whatsappSync", career_track as "careerTrack",
+                  sub_track as "subTrack", qualification, skills, preferences,
+                  status, created_at as "createdAt", updated_at as "updatedAt"
+      `;
+
+      const values = [
+        name !== undefined ? name.trim() : null,
+        cleanPhone,
+        city !== undefined ? city.trim() : null,
+        cleanLinkedin,
+        careerTrack !== undefined ? careerTrack.toLowerCase().trim() : null,
+        subTrack !== undefined ? subTrack.trim() : null,
+        qualification !== undefined ? qualification.trim() : null,
+        typeof skills === 'string' ? skills : Array.isArray(skills) ? skills.join(', ') : null,
+        serializedPrefs !== undefined ? serializedPrefs : null,
+        now,
+        cand.id
+      ];
+
+      const { rows: updatedRows } = await pool.query(updateQuery, values);
+      const updated = updatedRows[0];
+
+      let parsedPrefs = updated.preferences;
+      if (typeof parsedPrefs === 'string') {
+        try { parsedPrefs = JSON.parse(parsedPrefs); } catch {}
+      }
+
+      const returnUser = {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        city: updated.city,
+        linkedinUrl: updated.linkedinUrl,
+        whatsappSync: updated.whatsappSync,
+        careerTrack: updated.careerTrack,
+        subTrack: updated.subTrack,
+        qualification: updated.qualification,
+        skills: updated.skills,
+        preferences: parsedPrefs,
+        role: 'candidate',
+        status: updated.status
+      };
+
+      if (req.io) {
+        req.io.emit('DATA_UPDATED', {
+          module: 'Candidates',
+          action: 'update_preferences',
+          candidate: returnUser
+        });
+      }
+
+      await logActivity(
+        updated.id,
+        updated.name,
+        'candidate',
+        'Candidates',
+        `Candidate updated preferences: ${updated.name} (${updated.careerTrack?.toUpperCase()} - ${updated.subTrack})`,
+        updated.id
+      ).catch(() => {});
+
+      return res.json({
+        success: true,
+        user: returnUser
+      });
+    }
+
+    // If user is a staff/admin user in users table
+    if (name) {
+      await pool.query('UPDATE users SET name = $1 WHERE id = $2', [name.trim(), userId]).catch(() => {});
+    }
+
+    return res.json({
+      success: true,
+      user: { ...req.user, name: name || req.user.name }
+    });
+
+  } catch (err) {
+    console.error('[Update Profile Error]', err);
+    res.status(500).json({ error: 'Failed to update profile preferences.' });
   }
 });
 
@@ -286,22 +685,24 @@ router.get('/logs', authMiddleware, managerMiddleware, async (req, res) => {
 // GET Dashboard Summary (accessible to all admins)
 router.get('/dashboard-summary', authMiddleware, async (req, res) => {
   try {
-    const [jobs, melas, companies, apps] = await Promise.all([
+    const [jobs, melas, companies, apps, candidates] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM jobs'),
       pool.query('SELECT COUNT(*) FROM job_mela'),
       pool.query('SELECT COUNT(*) FROM companies'),
-      pool.query('SELECT COUNT(*) FROM applications')
+      pool.query('SELECT COUNT(*) FROM applications'),
+      pool.query('SELECT COUNT(*) FROM candidates').catch(() => ({ rows: [{ count: 0 }] }))
     ]);
 
     res.json({
-      totalJobs: parseInt(jobs.rows[0].count),
-      totalApplications: parseInt(apps.rows[0].count),
-      totalCompanies: parseInt(companies.rows[0].count),
-      totalMelas: parseInt(melas.rows[0].count)
+      totalJobs: parseInt(jobs.rows[0]?.count || 0),
+      totalApplications: parseInt(apps.rows[0]?.count || 0),
+      totalCompanies: parseInt(companies.rows[0]?.count || 0),
+      totalMelas: parseInt(melas.rows[0]?.count || 0),
+      totalCandidates: parseInt(candidates.rows[0]?.count || 0)
     });
   } catch (err) {
     console.warn('[Dashboard Summary fallback]', err.message);
-    res.json({ totalJobs: 0, totalApplications: 0, totalCompanies: 0, totalMelas: 0 });
+    res.json({ totalJobs: 0, totalApplications: 0, totalCompanies: 0, totalMelas: 0, totalCandidates: 0 });
   }
 });
 

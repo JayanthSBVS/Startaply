@@ -13,6 +13,7 @@ import {
   Search,
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { useAuth } from '../../context/AuthContext';
 
 const HIDDEN_ROUTES = ['/admin', '/admin-login', '/admin/dashboard'];
 
@@ -53,9 +54,11 @@ const isMoreActive = (pathname) =>
 
 const MobileBottomNav = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const hidden = HIDDEN_ROUTES.some(r => location.pathname.startsWith(r));
+  const isLanding = location.pathname === '/landing' || (!user && location.pathname === '/');
+  const hidden = isLanding || HIDDEN_ROUTES.some(r => location.pathname.startsWith(r));
 
   useEffect(() => {
     if (hidden) return;

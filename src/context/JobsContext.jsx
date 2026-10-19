@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import axios from 'axios';
 import { subscribeToFreshness } from '../utils/dataFreshness';
 import { jobsData as staticJobs, companiesData as staticCompanies, qnaData as staticQna } from '../data/jobsData';
+import { useAuth } from './AuthContext';
+import { getCandidateProfile, isJobMatchingCandidate } from '../utils/candidatePersonalization';
 
 const JobsContext = createContext();
 
@@ -56,18 +58,28 @@ function readHeroCache() {
 
 // ── Provider ─────────────────────────────────────────────────────────────────
 export const JobsProvider = ({ children }) => {
+  const { user } = useAuth();
+  const candidateProfile = useMemo(() => getCandidateProfile(user), [user]);
+
   const companiesCache = readCache('cache_companies');
   const melasCache    = readCache('cache_melas');
   const prepCache     = readCache('cache_prep');
   const heroCache     = readHeroCache();
 
-  // Freshness-critical Jobs State
-  const [jobs, setJobs] = useState([]);
+  // Freshness-critical Jobs State (Raw storage)
+  const [rawJobs, setRawJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [jobsError, setJobsError] = useState(null);
   const [isRefreshingJobs, setIsRefreshingJobs] = useState(false);
   const [jobsLastUpdated, setJobsLastUpdated] = useState(0);
 
+  // Filtered jobs matching the candidate's track & level combo across all pages
+  const jobs = useMemo(() => {
+    if (!candidateProfile.isCandidate) {
+      return rawJobs;
+    }
+    return rawJobs.filter(job => isJobMatchingCandidate(job, candidateProfile));
+  }, [rawJobs, candidateProfile]);
 
   // Other Domain State (Legacy Cache)
   const [companies,  setCompanies]  = useState(companiesCache.data);
@@ -110,7 +122,7 @@ export const JobsProvider = ({ children }) => {
       // Only apply if this is still the active request and not aborted
       if (!controller.signal.aborted && requestSequenceRef.current === currentSequence) {
         const finalJobs = Array.isArray(res.data) && res.data.length > 0 ? res.data : staticJobs;
-        setJobs(finalJobs);
+        setRawJobs(finalJobs);
         setJobsError(null);
         setJobsLastUpdated(Date.now());
         isInitialLoadRef.current = false;
@@ -118,7 +130,7 @@ export const JobsProvider = ({ children }) => {
     } catch (err) {
       if (!axios.isCancel(err) && !controller.signal.aborted && requestSequenceRef.current === currentSequence) {
         // Gracefully fall back to local seed data for offline / local dev
-        setJobs(prev => (prev && prev.length > 0 ? prev : staticJobs));
+        setRawJobs(prev => (prev && prev.length > 0 ? prev : staticJobs));
         setJobsError(null);
       }
     } finally {
@@ -261,7 +273,11 @@ export const JobsProvider = ({ children }) => {
   const fetchJobsByCompanyId = async (id) => {
     try {
       const res = await axios.get(`${API}/companies/${id}/jobs`);
-      return res.data;
+      const list = Array.isArray(res.data) ? res.data : [];
+      if (candidateProfile.isCandidate) {
+        return list.filter(job => isJobMatchingCandidate(job, candidateProfile));
+      }
+      return list;
     } catch (err) {
       console.error('Fetch Company Jobs Error:', err);
       throw err;
@@ -278,7 +294,13 @@ export const JobsProvider = ({ children }) => {
 
   // Provide memoized value for identity stability
   const contextValue = useMemo(() => ({
-    jobs, companies, heroImages, melas, prepData,
+    jobs,
+    allJobs: rawJobs,
+    candidateProfile,
+    companies,
+    heroImages,
+    melas,
+    prepData,
     loading: jobsLoading || otherLoading,
     error: jobsError || otherError,
     jobsLoading,
@@ -290,7 +312,7 @@ export const JobsProvider = ({ children }) => {
     fetchJobsByCompanyId,
     refreshPublicData,
   }), [
-    jobs, companies, heroImages, melas, prepData,
+    jobs, rawJobs, candidateProfile, companies, heroImages, melas, prepData,
     jobsLoading, otherLoading, jobsError, otherError,
     isRefreshingJobs, jobsLastUpdated, refreshJobs
   ]);

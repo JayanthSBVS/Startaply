@@ -6,12 +6,16 @@ import {
   Target, TrendingUp, Info
 } from 'lucide-react';
 import { useJobs } from '../context/JobsContext';
+import { useAuth } from '../context/AuthContext';
+import { getCandidateProfile } from '../utils/candidatePersonalization';
 import SkeletonCard from '../components/common/SkeletonCard';
 import JobCard from '../components/jobs/JobCard';
 
 const CompanyProfilePage = () => {
   const { companyId } = useParams();
   const { fetchCompanyById, fetchJobsByCompanyId } = useJobs();
+  const { user } = useAuth();
+  const candidateProfile = React.useMemo(() => getCandidateProfile(user), [user]);
   
   const [company, setCompany] = useState(null);
   const [jobs, setJobs] = useState([]);
@@ -197,9 +201,16 @@ const CompanyProfilePage = () => {
           {/* Main: Jobs List */}
           <div className="lg:col-span-2 space-y-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black flex items-center gap-3">
-                <Briefcase size={26} className="text-brand" /> Current Opportunities
-              </h2>
+              <div>
+                <h2 className="text-2xl font-black flex items-center gap-3">
+                  <Briefcase size={26} className="text-brand" /> Current Opportunities
+                </h2>
+                {candidateProfile.isCandidate && (
+                  <p className="text-xs text-brand font-bold mt-1">
+                    Showing {candidateProfile.isItFresher ? 'IT Fresher' : candidateProfile.isItExperienced ? 'IT & Software' : candidateProfile.isNonItFresher ? 'Non-IT Graduate' : candidateProfile.isNonItExperienced ? 'Non-IT & Ops' : candidateProfile.isGig ? 'Gig & Freelance' : 'matching'} openings for your profile
+                  </p>
+                )}
+              </div>
               <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                 {jobs.length} Results
               </div>

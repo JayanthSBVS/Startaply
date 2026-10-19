@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 import { useJobs } from '../context/JobsContext';
+import { useAuth } from '../context/AuthContext';
+import { getCandidateProfile } from '../utils/candidatePersonalization';
 import EmptyState from '../components/common/EmptyState';
 
 // Category visual config
@@ -85,6 +87,10 @@ const CategoryJobsPage = () => {
   }, []);
   const { categoryName } = useParams();
   const { jobs } = useJobs();
+  const { user } = useAuth();
+  const candidateProfile = useMemo(() => getCandidateProfile(user), [user]);
+  const isItFresher = candidateProfile.isItFresher;
+
   const decoded = decodeURIComponent(categoryName || '');
   const [selectedJob, setSelectedJob] = useState(null);
 

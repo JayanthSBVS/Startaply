@@ -53,10 +53,6 @@ const FeaturedJobsSection = ({ onJobClick }) => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 sm:gap-6 mb-8 sm:mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 mb-2.5 px-3 py-1 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover">
-              <Star size={12} className="fill-current" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">Top Opportunities</span>
-            </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
               Featured <span className="text-brand dark:text-brand-hover">Jobs</span>
             </h2>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Monitor, Briefcase, Zap, GraduationCap, ArrowRight, Wifi } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useJobs } from '../../context/JobsContext';
+import { useAuth } from '../../context/AuthContext';
+import { getCandidateProfile } from '../../utils/candidatePersonalization';
 
 // Map each card to a category filter + how to count from real jobs array
 const CATEGORY_DEFS = [
@@ -64,12 +66,34 @@ const ACCENT_COLORS = {
 const CategoryGrid = () => {
   const navigate = useNavigate();
   const { jobs } = useJobs();
+  const { user } = useAuth();
+  const candidateProfile = useMemo(() => getCandidateProfile(user), [user]);
 
   // Compute real counts from live job data
   const counts = useMemo(() => {
     const safeJobs = Array.isArray(jobs) ? jobs : [];
     return CATEGORY_DEFS.map(def => safeJobs.filter(def.filter).length);
   }, [jobs]);
+
+  const handleCardClick = (cat) => {
+    if (!candidateProfile.isCandidate) {
+      navigate(cat.navPath);
+      return;
+    }
+    if (candidateProfile.isItFresher) {
+      navigate('/jobs?section=it-freshers');
+    } else if (candidateProfile.isItExperienced) {
+      navigate('/jobs?section=it');
+    } else if (candidateProfile.isNonItFresher) {
+      navigate('/jobs?section=freshers');
+    } else if (candidateProfile.isNonItExperienced) {
+      navigate('/jobs?section=nonit');
+    } else if (candidateProfile.isGig) {
+      navigate('/jobs?section=gig');
+    } else {
+      navigate(cat.navPath);
+    }
+  };
 
   return (
     <section className="py-10 md:py-16 section-light border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-500">
@@ -98,7 +122,14 @@ const CategoryGrid = () => {
           </div>
           <motion.button
             variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
-            onClick={() => navigate('/jobs')}
+            onClick={() => {
+              if (candidateProfile.isItFresher) navigate('/jobs?section=it-freshers');
+              else if (candidateProfile.isItExperienced) navigate('/jobs?section=it');
+              else if (candidateProfile.isNonItFresher) navigate('/jobs?section=freshers');
+              else if (candidateProfile.isNonItExperienced) navigate('/jobs?section=nonit');
+              else if (candidateProfile.isGig) navigate('/jobs?section=gig');
+              else navigate('/jobs');
+            }}
             className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand-hover transition-colors group whitespace-nowrap"
           >
             View All <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
@@ -119,7 +150,7 @@ const CategoryGrid = () => {
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => navigate(cat.navPath)}
+                onClick={() => handleCardClick(cat)}
                 className="group relative cursor-pointer premium-surface p-3.5 sm:p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between h-full active:scale-95"
               >
                 {/* Subtle hover glow */}

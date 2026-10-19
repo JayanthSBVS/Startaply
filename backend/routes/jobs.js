@@ -195,6 +195,23 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
     let whereClause = `WHERE isVisible::text = 'true' ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
 
+    const trackParam = (req.query.track || '').toLowerCase();
+    const levelParam = (req.query.level || '').toLowerCase();
+
+    if (trackParam === 'it') {
+      whereClause += ` AND ((category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%')`;
+    } else if (trackParam === 'non-it' || trackParam === 'nonit') {
+      whereClause += ` AND (category ILIKE '%Non-IT%' OR jobCategoryType ILIKE '%Non%')`;
+    } else if (trackParam === 'gig') {
+      whereClause += ` AND (category ILIKE '%Gig%' OR jobCategoryType ILIKE '%Gig%' OR category ILIKE '%Service%')`;
+    }
+
+    if (levelParam === 'fresher') {
+      whereClause += ` AND (experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher%' OR isFresh::text = 'true')`;
+    } else if (levelParam === 'experienced') {
+      whereClause += ` AND (experience NOT ILIKE '%0%' AND experience NOT ILIKE '%fresher%' AND isFresh::text != 'true')`;
+    }
+
     if (search.trim()) {
       const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles', 'in', 'for', 'at', 'with', 'and', 'the', 'of', 'a', 'to'];
       let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
@@ -253,8 +270,20 @@ router.get('/it', (req, res) => {
   return getPaginatedJobs(req, res, `(category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%'`);
 });
 
+router.get('/it-freshers', (req, res) => {
+  return getPaginatedJobs(req, res, `(category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%' AND (experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher%' OR isFresh::text = 'true')`);
+});
+
+router.get('/it-experienced', (req, res) => {
+  return getPaginatedJobs(req, res, `(category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%' AND (experience NOT ILIKE '%0%' AND experience NOT ILIKE '%fresher%' AND isFresh::text != 'true')`);
+});
+
 router.get('/non-it', (req, res) => {
   return getPaginatedJobs(req, res, `category ILIKE '%Non-IT%' OR jobCategoryType ILIKE '%Non%'`);
+});
+
+router.get('/non-it-freshers', (req, res) => {
+  return getPaginatedJobs(req, res, `(category ILIKE '%Non-IT%' OR jobCategoryType ILIKE '%Non%') AND (experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher%' OR isFresh::text = 'true')`);
 });
 
 router.get('/gig', (req, res) => {

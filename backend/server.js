@@ -45,6 +45,7 @@ app.use('/api/hero-banners', require('./routes/heroBanners'));
 app.use('/api/testimonials', require('./routes/testimonials'));
 app.use('/api/prep-data', require('./routes/prepData'));
 app.use('/api/live-ticker', require('./routes/liveTicker'));
+app.use('/api/candidates', require('./routes/candidates'));
 app.use('/api/collabs', require('./routes/collabs'));
 app.use('/api/support', require('./routes/support'));
 

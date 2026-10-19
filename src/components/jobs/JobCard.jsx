@@ -122,19 +122,6 @@ const JobCard = memo(({ job, onViewDetails, layout = 'standard' }) => {
               </p>
             </div>
           </div>
-          
-          <div className="flex flex-col items-end gap-1 shrink-0">
-            {isNew && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-soft border border-brand/20 text-brand dark:text-brand-hover text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" /> New
-              </span>
-            )}
-            {job.isTrending && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/50 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
-                <Star size={9} className="fill-indigo-500/50" /> Hot
-              </span>
-            )}
-          </div>
         </div>
 
         <div className="mb-2">

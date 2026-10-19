@@ -163,14 +163,14 @@ const Testimonials = () => {
     <section className="py-16 md:py-24 bg-slate-50 dark:bg-black relative overflow-hidden transition-colors duration-300 border-b border-slate-200/80 dark:border-[#1f1f1f]">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 text-center mb-10 md:mb-14 relative z-20">
-        <motion.div
+        <motion.h2
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="inline-flex items-center gap-2 mb-3 px-3.5 py-1.5 rounded-full bg-[#EFF3FF] dark:bg-[#1A62FE]/10 border border-[#1A62FE]/20 text-[#001F8E] dark:text-[#1A62FE] text-xs font-bold uppercase tracking-wider"
+          className="text-2xl sm:text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2"
         >
-          <Sparkles size={13} /> Verified Success Stories
-        </motion.div>
+          Verified <span className="text-[#001F8E] dark:text-[#1A62FE]">Success Stories</span>
+        </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}

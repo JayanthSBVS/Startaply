@@ -44,11 +44,6 @@ const WhySection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
-              <Star size={14} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Platform Edge</span>
-            </div>
-            
             <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] mb-6">
               Why talent chooses <span className="text-gradient-indigo-emerald">Startaply</span>
             </h2>
