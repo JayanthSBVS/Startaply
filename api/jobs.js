@@ -58,7 +58,7 @@ async function getPermissions(role) {
 let initPromise = null;
 async function initDb() {
   if (initPromise) return initPromise;
-  
+
   initPromise = (async () => {
     try {
       // 1. Create Jobs Table
@@ -153,7 +153,7 @@ async function initDb() {
       for (const col of appCols) {
         await pool.query(`ALTER TABLE applications ADD COLUMN IF NOT EXISTS ${col.toLowerCase()} TEXT`).catch(() => {});
       }
-      
+
       console.log('Jobs API Initialized Successfully');
       return true;
     } catch (err) {
@@ -162,7 +162,7 @@ async function initDb() {
       throw err;
     }
   })();
-  
+
   return initPromise;
 }
 
@@ -313,6 +313,23 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
     let whereClause = `WHERE isVisible = true ${additionalWhere ? `AND (${additionalWhere})` : ''}`;
     const queryParams = [...params];
 
+    const trackParam = (req.query.track || '').toLowerCase();
+    const levelParam = (req.query.level || '').toLowerCase();
+
+    if (trackParam === 'it') {
+      whereClause += ` AND ((category ILIKE '%IT%' OR jobCategoryType ILIKE '%IT%') AND category NOT ILIKE '%Non-IT%' AND jobCategoryType NOT ILIKE '%Non%')`;
+    } else if (trackParam === 'non-it' || trackParam === 'nonit') {
+      whereClause += ` AND (category ILIKE '%Non-IT%' OR jobCategoryType ILIKE '%Non%')`;
+    } else if (trackParam === 'gig') {
+      whereClause += ` AND (category ILIKE '%Gig%' OR jobCategoryType ILIKE '%Gig%' OR category ILIKE '%Service%')`;
+    }
+
+    if (levelParam === 'fresher') {
+      whereClause += ` AND (experience ILIKE '%0%' OR experience ILIKE '%fresher%' OR category ILIKE '%Fresher%' OR isFresh::text = 'true')`;
+    } else if (levelParam === 'experienced') {
+      whereClause += ` AND (experience NOT ILIKE '%0%' AND experience NOT ILIKE '%fresher%' AND isFresh::text != 'true')`;
+    }
+
     if (search.trim()) {
       const stopWords = ['job', 'jobs', 'vacancy', 'hiring', 'role', 'roles', 'in', 'for', 'at', 'with', 'and', 'the', 'of', 'a', 'to'];
       let rawTerms = search.toLowerCase().split(/\s+/).filter(t => t && !stopWords.includes(t));
@@ -325,10 +342,10 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
         const idx = queryParams.length;
         // Search across ALL relevant fields for maximum inclusivity (Lazy Friendly)
         return `(
-          title ILIKE $${idx} OR 
-          company ILIKE $${idx} OR 
-          location ILIKE $${idx} OR 
-          category ILIKE $${idx} OR 
+          title ILIKE $${idx} OR
+          company ILIKE $${idx} OR
+          location ILIKE $${idx} OR
+          category ILIKE $${idx} OR
           jobCategoryType ILIKE $${idx}
         )`;
       });
@@ -350,7 +367,7 @@ async function getPaginatedJobs(req, res, additionalWhere = '', params = []) {
     const { rows } = await pool.query(query, [...queryParams, limit, offset]);
 
     const cleaned = processPublicJobs(rows);
-    
+
     res.json(cleaned);
   } catch (err) {
     console.error('[getPaginatedJobs]', err);
@@ -566,7 +583,7 @@ app.put('/api/jobs/:id', authMiddleware, async (req, res) => {
     }
 
     const j = normalizeJob(req.body, existingJob);
-    
+
     // Force fetch logo from company if company changed or logo is explicitly missing
     if (j.companyId && (j._companyChanged || !j.companyLogo)) {
       try {
@@ -736,7 +753,7 @@ app.post('/api/jobs/:id/apply', async (req, res) => {
 
     // Save application first — don't block on email
     const { rows } = await pool.query(
-      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt,jobTitle,companyName,subId,payrollStatus,city,vehicleStatus) 
+      `INSERT INTO applications (id,jobId,name,email,phone,resume,appliedAt,jobTitle,companyName,subId,payrollStatus,city,vehicleStatus)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
       [id, req.params.id, name, email, phone || '', resume || '', Date.now(), jobTitle || '', companyName || '', subId, payrollStatus, city || '', vehicleStatus || '']
     );

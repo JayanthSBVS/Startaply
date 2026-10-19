@@ -68,6 +68,14 @@
       "dest": "/api/auth.js"
     },
     {
+      "src": "/api/candidates/(.*)",
+      "dest": "/api/candidates.js"
+    },
+    {
+      "src": "/api/candidates",
+      "dest": "/api/candidates.js"
+    },
+    {
       "src": "/api/hero-banners/(.*)",
       "dest": "/api/hero-banners.js"
     },
