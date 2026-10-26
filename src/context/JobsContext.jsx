@@ -274,9 +274,6 @@ export const JobsProvider = ({ children }) => {
     try {
       const res = await axios.get(`${API}/companies/${id}/jobs`);
       const list = Array.isArray(res.data) ? res.data : [];
-      if (candidateProfile.isCandidate) {
-        return list.filter(job => isJobMatchingCandidate(job, candidateProfile));
-      }
       return list;
     } catch (err) {
       console.error('Fetch Company Jobs Error:', err);

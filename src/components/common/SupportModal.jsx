@@ -140,7 +140,7 @@ const SupportModal = ({ isOpen, onClose }) => {
                       placeholder="John Doe"
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
+                      className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm placeholder:text-xs sm:placeholder:text-sm placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
                     />
                   </div>
                   
@@ -152,7 +152,7 @@ const SupportModal = ({ isOpen, onClose }) => {
                       placeholder="john@example.com"
                       value={formData.email}
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
+                      className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm placeholder:text-xs sm:placeholder:text-sm placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
                     />
                   </div>
                   
@@ -164,7 +164,7 @@ const SupportModal = ({ isOpen, onClose }) => {
                       placeholder="Describe your issue or question in detail..."
                       value={formData.issue}
                       onChange={e => setFormData({ ...formData, issue: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all resize-none"
+                      className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm placeholder:text-xs sm:placeholder:text-sm placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all resize-none"
                     />
                   </div>
                   

@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { getCandidateProfile } from '../utils/candidatePersonalization';
 import SkeletonCard from '../components/common/SkeletonCard';
 import JobCard from '../components/jobs/JobCard';
+import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
 
 const CompanyProfilePage = () => {
   const { companyId } = useParams();
@@ -21,6 +22,7 @@ const CompanyProfilePage = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -85,13 +87,13 @@ const CompanyProfilePage = () => {
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand/10 rounded-full blur-[120px] pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <Link to="/companies" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand transition-colors font-bold text-xs sm:text-sm mb-6 sm:mb-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 min-h-[38px]">
+          <Link to="/companies" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand transition-colors font-bold text-xs sm:text-sm mb-4 sm:mb-8 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 min-h-[44px] active:scale-95">
             <ArrowLeft size={16} /> Back to Companies
           </Link>
 
-          <div className="flex flex-col lg:flex-row gap-6 sm:gap-10 items-start lg:items-center">
+          <div className="flex flex-col lg:flex-row gap-5 sm:gap-10 items-start lg:items-center">
             {/* Logo container with Glassmorphism */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-white dark:bg-slate-900 rounded-3xl md:rounded-[2.5rem] shadow-xl sm:shadow-2xl flex items-center justify-center p-4 sm:p-6 border border-white/20 dark:border-slate-800 shrink-0 group hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+            <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-lg sm:shadow-2xl flex items-center justify-center p-3.5 sm:p-6 border border-white/20 dark:border-slate-800 shrink-0 group hover:scale-105 transition-transform duration-300 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-brand/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               {company.logo ? (
                 <img src={company.logo} alt={company.name} className="w-full h-full object-contain relative z-10" />
@@ -101,28 +103,21 @@ const CompanyProfilePage = () => {
             </div>
 
             <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                {company.companyType && (
-                  <span className="bg-brand-soft text-brand dark:text-brand-hover border border-brand/20 px-3 sm:px-4 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest">
-                    {company.companyType}
-                  </span>
-                )}
-                {company.industry && (
-                  <span className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 px-3 sm:px-4 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest">
-                    {company.industry}
-                  </span>
-                )}
-                {jobs.length > 0 && (
-                  <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-3 sm:px-4 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                    Hiring Now
-                  </span>
-                )}
-              </div>
-              
-              <h1 className="text-2xl sm:text-4xl md:text-6xl font-black mb-3 sm:mb-4 tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black mb-2 sm:mb-3 tracking-tight leading-tight">
                 {company.name}
               </h1>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">
+                {company.industry && <span>{company.industry}</span>}
+                {company.industry && company.companyType && <span className="text-slate-300 dark:text-slate-700">·</span>}
+                {company.companyType && <span>{company.companyType}</span>}
+                {jobs.length > 0 && (
+                  <>
+                    <span className="text-slate-300 dark:text-slate-700">·</span>
+                    <span className="text-brand dark:text-brand-hover font-bold">{jobs.length} Active {jobs.length === 1 ? 'Role' : 'Roles'}</span>
+                  </>
+                )}
+              </div>
               
               <div className="flex flex-wrap gap-4 sm:gap-6 text-slate-500 dark:text-slate-400 font-bold text-xs sm:text-sm">
                 {company.location && (
@@ -151,17 +146,17 @@ const CompanyProfilePage = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 pb-20 sm:pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
           
           {/* Sidebar: About & Details */}
-          <div className="lg:col-span-1 space-y-8">
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-xl relative overflow-hidden group">
+          <div className="lg:col-span-1 space-y-6 sm:space-y-8">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-lg sm:shadow-xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Info size={120} />
+                <Info size={100} />
               </div>
-              <h3 className="text-xl font-black mb-6 flex items-center gap-3 relative z-10">
-                <Target size={22} className="text-brand" /> About {company.name}
+              <h3 className="text-lg sm:text-xl font-black mb-4 sm:mb-6 flex items-center gap-2.5 sm:gap-3 relative z-10">
+                <Target size={20} className="text-brand" /> About {company.name}
               </h3>
               <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-6 relative z-10">
                 {company.description || `Explore career opportunities at ${company.name}, leading the way in the ${company.industry || 'technology'} sector. Join a team dedicated to innovation and growth.`}
@@ -184,16 +179,16 @@ const CompanyProfilePage = () => {
             </div>
 
             {/* Quick Stats Widget */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-950 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 text-white shadow-xl sm:shadow-2xl relative overflow-hidden group">
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand/20 rounded-full blur-3xl group-hover:bg-brand/30 transition-colors" />
-              <h3 className="text-lg font-black mb-6 flex items-center gap-3 relative z-10">
-                <TrendingUp size={20} className="text-brand-hover" /> Career Growth
+              <h3 className="text-base sm:text-lg font-black mb-4 sm:mb-6 flex items-center gap-2.5 sm:gap-3 relative z-10">
+                <TrendingUp size={18} className="text-brand-hover" /> Career Growth
               </h3>
-              <p className="text-slate-400 text-sm font-medium mb-6 relative z-10 leading-relaxed">
+              <p className="text-slate-400 text-xs sm:text-sm font-medium mb-5 sm:mb-6 relative z-10 leading-relaxed">
                 Unlock your potential at {company.name}. We're looking for driven individuals to join our expanding team.
               </p>
-              <Link to="/jobs" className="w-full bg-brand hover:bg-brand-hover text-on-brand font-black py-4 rounded-2xl flex items-center justify-center gap-2 transition-all relative z-10 shadow-lg shadow-brand/25">
-                Explore All Jobs <ChevronRight size={18} />
+              <Link to="/jobs" className="w-full bg-brand hover:bg-brand-hover text-on-brand font-black py-3.5 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-all relative z-10 shadow-md shadow-brand/25 min-h-[48px] active:scale-95 text-xs sm:text-sm">
+                Explore All Jobs <ChevronRight size={16} />
               </Link>
             </div>
           </div>
@@ -219,16 +214,16 @@ const CompanyProfilePage = () => {
             {jobs.length > 0 ? (
               <div className="grid grid-cols-1 gap-6">
                 {jobs.map(job => (
-                  <JobCard key={job.id} job={job} />
+                  <JobCard key={job.id} job={job} onViewDetails={() => setSelectedJob(job)} />
                 ))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-[#0a0a0a] rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200 dark:border-neutral-800">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-[#121212] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Briefcase size={32} className="text-slate-300 dark:text-slate-700" />
+              <div className="bg-white dark:bg-[#0a0a0a] rounded-2xl sm:rounded-[2.5rem] p-8 sm:p-20 text-center border-2 border-dashed border-slate-200 dark:border-neutral-800">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 dark:bg-[#121212] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <Briefcase size={28} className="text-slate-300 dark:text-slate-700" />
                 </div>
-                <h3 className="text-xl font-black mb-2">No Active Openings</h3>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">
+                <h3 className="text-lg sm:text-xl font-black mb-1.5 sm:mb-2">No Active Openings</h3>
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm">
                   We don't have any open roles at {company.name} right now. Check back soon!
                 </p>
               </div>
@@ -237,6 +232,13 @@ const CompanyProfilePage = () => {
 
         </div>
       </div>
+
+      {/* Slide-over Job Details Panel */}
+      <JobDetailsPanel
+        job={selectedJob}
+        isOpen={!!selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
     </div>
   );
 };

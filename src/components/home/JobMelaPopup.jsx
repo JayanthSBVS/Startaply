@@ -55,123 +55,124 @@ const JobMelaPopup = () => {
             onClick={() => setIsOpen(false)}
           />
 
-          {/* ── MOBILE: Bottom Sheet ─────────────────────────────────── */}
+          {/* ── MOBILE: Premium Bottom Sheet ─────────────────────────── */}
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="sm:hidden relative bg-white dark:bg-[#0a0a0a] w-full rounded-t-[2rem] shadow-[0_-20px_60px_rgba(0,0,0,0.3)] border-t border-slate-200 dark:border-[#1f1f1f] z-10 overflow-hidden"
-            style={{ maxHeight: '88vh' }}
+            className="sm:hidden relative bg-white dark:bg-[#0a0a0a] w-full rounded-t-[2.25rem] shadow-[0_-20px_60px_rgba(0,0,0,0.35)] border-t border-slate-200/90 dark:border-neutral-800 z-10 flex flex-col max-h-[85vh] overflow-hidden"
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+            {/* Drag Handle Bar */}
+            <div className="flex justify-center pt-3 pb-2 shrink-0">
+              <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-neutral-700" />
             </div>
 
-            {/* Close button */}
+            {/* Close Button (44x44 Touch Target) */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 z-20 bg-slate-100 dark:bg-white/10 p-2 rounded-full text-slate-500 dark:text-slate-400 active:scale-90 transition-transform"
-              style={{ minWidth: '36px', minHeight: '36px' }}
-              aria-label="Close popup"
+              className="absolute top-3 right-3 z-30 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-slate-900/40 hover:bg-slate-900/60 dark:bg-black/60 text-white backdrop-blur-md active:scale-95 transition-all cursor-pointer shadow-md"
+              aria-label="Close notification"
             >
               <X size={18} />
             </button>
 
-            {/* Scrollable content */}
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(88vh - 40px)' }}>
-              {/* Banner image - compact on mobile */}
-              <div className="relative h-40 overflow-hidden bg-slate-900">
+            {/* Scrollable Content Body */}
+            <div className="overflow-y-auto flex-1 overscroll-contain">
+              {/* Event Visual Banner */}
+              <div className="relative h-44 overflow-hidden bg-slate-950 shrink-0">
                 <img
-                  src={mela.image || '/workspace-editorial.png'}
-                  alt="Job Mela Banner"
+                  src={mela.bannerImage || mela.bannerimage || mela.image || '/hero-bg.png'}
+                  alt={mela.title || 'Job Mela'}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = '/workspace-editorial.png';
+                    e.currentTarget.src = '/hero-bg.png';
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
-                <div className="absolute top-3 left-4">
-                  <span className="inline-flex items-center gap-1.5 bg-brand text-on-brand px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] shadow-lg shadow-brand/30">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                <div className="absolute top-3 left-4 z-10">
+                  <span className="inline-flex items-center gap-1.5 bg-brand text-on-brand px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg shadow-brand/30">
                     <BellRing size={11} className="animate-bounce" /> Mega Drive Event
                   </span>
                 </div>
+                {mela.date && (
+                  <div className="absolute bottom-3 left-4 z-10 flex items-center gap-1.5 text-xs font-extrabold text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                    <Calendar size={13} className="text-brand-hover" />
+                    <span>{mela.date}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="px-5 pt-4 pb-24">
+              {/* Text Info Container */}
+              <div className="px-5 pt-4 pb-4">
                 {/* Title */}
-                <h2 className="text-lg font-black text-slate-900 dark:text-white mb-3 leading-tight pr-8">
+                <h2 className="text-lg font-black text-slate-950 dark:text-white mb-2.5 leading-snug">
                   {mela.title}
                 </h2>
 
-                {/* Meta chips */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {mela.company && (
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/8 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-slate-300">
-                      <Building2 size={12} className="text-brand" /> {mela.company}
+                {/* Company / Sector Badges */}
+                {mela.company && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-neutral-700 text-xs font-bold text-slate-700 dark:text-slate-300">
+                      <Building2 size={13} className="text-brand" />
+                      <span>{mela.company}</span>
                     </div>
-                  )}
-                  {mela.date && (
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/8 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-slate-300">
-                      <Calendar size={12} className="text-brand" /> {mela.date}
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Description */}
-                <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-3 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm mb-4 leading-relaxed">
                   {mela.description}
                 </p>
 
-                {/* When & Where - compact row */}
-                <div className="grid grid-cols-2 gap-2 mb-5">
-                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/8 rounded-xl p-3">
-                    <Clock size={14} className="text-brand shrink-0" />
-                    <div>
-                      <p className="text-[9px] font-black text-brand dark:text-brand-hover uppercase tracking-wider">When</p>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{mela.time || 'TBD'}</p>
+                {/* When & Where Details Grid */}
+                <div className="grid grid-cols-2 gap-2.5 mb-2">
+                  <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl p-3">
+                    <Clock size={16} className="text-brand shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-black text-brand dark:text-brand-hover uppercase tracking-wider">Timing</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{mela.time || '10:00 AM Onwards'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/8 rounded-xl p-3">
-                    <MapPin size={14} className="text-indigo-500 shrink-0" />
-                    <div>
-                      <p className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Where</p>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{mela.venue || 'TBD'}</p>
+                  <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-xl p-3">
+                    <MapPin size={16} className="text-indigo-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Venue</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{mela.venue || 'Direct Campus / Hub'}</p>
                     </div>
                   </div>
-                </div>
-
-                {/* CTAs */}
-                <div className="flex gap-2">
-                  {mela.registrationLink ? (
-                    <a
-                      href={mela.registrationLink.startsWith('http') ? mela.registrationLink : `https://${mela.registrationLink}`}
-                      target="_blank" rel="noreferrer"
-                      className="flex-[2] bg-brand active:bg-brand-hover text-on-brand font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 text-sm transition-all shadow-md shadow-brand/30 active:scale-95"
-                      style={{ minHeight: '48px' }}
-                    >
-                      Register Now <ArrowRight size={16} />
-                    </a>
-                  ) : (
-                    <a
-                      href="/job-melas"
-                      className="flex-[2] bg-brand active:bg-brand-hover text-on-brand font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 text-sm active:scale-95"
-                      style={{ minHeight: '48px' }}
-                    >
-                      See Details <ArrowRight size={16} />
-                    </a>
-                  )}
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="flex-1 bg-slate-100 dark:bg-white/8 text-slate-700 dark:text-slate-300 font-bold py-3.5 px-3 rounded-2xl text-sm active:scale-95 border border-slate-200 dark:border-white/10"
-                    style={{ minHeight: '48px' }}
-                  >
-                    Not Now
-                  </button>
                 </div>
               </div>
+            </div>
+
+            {/* Pinned Sticky Bottom Actions Bar (Always Visible on Mobile) */}
+            <div className="p-4 border-t border-slate-100 dark:border-neutral-800 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-md flex items-center gap-2.5 pb-[calc(1rem+env(safe-area-inset-bottom))] shrink-0">
+              {mela.registrationLink ? (
+                <a
+                  href={mela.registrationLink.startsWith('http') ? mela.registrationLink : `https://${mela.registrationLink}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-[2] bg-brand hover:bg-brand-hover text-on-brand font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md shadow-brand/25 active:scale-95 transition-all min-h-[46px]"
+                >
+                  <span>Register Free</span>
+                  <ArrowRight size={15} />
+                </a>
+              ) : (
+                <a
+                  href="/job-melas"
+                  className="flex-[2] bg-brand hover:bg-brand-hover text-on-brand font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md shadow-brand/25 active:scale-95 transition-all min-h-[46px]"
+                >
+                  <span>Explore Details</span>
+                  <ArrowRight size={15} />
+                </a>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="flex-1 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm border border-slate-200 dark:border-neutral-700 active:scale-95 transition-all min-h-[46px]"
+              >
+                Dismiss
+              </button>
             </div>
           </motion.div>
 

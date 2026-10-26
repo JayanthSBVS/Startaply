@@ -27,10 +27,10 @@ export function getCandidateProfile(user) {
   }
 
   const prefLevel = (preferences.level || '').toLowerCase().trim();
-  const isFresher = prefLevel === 'fresher' || subTrack.includes('fresher');
-  const isIt = track === 'it' || subTrack.includes('it');
-  const isNonIt = track === 'non-it' || track === 'nonit' || subTrack.includes('non-it') || subTrack.includes('non it');
-  const isGig = track === 'gig' || subTrack.includes('gig');
+  const isFresher = prefLevel === 'fresher' ? true : prefLevel === 'experienced' ? false : subTrack.includes('fresher');
+  const isNonIt = track === 'non-it' || track === 'nonit' || (!track && (subTrack.includes('non-it') || subTrack.includes('non it')));
+  const isGig = track === 'gig' || (!track && subTrack.includes('gig'));
+  const isIt = (track === 'it' || (!track && !isNonIt && !isGig && (/\bit\b/i.test(subTrack) || subTrack.includes('tech') || subTrack.includes('software')))) && !isNonIt && !isGig;
 
   return {
     isCandidate: true,

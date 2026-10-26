@@ -75,6 +75,7 @@ const JobMelaPage = () => {
                                         <img
                                             src={thumbnail}
                                             alt={mela.title}
+                                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/hero-bg.png'; }}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
                                         <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-brand text-on-brand backdrop-blur-md px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-md">

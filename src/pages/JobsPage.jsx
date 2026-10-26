@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Briefcase, Building2, Monitor, GraduationCap,
-  Star, Zap, X
+  Star, Zap, X, SlidersHorizontal
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import JobCard from '../components/jobs/JobCard';
 import JobDetailsPanel from '../components/jobs/JobDetailsPanel';
+import ProfilePreferencesModal from '../components/common/ProfilePreferencesModal';
 import { subscribeToFreshness } from '../utils/dataFreshness';
 import { useAuth } from '../context/AuthContext';
 import { getCandidateProfile, isJobMatchingCandidate, getComboBadgeInfo } from '../utils/candidatePersonalization';
@@ -72,6 +73,7 @@ const JobsPage = () => {
   const [activeSection, setActiveSection] = useState(init.section);
   const [workMode, setWorkMode]         = useState(init.workMode);
   const [selectedJob, setSelectedJob]   = useState(null);
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
 
   // Personalized Candidate Track Detection
   const candidateProfile = useMemo(() => getCandidateProfile(user), [user]);
@@ -402,7 +404,7 @@ const JobsPage = () => {
                 placeholder="Search job title, company..."
                 autoComplete="off"
                 spellCheck="false"
-                className="w-full bg-transparent px-2.5 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder-slate-400 outline-none font-medium text-xs sm:text-base min-w-0"
+                className="w-full bg-transparent px-2.5 sm:px-4 py-2.5 sm:py-3.5 text-white placeholder:text-xs sm:placeholder:text-sm placeholder:font-normal placeholder-slate-400 outline-none font-medium text-base sm:text-sm min-w-0"
               />
               {search && (
                 <button type="button" onClick={() => setSearch('')} className="p-1.5 mr-1 text-slate-400 hover:text-white transition-colors" aria-label="Clear search">
@@ -448,51 +450,64 @@ const JobsPage = () => {
 
         {/* ── PROFILE MATCHED HERO BANNER ──────────────── */}
         {candidateProfile.isCandidate && (
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-brand/5 dark:bg-brand/10 border border-brand/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand text-on-brand flex items-center justify-center shrink-0 shadow-sm">
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-brand/10 via-brand/5 to-transparent dark:from-brand/20 dark:via-brand/10 dark:to-transparent border border-brand/25 dark:border-brand/30 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-brand text-on-brand flex items-center justify-center shrink-0 shadow-sm mt-0.5 sm:mt-0">
                 {candidateProfile.isGig ? <Zap size={20} /> : candidateProfile.isFresher ? <GraduationCap size={20} /> : <Briefcase size={20} />}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-brand">Candidate Preference Filter</span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand/10 text-brand dark:text-brand-hover">
+              <div className="min-w-0 flex-1">
+                {/* Responsive badge row */}
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-brand/15 text-brand dark:text-brand-hover">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
+                    Personalized Feed Active
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300/60 dark:border-slate-700 max-w-full truncate">
                     {comboBadge.fullTitle}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                  Your profile is set to <strong>{comboBadge.fullTitle}</strong>. You are exclusively viewing openings matching this specific track across the platform.
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                  Showing verified roles matching your calibrated profile track across the entire platform.
                 </p>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPreferencesOpen(true)}
+              className="self-stretch md:self-auto shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs sm:text-sm border border-slate-200 dark:border-slate-700 shadow-xs transition-all active:scale-95 min-h-[44px]"
+            >
+              <SlidersHorizontal size={15} className="text-brand shrink-0" />
+              <span>Change Preferences</span>
+            </button>
           </div>
         )}
 
         {/* ── MODE FILTER ─────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-1">
-          <div>
+          <div className="min-w-0">
             <h2
               ref={resultsHeadingRef}
               tabIndex={-1}
-              className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5 sm:gap-3 outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
+              className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex flex-wrap items-center gap-2 sm:gap-3 outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
             >
-              <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center ${colors.iconBg}`}>
+              <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0 ${colors.iconBg}`}>
                 <IconComp size={15} />
               </span>
-              {activeConfig.label}
-              <span className={`text-xs sm:text-sm font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full ${colors.idle} border`}>
+              <span className="truncate">{activeConfig.label}</span>
+              <span className={`text-xs sm:text-sm font-black px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full ${colors.idle} border shrink-0`}>
                 {localJobs.length}{hasMore ? '+' : ''} Results
               </span>
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 pl-9 sm:pl-11 font-medium">{activeConfig.desc}</p>
           </div>
 
-          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0 snap-x">
             {['All', 'On-site', 'Remote', 'Hybrid'].map(m => (
               <button
                 key={m}
                 onClick={() => setWorkMode(m)}
-                className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all whitespace-nowrap min-h-[38px] active:scale-95 ${
+                className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all whitespace-nowrap min-h-[40px] shrink-0 active:scale-95 ${
                   workMode === m
                     ? 'bg-brand text-on-brand border-transparent shadow-xs'
                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
@@ -617,6 +632,12 @@ const JobsPage = () => {
           <JobDetailsPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
         )}
       </AnimatePresence>
+
+      {/* ── CANDIDATE PROFILE PREFERENCES MODAL ────────────────── */}
+      <ProfilePreferencesModal
+        isOpen={isPreferencesOpen}
+        onClose={() => setIsPreferencesOpen(false)}
+      />
     </div>
   );
 };

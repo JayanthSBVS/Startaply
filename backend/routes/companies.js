@@ -36,7 +36,7 @@ async function updateCompaniesSchema() {
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS location TEXT`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS website TEXT`);
     await pool.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT`);
-    
+
     // BACKFILL: If createdAt is null, set it to updatedAt or now
     await pool.query(`UPDATE companies SET createdAt = updatedAt WHERE createdAt IS NULL AND updatedAt IS NOT NULL`);
     await pool.query(`UPDATE companies SET createdAt = ${Date.now()} WHERE createdAt IS NULL`);
@@ -69,11 +69,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single company by ID
+// Get single company by ID or name
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { rows } = await pool.query('SELECT * FROM companies WHERE id = $1', [id]);
+    const { rows } = await pool.query(
+      'SELECT * FROM companies WHERE id = $1 OR LOWER(name) = LOWER($1) OR id = $2 LIMIT 1',
+      [id, `comp-${id.toLowerCase()}`]
+    );
     if (!rows.length) return res.status(404).json({ error: 'Company not found' });
     const r = rows[0];
     res.json({
@@ -93,23 +96,38 @@ router.get('/:id', async (req, res) => {
       updatedAt: Number(r.updatedat)
     });
   } catch (err) {
+    console.error('[Company GET error]', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Get jobs for a specific company
+// Get jobs for a specific company (flexible matching by ID or company name)
 router.get('/:id/jobs', async (req, res) => {
   try {
     const { id } = req.params;
+    const compRes = await pool.query(
+      'SELECT id, name FROM companies WHERE id = $1 OR LOWER(name) = LOWER($1) OR id = $2 LIMIT 1',
+      [id, `comp-${id.toLowerCase()}`]
+    );
+    const targetId = compRes.rows[0]?.id || id;
+    const targetName = compRes.rows[0]?.name || id;
+
     const { rows } = await pool.query(`
-      SELECT id, title, company, location, category, type, salary, createdat, 
-             isFeatured, isToday, isTrending, isVisible, workmode, companylogo
-      FROM jobs 
-      WHERE companyId = $1 AND isVisible = true
+      SELECT id, title, subtitle, description, company, location, category, type, salary, createdat,
+             isFeatured, isToday, isTrending, isVisible, workmode, companylogo, jobcategorytype, updatedat, companyId, isfresh, experience
+      FROM jobs
+      WHERE (
+        companyId = $1
+        OR companyId = $2
+        OR LOWER(company) = LOWER($3)
+        OR company ILIKE '%' || $3 || '%'
+        OR $3 ILIKE '%' || company || '%'
+      ) AND isVisible = true
       ORDER BY createdAt DESC
-    `, [id]);
+    `, [id, targetId, targetName]);
     res.json(rows);
   } catch (err) {
+    console.error('[Company Jobs GET error]', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -136,7 +154,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const id = String(Date.now());
     const now = Date.now();
     const { rows } = await pool.query(
-      `INSERT INTO companies (id, name, logo, industry, color, iconName, createdByAdminId, createdByAdminName, createdAt, updatedAt, companyType, location, website, description) 
+      `INSERT INTO companies (id, name, logo, industry, color, iconName, createdByAdminId, createdByAdminName, createdAt, updatedAt, companyType, location, website, description)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
       [id, name, logo || '', industry || '', color || '', iconName || 'Building2', req.user.id, req.user.name, now, now, companyType || '', location || '', website || '', description || '']
     );
@@ -162,7 +180,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     }
 
     await pool.query('DELETE FROM companies WHERE id = $1', [id]);
-    
+
     await logActivity(req.user.id, req.user.name, req.user.role, 'Companies', `Deleted Company: ${ex[0].name}`, id);
     req.io.emit('DATA_UPDATED', { module: 'Companies' });
 

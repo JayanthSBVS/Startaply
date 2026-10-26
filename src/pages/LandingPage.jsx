@@ -353,7 +353,7 @@ const LandingPage = () => {
             </div>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 cursor-pointer"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 cursor-pointer active:scale-95 transition-transform"
               aria-label="Toggle navigation menu"
             >
               {isMobileMenuOpen ? <X size={19} /> : <Menu size={19} />}
@@ -367,28 +367,28 @@ const LandingPage = () => {
           <div className="lg:hidden w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-6 py-6 flex flex-col gap-3 shadow-2xl text-left animate-in fade-in slide-in-from-top-2 duration-150">
             <button
               onClick={() => scrollToSection('how-it-works')}
-              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
+              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-3 min-h-[44px] border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer active:bg-slate-100/50 dark:active:bg-slate-800/50 rounded-lg px-2 -mx-2 transition-colors"
             >
               <Compass size={17} className="text-brand shrink-0" />
               <span>How Direct Mobility Works</span>
             </button>
             <button
               onClick={() => scrollToSection('candidates')}
-              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
+              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-3 min-h-[44px] border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer active:bg-slate-100/50 dark:active:bg-slate-800/50 rounded-lg px-2 -mx-2 transition-colors"
             >
               <Users size={17} className="text-brand shrink-0" />
               <span>Who Startaply Is For</span>
             </button>
             <button
               onClick={() => scrollToSection('disciplines')}
-              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
+              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-3 min-h-[44px] border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer active:bg-slate-100/50 dark:active:bg-slate-800/50 rounded-lg px-2 -mx-2 transition-colors"
             >
               <Layers size={17} className="text-brand shrink-0" />
               <span>Career &amp; Gig Disciplines</span>
             </button>
             <button
               onClick={() => scrollToSection('stories')}
-              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-2 border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer"
+              className="flex items-center gap-3 text-sm font-bold text-slate-800 dark:text-slate-100 py-3 min-h-[44px] border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer active:bg-slate-100/50 dark:active:bg-slate-800/50 rounded-lg px-2 -mx-2 transition-colors"
             >
               <Quote size={17} className="text-brand shrink-0" />
               <span>Verified Stories</span>
@@ -445,18 +445,18 @@ const LandingPage = () => {
             <div className="lg:col-span-7 flex flex-col items-start text-left">
 
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-slate-950 dark:text-white leading-[1.05]">
+              <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tight text-slate-950 dark:text-white leading-[1.08]">
                 Welcome to India’s <br />
                 <span className="type-gradient">direct career community.</span>
               </h1>
 
               {/* Subtitle */}
-              <p className="mt-5 text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl font-normal">
+              <p className="mt-4 sm:mt-5 text-sm sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl font-normal">
                 Where ambitious college graduates, experienced professionals, and on-demand delivery &amp; operations talent connect directly with verified enterprise teams. Bypass predatory consultancies, practice with real interview intelligence, and keep 100% of your earned compensation.
               </p>
 
               {/* Action Buttons */}
-              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
                 <Link
                   to="/signup"
                   className="btn-graphic-hover min-h-[50px] px-8 bg-brand hover:bg-brand-hover text-white text-base font-bold shadow-md shadow-brand/20 active:scale-95"
@@ -474,7 +474,7 @@ const LandingPage = () => {
               </div>
 
               {/* Character Metrics Strip */}
-              <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 w-full max-w-2xl">
+              <div className="mt-8 sm:mt-10 pt-5 sm:pt-6 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 w-full max-w-2xl">
                 <div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight">14,500+</div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Direct Placements</div>
@@ -496,38 +496,38 @@ const LandingPage = () => {
             </div>
 
             {/* Right Product Console: DIRECT CAREER PASSPORT SIMULATOR */}
-            <div className="lg:col-span-5 w-full perspective-1000">
+            <div className="lg:col-span-5 w-full">
 
               {/* Persona Selector Tabs for the Simulator (Only Graduate, Professional, Gig & Delivery) */}
-              <div className="flex items-center justify-between mb-3 px-1 text-xs font-bold text-slate-500">
-                <span className="uppercase tracking-wider">Simulate Track:</span>
-                <div className="flex gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5 px-1 text-xs font-bold text-slate-500">
+                <span className="uppercase tracking-wider text-[11px] text-slate-500 dark:text-slate-400">Simulate Track:</span>
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => setPassportPersona('student')}
-                    className={`btn-press px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center border active:scale-95 ${
                       passportPersona === 'student'
-                        ? 'bg-brand text-white border-brand-hover shadow-xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                        ? 'bg-brand text-white border-brand shadow-sm shadow-brand/25 font-extrabold'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand/40'
                     }`}
                   >
                     Graduate
                   </button>
                   <button
                     onClick={() => setPassportPersona('lateral')}
-                    className={`btn-press px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center border active:scale-95 ${
                       passportPersona === 'lateral'
-                        ? 'bg-brand text-white border-brand-hover shadow-xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                        ? 'bg-brand text-white border-brand shadow-sm shadow-brand/25 font-extrabold'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand/40'
                     }`}
                   >
                     Professional
                   </button>
                   <button
                     onClick={() => setPassportPersona('gig')}
-                    className={`btn-press px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`min-h-[44px] px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center border active:scale-95 ${
                       passportPersona === 'gig'
-                        ? 'bg-brand text-white border-brand-hover shadow-xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                        ? 'bg-brand text-white border-brand shadow-sm shadow-brand/25 font-extrabold'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand/40'
                     }`}
                   >
                     Gig &amp; Delivery
@@ -535,59 +535,59 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              {/* 3D DEPTH SIMULATOR CARD */}
-              <div className="card-stack-depth rounded-3xl bg-translucent-gradient border-2 border-slate-300 dark:border-slate-700 soft-shadow p-6 sm:p-7 relative overflow-hidden text-left min-h-[460px] flex flex-col justify-between">
+              {/* CRISP, ULTRA-SHARP DIRECT PASSPORT CARD */}
+              <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl dark:shadow-black/60 p-4 sm:p-7 relative text-left flex flex-col justify-between transition-all">
 
                 {/* Header */}
-                <div className="pb-4 border-b border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-brand flex items-center justify-center font-bold text-sm">
+                <div className="pb-3.5 sm:pb-4 border-b border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-brand flex items-center justify-center font-bold text-sm shrink-0">
                       <Target size={20} />
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">DIRECT MOBILITY PASSPORT</span>
-                      <h4 className="text-base font-extrabold text-slate-950 dark:text-white">
+                      <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">DIRECT MOBILITY PASSPORT</span>
+                      <h4 className="text-sm sm:text-base font-extrabold text-slate-950 dark:text-white leading-tight">
                         {passportPersona === 'student' && 'Graduate Direct Pathway'}
                         {passportPersona === 'lateral' && 'Professional Engineering Pathway'}
                         {passportPersona === 'gig' && 'Gig & Delivery Services Pathway'}
                       </h4>
                     </div>
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
                     Zero Middlemen
                   </span>
                 </div>
 
                 {/* 4-Stage Trajectory Flow */}
-                <div className="py-4 space-y-3">
+                <div className="py-3.5 sm:py-4 space-y-2.5 sm:space-y-3">
 
                   {/* Stage 1 */}
-                  <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-brand font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 flex items-start gap-2.5 sm:gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-950/80 text-brand font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                       1
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      <div className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white leading-snug">
                         {passportPersona === 'student' && 'Academic Credential & Project Verification'}
                         {passportPersona === 'lateral' && 'GitHub Architecture & Experience Validation'}
                         {passportPersona === 'gig' && 'Aadhaar, Driving License & Vehicle Verification'}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
+                      <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mt-1 leading-normal">
                         Authenticated identity eliminating spam resumes and fake agency forwards.
                       </div>
                     </div>
                   </div>
 
                   {/* Stage 2 */}
-                  <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 flex items-start gap-2.5 sm:gap-3">
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                       2
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      <div className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white leading-snug">
                         {passportPersona === 'gig' ? 'Route Allocation & Hub Dispatch Onboarding' : 'Free Company Interview Intelligence Hub'}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
+                      <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mt-1 leading-normal">
                         {passportPersona === 'gig'
                           ? 'Direct digital assignment to localized dark-stores, delivery zones, and customer dispatch hubs.'
                           : 'Practice real corporate technical questions, architecture reviews, and HR STAR frameworks.'}
@@ -596,15 +596,15 @@ const LandingPage = () => {
                   </div>
 
                   {/* Stage 3 */}
-                  <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 flex items-start gap-2.5 sm:gap-3">
+                    <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                       3
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      <div className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white leading-snug">
                         {passportPersona === 'gig' ? 'Direct Fleet Manager Walk-in & Hub Gate Pass' : 'Direct Corporate Routing & Walk-in Passes'}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
+                      <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mt-1 leading-normal">
                         {passportPersona === 'gig'
                           ? 'Exact GPS location of the logistics hub with QR gate pass for instant equipment and bag pickup.'
                           : 'Exact venue GPS coordinates and authenticated recruiter pipeline without fee-charging agencies.'}
@@ -613,15 +613,15 @@ const LandingPage = () => {
                   </div>
 
                   {/* Stage 4 */}
-                  <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-start gap-3">
+                  <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex items-start gap-2.5 sm:gap-3">
                     <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                       ✓
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                      <div className="text-xs sm:text-[13px] font-bold text-emerald-900 dark:text-emerald-200 leading-snug">
                         {passportPersona === 'gig' ? '100% Daily & Weekly Payouts to Bank (Zero Cut)' : '100% Direct Salary Credited to Your Bank'}
                       </div>
-                      <div className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5 font-semibold">
+                      <div className="text-[11px] sm:text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-semibold leading-normal">
                         Strictly ₹0 candidate deductions. You keep every single rupee of your corporate contract.
                       </div>
                     </div>
@@ -630,13 +630,13 @@ const LandingPage = () => {
                 </div>
 
                 {/* Footer Action */}
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                  <div className="text-xs text-slate-500 font-medium">
+                <div className="pt-3.5 sm:pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     100% Free Forever for Job Seekers
                   </div>
                   <Link
                     to="/signup"
-                    className="btn-glassy inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-900 dark:text-white text-xs font-bold"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl bg-brand hover:bg-brand-hover text-white text-xs font-bold shadow-sm shadow-brand/20 active:scale-95 transition-all shrink-0"
                   >
                     <span>Claim Your Pass</span>
                     <ArrowRight size={13} />
@@ -697,7 +697,7 @@ const LandingPage = () => {
             {CANDIDATE_PERSONAS.map((persona) => (
               <div
                 key={persona.id}
-                className="p-7 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow flex flex-col justify-between hover:border-brand/40 transition-all group"
+                className="p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow flex flex-col justify-between hover:border-brand/40 transition-all group"
               >
                 <div>
                   {/* Clean Photo Banner */}
@@ -705,6 +705,9 @@ const LandingPage = () => {
                     <img
                       src={persona.avatar}
                       alt={persona.title}
+                      onError={(e) => {
+                        e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250"><rect width="100%" height="100%" fill="%230F172A"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2364748B" font-family="sans-serif" font-size="16">Startaply Direct Track</text></svg>';
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-white text-[11px] font-bold">
@@ -740,7 +743,7 @@ const LandingPage = () => {
                 <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
                   <Link
                     to="/signup"
-                    className="btn-graphic-hover w-full py-2.5 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl justify-center"
+                    className="btn-graphic-hover w-full min-h-[44px] py-2.5 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl justify-center flex items-center"
                   >
                     <span>Get Started</span>
                     <ArrowRight size={14} className="btn-icon" />
@@ -765,35 +768,35 @@ const LandingPage = () => {
               See the exact preparation focus, direct corporate gateway, and compensation transparency engineered for your journey.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold">
+            <div className="mt-6 flex overflow-x-auto no-scrollbar gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold -mx-1 px-1 sm:mx-0 sm:flex-wrap">
               <button
                 onClick={() => setCareerStageKey('fresher')}
-                className={`btn-press px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                  careerStageKey === 'fresher' ? 'bg-brand text-white border-brand-hover' : 'text-slate-600 dark:text-slate-400 border-transparent'
+                className={`btn-press whitespace-nowrap shrink-0 min-h-[44px] px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                  careerStageKey === 'fresher' ? 'bg-brand text-white border-brand-hover shadow-xs' : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Graduate (0–1 Yrs)
               </button>
               <button
                 onClick={() => setCareerStageKey('mid')}
-                className={`btn-press px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                  careerStageKey === 'mid' ? 'bg-brand text-white border-brand-hover' : 'text-slate-600 dark:text-slate-400 border-transparent'
+                className={`btn-press whitespace-nowrap shrink-0 min-h-[44px] px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                  careerStageKey === 'mid' ? 'bg-brand text-white border-brand-hover shadow-xs' : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Early Professional (1–3 Yrs)
               </button>
               <button
                 onClick={() => setCareerStageKey('gig')}
-                className={`btn-press px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                  careerStageKey === 'gig' ? 'bg-brand text-white border-brand-hover' : 'text-slate-600 dark:text-slate-400 border-transparent'
+                className={`btn-press whitespace-nowrap shrink-0 min-h-[44px] px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                  careerStageKey === 'gig' ? 'bg-brand text-white border-brand-hover shadow-xs' : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Gig &amp; Delivery Services
               </button>
               <button
                 onClick={() => setCareerStageKey('lead')}
-                className={`btn-press px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                  careerStageKey === 'lead' ? 'bg-brand text-white border-brand-hover' : 'text-slate-600 dark:text-slate-400 border-transparent'
+                className={`btn-press whitespace-nowrap shrink-0 min-h-[44px] px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                  careerStageKey === 'lead' ? 'bg-brand text-white border-brand-hover shadow-xs' : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 Senior Specialist (4+ Yrs)
@@ -802,7 +805,7 @@ const LandingPage = () => {
           </div>
 
           {/* Roadmap Card */}
-          <div className="p-8 sm:p-10 rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow text-left">
+          <div className="p-5 sm:p-10 rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow text-left">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
               <div className="space-y-2">
@@ -852,7 +855,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
 
             {/* The Broken Traditional Way */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-950/40 soft-shadow space-y-5">
+            <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-950/40 soft-shadow space-y-5">
               <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-red-600">
                 <XCircle size={18} />
                 <span>TRADITIONAL UNVERIFIED CONSULTANCIES &amp; MIDDLEMEN</span>
@@ -883,7 +886,7 @@ const LandingPage = () => {
             </div>
 
             {/* The Startaply Direct Standard */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-800 soft-shadow space-y-5">
+            <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-800 soft-shadow space-y-5">
               <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-emerald-600">
                 <CheckCircle2 size={18} />
                 <span>THE STARTAPLY DIRECT STANDARD</span>
@@ -930,7 +933,7 @@ const LandingPage = () => {
               Sample our free preparation bank curated from real technical and HR evaluation rounds at leading employers.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-6 flex overflow-x-auto no-scrollbar gap-2 pb-1 -mx-1 px-1 sm:mx-0 sm:flex-wrap">
               {FLASHCARDS.map((card, idx) => (
                 <button
                   key={idx}
@@ -938,8 +941,8 @@ const LandingPage = () => {
                     setActiveFlashcardIndex(idx);
                     setIsAnswerRevealed(false);
                   }}
-                  className={`btn-press px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    activeFlashcardIndex === idx ? 'bg-brand text-white border-brand-hover' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent'
+                  className={`btn-press whitespace-nowrap shrink-0 min-h-[44px] px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                    activeFlashcardIndex === idx ? 'bg-brand text-white border-brand-hover shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Question 0{idx + 1}
@@ -949,7 +952,7 @@ const LandingPage = () => {
           </div>
 
           {/* Flashcard Widget */}
-          <div className="max-w-4xl rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-7 sm:p-10 soft-shadow text-left">
+          <div className="max-w-4xl rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-5 sm:p-10 soft-shadow text-left">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <span className="text-xs font-mono font-bold uppercase text-brand">
                 {currentFlashcard.category}
@@ -967,7 +970,7 @@ const LandingPage = () => {
               {!isAnswerRevealed ? (
                 <button
                   onClick={() => setIsAnswerRevealed(true)}
-                  className="btn-skeuomorphic px-6 py-2.5 rounded-xl text-xs font-bold text-brand cursor-pointer"
+                  className="btn-skeuomorphic min-h-[44px] px-6 py-2.5 rounded-xl text-xs font-bold text-brand cursor-pointer flex items-center justify-center"
                 >
                   Reveal Model Answer &amp; Interviewer Tip
                 </button>
@@ -1025,7 +1028,7 @@ const LandingPage = () => {
             {DISCIPLINES.map((d, idx) => (
               <div
                 key={idx}
-                className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 soft-shadow hover:border-brand/40 transition-all flex flex-col justify-between"
+                className="p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 soft-shadow hover:border-brand/40 transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-slate-400 mb-3 font-mono">
@@ -1060,7 +1063,7 @@ const LandingPage = () => {
                   </div>
                   <Link
                     to="/signup"
-                    className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white font-bold text-xs transition-all shadow-xs active:scale-95 group"
+                    className="shrink-0 whitespace-nowrap inline-flex items-center justify-center min-h-[44px] gap-1.5 px-3.5 py-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white font-bold text-xs transition-all shadow-xs active:scale-95 group"
                   >
                     <span>Join Track</span>
                     <ChevronRight size={13} className="shrink-0 group-hover:translate-x-0.5 transition-transform" />
@@ -1095,7 +1098,7 @@ const LandingPage = () => {
             {TESTIMONIALS.map((t, idx) => (
               <div
                 key={idx}
-                className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow flex flex-col justify-between"
+                className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 soft-shadow flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -1115,6 +1118,9 @@ const LandingPage = () => {
                   <img
                     src={t.avatar}
                     alt={t.name}
+                    onError={(e) => {
+                      e.currentTarget.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23001F8E"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="bold" font-size="36">${t.name.charAt(0)}</text></svg>`;
+                    }}
                     className="w-12 h-12 rounded-full object-cover border-2 border-brand/20 shrink-0"
                   />
                   <div>
@@ -1133,7 +1139,7 @@ const LandingPage = () => {
       {/* ── 10. CLIMAX CALL TO ACTION ── */}
       <section className="w-full py-16 md:py-20 bg-[#F4F6FB] dark:bg-[#070B14]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="w-full bg-white dark:bg-slate-900 p-10 sm:p-16 rounded-3xl border-2 border-slate-200 dark:border-slate-800 text-center soft-shadow relative overflow-hidden">
+          <div className="w-full bg-white dark:bg-slate-900 p-6 sm:p-16 rounded-2xl sm:rounded-3xl border-2 border-slate-200 dark:border-slate-800 text-center soft-shadow relative overflow-hidden">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white">
               Ready to Accelerate Your Career? <br />
               <span className="type-gradient">Join India’s Direct Movement.</span>

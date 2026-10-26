@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { logActivity } = require('../utils/logger');
+const { getGovernanceSummary, purgeInactiveCandidates } = require('../utils/accountGovernance');
 
 const router = express.Router();
 
@@ -78,7 +79,7 @@ router.get('/', authMiddleware, staffAccessMiddleware, async (req, res) => {
         id, name, email, phone, city, linkedin_url as "linkedinUrl",
         whatsapp_sync as "whatsappSync", career_track as "careerTrack",
         sub_track as "subTrack", qualification, skills, preferences,
-        status, last_login as "lastLogin", created_at as "createdAt",
+        status, avatar, last_login as "lastLogin", created_at as "createdAt",
         updated_at as "updatedAt"
       FROM candidates
       WHERE 
@@ -127,7 +128,7 @@ router.get('/:id', authMiddleware, staffAccessMiddleware, async (req, res) => {
         id, name, email, phone, city, linkedin_url as "linkedinUrl",
         whatsapp_sync as "whatsappSync", career_track as "careerTrack",
         sub_track as "subTrack", qualification, skills, preferences,
-        status, last_login as "lastLogin", created_at as "createdAt",
+        status, avatar, last_login as "lastLogin", created_at as "createdAt",
         updated_at as "updatedAt"
       FROM candidates 
       WHERE id = $1
@@ -233,6 +234,42 @@ router.delete('/:id', authMiddleware, staffAccessMiddleware, async (req, res) =>
   } catch (err) {
     console.error('[Delete Candidate Error]', err.message);
     res.status(500).json({ error: 'Failed to delete candidate' });
+  }
+});
+
+/**
+ * GET /api/candidates/governance/summary
+ * Returns 60-day account governance metrics & inactivity counts
+ */
+router.get('/governance/summary', authMiddleware, staffAccessMiddleware, async (req, res) => {
+  try {
+    const summary = await getGovernanceSummary();
+    res.json(summary);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve governance summary' });
+  }
+});
+
+/**
+ * POST /api/candidates/governance/purge
+ * Triggers manual 60-day inactive candidate purge (Operational Managers only)
+ */
+router.post('/governance/purge', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'manager' && req.user.role !== 'operational_manager') {
+      return res.status(403).json({ error: 'Forbidden: Operational Manager authorization required' });
+    }
+
+    const dryRun = req.query.dryRun === 'true' || req.body.dryRun === true;
+    const result = await purgeInactiveCandidates({
+      dryRun,
+      io: req.io,
+      triggeredBy: req.user.id
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to execute candidate purge' });
   }
 });
 

@@ -9,6 +9,23 @@
    Premium Light × Cinematic Dark
 ═══════════════════════════════════════════════════════════════════ */
 
+/* ── Refined Universal Placeholder Appearance ────────────────────── */
+input::placeholder,
+textarea::placeholder {
+  font-size: 0.85rem !important;
+  font-weight: 400 !important;
+  line-height: normal;
+  letter-spacing: normal;
+  opacity: 0.75;
+}
+
+@media (min-width: 640px) {
+  input::placeholder,
+  textarea::placeholder {
+    font-size: 0.875rem !important;
+  }
+}
+
 /* ── 1. CSS Custom Properties ──────────────────────────────────── */
 :root {
   /* Legacy compatibility aliases (DO NOT REMOVE) */
@@ -1025,16 +1042,19 @@ body {
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* 3D Depth Card Deck Stack */
+/* Sharp Crisp Card Deck Stack (Disabled 3D preserve-3d to eliminate font rasterization blur) */
 .perspective-1000 {
-  perspective: 1000px;
+  perspective: none;
 }
 .card-stack-depth {
-  transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 .card-stack-depth:hover {
-  transform: translateY(-8px) rotateX(2deg) rotateY(-2deg) translateZ(10px);
+  transform: translateY(-4px);
 }
 
 /* Type Behind Image */

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   X, User, Phone, MapPin, Linkedin, Briefcase, 
   GraduationCap, Monitor, Zap, Check, 
-  Save, Loader2, SlidersHorizontal, Layers
+  Save, Loader2, SlidersHorizontal, Layers, Camera, Upload, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -66,6 +66,8 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
   const [skills, setSkills] = useState('');
   const [workMode, setWorkMode] = useState('All');
   const [isSaving, setIsSaving] = useState(false);
+  const [avatar, setAvatar] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (user && isOpen) {
@@ -91,6 +93,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
       setSubTrack(userSub);
       setSkills(typeof user.skills === 'string' ? user.skills : Array.isArray(user.skills) ? user.skills.join(', ') : '');
       setWorkMode(prefs.workMode || 'All');
+      setAvatar(user.avatar || user.avatarUrl || user.profileImage || '');
     }
   }, [user, isOpen]);
 
@@ -124,6 +127,47 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isSaving, onClose]);
 
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let width = img.width;
+        let height = img.height;
+        const minDim = Math.min(width, height);
+        const startX = (width - minDim) / 2;
+        const startY = (height - minDim) / 2;
+
+        canvas.width = maxDim;
+        canvas.height = maxDim;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, maxDim, maxDim);
+
+        const compressed = canvas.toDataURL('image/jpeg', 0.85);
+        setAvatar(compressed);
+        toast.success('Profile photo ready to save!', { duration: 2500 });
+      };
+      img.src = readerEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatar('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    toast.success('Photo removed');
+  };
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!name.trim()) {
@@ -137,10 +181,12 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
         name: name.trim(),
         phone: phone.trim(),
         city: city.trim(),
+        linkedinUrl: linkedinUrl.trim(),
         linkedin_url: linkedinUrl.trim(),
         careerTrack,
         subTrack: subTrack.trim(),
         skills: skills.trim(),
+        avatar: avatar || null,
         preferences: {
           category: careerTrack === 'it' ? 'IT / Tech' : careerTrack === 'non-it' ? 'Non-IT' : careerTrack === 'gig' ? 'Gig Works' : 'Others',
           level: careerTrack === 'gig' ? 'flexible' : level,
@@ -208,7 +254,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
               <button
                 onClick={onClose}
                 disabled={isSaving}
-                className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors shrink-0"
                 aria-label="Close dialog"
               >
                 <X size={18} />
@@ -216,7 +262,69 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* ── Scrollable Form Body ── */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1 overscroll-contain">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto flex-1 overscroll-contain">
+
+              {/* ── 0. CANDIDATE PROFILE PHOTO ── */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-850/60 border border-slate-200/80 dark:border-neutral-800 flex flex-col sm:flex-row items-center gap-4">
+                <div className="relative group shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-brand to-indigo-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-brand/20 overflow-hidden ring-4 ring-white dark:ring-neutral-800">
+                    {avatar ? (
+                      <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      (name.trim() || user?.name || 'U').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-brand text-white flex items-center justify-center shadow-md border-2 border-white dark:border-neutral-800 hover:scale-105 active:scale-95 transition-transform"
+                    title="Upload new photo"
+                    aria-label="Upload new photo"
+                  >
+                    <Camera size={14} />
+                  </button>
+                </div>
+
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">Profile Picture</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand/10 text-brand dark:text-brand-hover">
+                      Visible in Navbar
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                    PNG, JPG, or WebP. Automatically optimized for ultra-fast loading across devices.
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand text-white hover:bg-brand-hover font-bold text-xs shadow-xs transition-all min-h-[36px] active:scale-95"
+                    >
+                      <Upload size={13} />
+                      <span>{avatar ? 'Change Photo' : 'Upload Photo'}</span>
+                    </button>
+                    {avatar && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-neutral-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-400 font-bold text-xs transition-colors min-h-[36px]"
+                      >
+                        <Trash2 size={13} />
+                        <span>Remove</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* ── 1. PRIMARY CAREER TRACK ── */}
               <div>
@@ -332,8 +440,8 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
                   type="text"
                   value={subTrack}
                   onChange={(e) => setSubTrack(e.target.value)}
-                  placeholder="Or enter custom role (e.g. Senior React Engineer, HR Recruiter)"
-                  className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
+                  placeholder="Custom role or keyword..."
+                  className="w-full px-4 py-2.5 text-xs placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
                 />
               </div>
 
@@ -353,7 +461,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
                       onChange={(e) => setName(e.target.value)}
                       required
                       placeholder="Candidate Name"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
+                      className="w-full px-3.5 py-2.5 text-xs placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
                     />
                   </div>
 
@@ -366,7 +474,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="10-digit mobile number"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
+                      className="w-full px-3.5 py-2.5 text-xs placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
                     />
                   </div>
 
@@ -379,7 +487,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       placeholder="e.g. Bengaluru, Remote"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
+                      className="w-full px-3.5 py-2.5 text-xs placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
                     />
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {CITIES.map(c => (
@@ -408,7 +516,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
                       value={linkedinUrl}
                       onChange={(e) => setLinkedinUrl(e.target.value)}
                       placeholder="https://linkedin.com/in/username"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
+                      className="w-full px-3.5 py-2.5 text-xs placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
                     />
                   </div>
                 </div>
@@ -425,7 +533,7 @@ const ProfilePreferencesModal = ({ isOpen, onClose }) => {
                     value={skills}
                     onChange={(e) => setSkills(e.target.value)}
                     placeholder="e.g. React, Node.js, SQL, Tailwind"
-                    className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
+                    className="w-full px-3.5 py-2.5 text-xs placeholder:text-xs placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-brand"
                   />
                 </div>
 

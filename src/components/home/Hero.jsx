@@ -15,11 +15,11 @@ const MOBILE_PLACEHOLDERS = [
 ];
 
 const DESKTOP_PLACEHOLDERS = [
-  'Search role, company, skill (e.g. Software Engineer, Bangalore)',
-  'Search role, company, skill (e.g. Data Analyst, Remote)',
-  'Search role, company, skill (e.g. Frontend Developer, Startup)',
-  'Search role, company, skill (e.g. Product Manager, Hyderabad)',
-  'Search role, company, skill (e.g. HR Executive, Full-time)',
+  'Search job title, company, or tech stack...',
+  'e.g. Software Engineer, React, Bengaluru',
+  'e.g. Data Analyst, Python, Remote',
+  'e.g. Business Development, Mumbai',
+  'e.g. Cloud Architect, AWS, Hyderabad',
 ];
 
 const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => {
@@ -41,6 +41,11 @@ const DesktopParallaxContainer = ({ children, heroImages, currentImageIdx }) => 
             exit={{ opacity: 0 }}
             transition={{ duration: 1.5, ease: 'easeInOut' }}
             src={(heroImages && heroImages.length > 0) ? heroImages[currentImageIdx] : "/hero-bg.png"}
+            onError={(e) => {
+              if (!e.currentTarget.src.endsWith('/hero-bg.png')) {
+                e.currentTarget.src = '/hero-bg.png';
+              }
+            }}
             alt="Hero Background"
             className="w-full h-full object-cover object-center absolute inset-0"
             loading="eager"
@@ -205,7 +210,7 @@ const Hero = () => {
               onFocus={() => query.length >= 1 && setShowSuggestions(true)}
               autoComplete="off"
               spellCheck="false"
-              className="flex-1 py-3.5 text-sm outline-none text-white placeholder-slate-400 font-medium bg-transparent min-w-0"
+              className="flex-1 py-3.5 text-sm outline-none text-white placeholder:text-xs sm:placeholder:text-sm placeholder:font-normal placeholder-slate-400 font-medium bg-transparent min-w-0"
               placeholder={MOBILE_PLACEHOLDERS[placeholderIdx % MOBILE_PLACEHOLDERS.length]}
               style={{ minHeight: '50px' }}
             />
@@ -320,25 +325,25 @@ const Hero = () => {
         ))}
       </motion.div>
 
-      {/* ── Trust Strip - horizontal scroll on mobile ─────────────────── */}
+      {/* ── Trust Strip ── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.9, delay: 0.7 }}
-        className="mt-4 md:mt-8 flex items-center gap-3.5 text-[11px] md:text-[12px] font-medium text-slate-400 overflow-x-auto no-scrollbar whitespace-nowrap pb-1"
+        className="mt-4 md:mt-8 flex flex-wrap items-center gap-x-3 sm:gap-x-3.5 gap-y-1.5 sm:gap-y-2 text-[11px] sm:text-xs font-semibold text-slate-300"
       >
-        <span className="flex items-center gap-1.5 shrink-0">
-          <ShieldCheck size={14} className="text-emerald-400" />
+        <span className="flex items-center gap-1.5 shrink-0 text-emerald-400">
+          <ShieldCheck size={14} />
           100% Verified
         </span>
-        <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+        <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0 hidden sm:inline-block" />
         <span className="shrink-0">Zero Consulting Fees</span>
-        <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
+        <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0 hidden sm:inline-block" />
         <span className="shrink-0">Direct Applications</span>
         {totalJobs > 0 && (
           <>
-            <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0" />
-            <span className="text-slate-200 font-bold shrink-0">{totalJobs}+ Active Jobs</span>
+            <span className="w-1 h-1 rounded-full bg-slate-600 shrink-0 hidden sm:inline-block" />
+            <span className="text-white font-black shrink-0">{totalJobs}+ Active Jobs</span>
           </>
         )}
       </motion.div>
@@ -346,7 +351,7 @@ const Hero = () => {
   );
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden" style={{ minHeight: isMobile ? 'min(78vh, 580px)' : 'min(96vh, 900px)' }}>
+    <section ref={sectionRef} className="relative overflow-hidden bg-black" style={{ minHeight: isMobile ? 'auto' : 'min(96vh, 900px)' }}>
       {shouldAnimate && !isMobile ? (
         <DesktopParallaxContainer heroImages={heroImages} currentImageIdx={currentImageIdx}>
           {content}
@@ -357,8 +362,8 @@ const Hero = () => {
         </StaticContainer>
       )}
 
-      {/* Bottom atmospheric fade into next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none" />
+      {/* Bottom atmospheric fade into next section - desktop only */}
+      <div className="hidden md:block absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none" />
     </section>
   );
 };

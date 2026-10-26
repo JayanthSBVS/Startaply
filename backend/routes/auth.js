@@ -1,6 +1,7 @@
 const express = require('express');
 const { authMiddleware, managerMiddleware } = require('../middleware/authMiddleware');
 const { logActivity } = require('../utils/logger');
+const { touchCandidateActivity } = require('../utils/accountGovernance');
 const pool = require('../db');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -29,6 +30,9 @@ async function initAuthDb() {
     // 2. Add lastLogout column if it doesn't exist (Migration)
     try {
       await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS lastLogout BIGINT');
+      await pool.query('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS last_active_at BIGINT');
+      await pool.query('ALTER TABLE candidates ADD COLUMN IF NOT EXISTS avatar TEXT');
+      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT');
     } catch (e) { /* might already exist */ }
 
     // 2. Create Activity Logs Table
@@ -113,7 +117,7 @@ async function initAuthDb() {
       }
       // Cleanup old roles if needed
       await pool.query(`DELETE FROM role_permissions WHERE role NOT IN ('manager', 'operational_manager', 'operational_executive')`);
-      
+
       console.log('Operational Migration: Role permissions seeded successfully.');
     } catch (e) {
       console.error('Role Permissions Migration Error:', e.message);
@@ -217,13 +221,15 @@ router.post('/signup', async (req, res) => {
       INSERT INTO candidates (
         id, name, email, password, phone, city, linkedin_url,
         whatsapp_sync, career_track, sub_track, qualification,
-        skills, preferences, status, created_at, updated_at
+        skills, preferences, status, avatar, created_at, updated_at,
+        last_login, last_active_at
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
+        $18, $19
       ) RETURNING id, name, email, phone, city, linkedin_url as "linkedinUrl",
                   whatsapp_sync as "whatsappSync", career_track as "careerTrack",
                   sub_track as "subTrack", qualification, skills, preferences,
-                  status, created_at as "createdAt"
+                  status, avatar, created_at as "createdAt"
     `;
 
     const insertValues = [
@@ -241,6 +247,9 @@ router.post('/signup', async (req, res) => {
       typeof skills === 'string' ? skills : Array.isArray(skills) ? skills.join(', ') : '',
       typeof preferences === 'object' ? JSON.stringify(preferences) : preferences,
       'REGISTERED',
+      req.body.avatar || null,
+      now,
+      now,
       now,
       now
     ];
@@ -304,6 +313,7 @@ router.post('/signup', async (req, res) => {
         skills: candidate.skills,
         preferences: candidate.preferences,
         status: candidate.status,
+        avatar: candidate.avatar || null,
         role: 'candidate'
       }
     });
@@ -345,14 +355,14 @@ router.post('/login', async (req, res) => {
 
       // Update last login
       await pool.query('UPDATE users SET lastLogin = $1 WHERE id = $2', [Date.now(), user.id]).catch(() => {});
-      
+
       // Log Activity & Emit Update
       await logActivity(user.id, user.name, user.role, 'Auth', 'User Logged In', user.id).catch(() => {});
       if (req.io) req.io.emit('DATA_UPDATED', { module: 'Auth', action: 'login', userName: user.name });
 
-      return res.json({ 
-        token, 
-        user: { id: user.id, email: user.email, role: user.role, name: user.name } 
+      return res.json({
+        token,
+        user: { id: user.id, email: user.email, role: user.role, name: user.name, avatar: user.avatar || null }
       });
     }
 
@@ -383,7 +393,7 @@ router.post('/login', async (req, res) => {
       );
 
       // Update last login
-      await pool.query('UPDATE candidates SET last_login = $1 WHERE id = $2', [Date.now(), candidate.id]).catch(() => {});
+      await pool.query('UPDATE candidates SET last_login = $1, last_active_at = $1 WHERE id = $2', [Date.now(), candidate.id]).catch(() => {});
 
       if (req.io) {
         req.io.emit('DATA_UPDATED', { module: 'Candidates', action: 'login', candidateName: candidate.name });
@@ -405,7 +415,8 @@ router.post('/login', async (req, res) => {
           qualification: candidate.qualification,
           skills: candidate.skills,
           preferences: candidate.preferences,
-          status: candidate.status
+          status: candidate.status,
+          avatar: candidate.avatar || null
         }
       });
     }
@@ -435,7 +446,7 @@ router.post('/logout', authMiddleware, async (req, res) => {
   try {
     const timestamp = Date.now();
     await pool.query('UPDATE users SET lastLogout = $1 WHERE id = $2', [timestamp, req.user.id]);
-    
+
     // Log Activity & Emit Update
     await logActivity(req.user.id, req.user.name, req.user.role, 'Auth', 'User Logged Out', req.user.id);
     if (req.io) req.io.emit('DATA_UPDATED', { module: 'Auth', action: 'logout', userName: req.user.name });
@@ -452,9 +463,10 @@ router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const userEmail = req.user.email;
+    touchCandidateActivity(userId).catch(() => {});
 
     const { rows: candRows } = await pool.query(
-      'SELECT id, name, email, phone, city, linkedin_url as "linkedinUrl", whatsapp_sync as "whatsappSync", career_track as "careerTrack", sub_track as "subTrack", qualification, skills, preferences, status, created_at as "createdAt", updated_at as "updatedAt" FROM candidates WHERE id = $1 OR LOWER(email) = LOWER($2) LIMIT 1',
+      'SELECT id, name, email, phone, city, linkedin_url as "linkedinUrl", whatsapp_sync as "whatsappSync", career_track as "careerTrack", sub_track as "subTrack", qualification, skills, preferences, status, avatar, created_at as "createdAt", updated_at as "updatedAt" FROM candidates WHERE id = $1 OR LOWER(email) = LOWER($2) LIMIT 1',
       [userId, userEmail]
     );
 
@@ -482,6 +494,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const userEmail = req.user.email;
+    touchCandidateActivity(userId).catch(() => {});
     const {
       name,
       phone,
@@ -491,12 +504,16 @@ router.put('/profile', authMiddleware, async (req, res) => {
       subTrack,
       qualification,
       skills,
-      preferences
+      preferences,
+      avatar
     } = req.body;
 
     const now = Date.now();
     const cleanPhone = phone !== undefined ? phone.replace(/\D/g, '') : null;
-    const cleanLinkedin = linkedinUrl !== undefined ? linkedinUrl.trim() : null;
+    const effectiveLinkedin = linkedinUrl !== undefined ? linkedinUrl : req.body.linkedin_url;
+    const effectiveTrack = careerTrack !== undefined ? careerTrack : req.body.career_track;
+    const effectiveSub = subTrack !== undefined ? subTrack : req.body.sub_track;
+    const cleanLinkedin = effectiveLinkedin !== undefined ? (effectiveLinkedin || '').trim() : null;
     const serializedPrefs = typeof preferences === 'object' ? JSON.stringify(preferences) : preferences;
 
     // Check if user is in candidates table
@@ -518,12 +535,14 @@ router.put('/profile', authMiddleware, async (req, res) => {
           qualification = COALESCE($7, qualification),
           skills = COALESCE($8, skills),
           preferences = COALESCE($9, preferences),
-          updated_at = $10
-        WHERE id = $11
+          avatar = CASE WHEN $10 IS NOT NULL THEN $10 ELSE avatar END,
+          updated_at = $11,
+          last_active_at = $11
+        WHERE id = $12
         RETURNING id, name, email, phone, city, linkedin_url as "linkedinUrl",
                   whatsapp_sync as "whatsappSync", career_track as "careerTrack",
                   sub_track as "subTrack", qualification, skills, preferences,
-                  status, created_at as "createdAt", updated_at as "updatedAt"
+                  status, avatar, created_at as "createdAt", updated_at as "updatedAt"
       `;
 
       const values = [
@@ -531,11 +550,12 @@ router.put('/profile', authMiddleware, async (req, res) => {
         cleanPhone,
         city !== undefined ? city.trim() : null,
         cleanLinkedin,
-        careerTrack !== undefined ? careerTrack.toLowerCase().trim() : null,
-        subTrack !== undefined ? subTrack.trim() : null,
+        effectiveTrack !== undefined ? (effectiveTrack || '').toLowerCase().trim() : null,
+        effectiveSub !== undefined ? (effectiveSub || '').trim() : null,
         qualification !== undefined ? qualification.trim() : null,
         typeof skills === 'string' ? skills : Array.isArray(skills) ? skills.join(', ') : null,
         serializedPrefs !== undefined ? serializedPrefs : null,
+        avatar !== undefined ? (avatar || null) : null,
         now,
         cand.id
       ];
@@ -562,7 +582,8 @@ router.put('/profile', authMiddleware, async (req, res) => {
         skills: updated.skills,
         preferences: parsedPrefs,
         role: 'candidate',
-        status: updated.status
+        status: updated.status,
+        avatar: updated.avatar || null
       };
 
       if (req.io) {
@@ -589,8 +610,8 @@ router.put('/profile', authMiddleware, async (req, res) => {
     }
 
     // If user is a staff/admin user in users table
-    if (name) {
-      await pool.query('UPDATE users SET name = $1 WHERE id = $2', [name.trim(), userId]).catch(() => {});
+    if (name || avatar) {
+      await pool.query('UPDATE users SET name = COALESCE($1, name), avatar = COALESCE($2, avatar) WHERE id = $3', [name ? name.trim() : null, avatar || null, userId]).catch(() => {});
     }
 
     return res.json({
@@ -623,7 +644,7 @@ router.post('/register', authMiddleware, managerMiddleware, async (req, res) => 
     const { name, email, password, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const id = 'admin_' + Date.now();
-    
+
     await pool.query(
       `INSERT INTO users (id, name, email, password, role, createdat) VALUES ($1, $2, $3, $4, $5, $6)`,
       [id, name, email, hashedPassword, role || 'admin', Date.now()]
@@ -645,10 +666,10 @@ router.put('/users/:id/toggle', authMiddleware, managerMiddleware, async (req, r
     const { id } = req.params;
     const { isActive } = req.body;
     await pool.query('UPDATE users SET isactive = $1 WHERE id = $2', [isActive, id]);
-    
+
     await logActivity(req.user.id, req.user.name, req.user.role, 'Auth', `Changed status for ${id} to ${isActive ? 'Active' : 'Disabled'}`, id);
     req.io.emit('DATA_UPDATED', { module: 'Auth' });
-    
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -660,7 +681,7 @@ router.delete('/users/:id', authMiddleware, managerMiddleware, async (req, res) 
   try {
     const { id } = req.params;
     if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
-    
+
     await pool.query('DELETE FROM users WHERE id = $1', [id]);
     await logActivity(req.user.id, req.user.name, req.user.role, 'Auth', `Deleted User: ${id}`, id);
     req.io.emit('DATA_UPDATED', { module: 'Auth' });
@@ -719,7 +740,7 @@ router.get('/stats', authMiddleware, async (req, res) => {
 
     const todayMillis = new Date().setHours(0, 0, 0, 0);
     const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
-    
+
     // Aggregate Today Stats for Pulse
     const [todayJobs, todayPrep, todayMela, todayCompanies] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM jobs WHERE createdat >= $1', [todayMillis]),
@@ -740,13 +761,13 @@ router.get('/stats', authMiddleware, async (req, res) => {
     }
 
     const adminStats = await pool.query(`
-      WITH 
+      WITH
         job_counts AS (SELECT createdbyadminid as uid, COUNT(*) as count, COUNT(*) FILTER (WHERE createdat >= $1) as today FROM jobs GROUP BY uid),
         comp_counts AS (SELECT createdbyadminid as uid, COUNT(*) as count, COUNT(*) FILTER (WHERE createdat >= $1) as today FROM companies GROUP BY uid),
         prep_counts AS (SELECT createdbyadminid as uid, COUNT(*) as count, COUNT(*) FILTER (WHERE createdat >= $1) as today FROM prep_data GROUP BY uid),
         mela_counts AS (SELECT createdbyadminid as uid, COUNT(*) as count, COUNT(*) FILTER (WHERE createdat >= $1) as today FROM job_mela GROUP BY uid)
-      
-      SELECT 
+
+      SELECT
         u.id, u.name as "adminName", u.email, u.role, u.isactive as "isActive", u.lastlogin as "lastLogin", u.lastlogout as "lastLogout", u.createdat as "createdAt",
         COALESCE(j.count, 0) as "jobCountTotal",
         COALESCE(c.count, 0) as "companyCountTotal",
@@ -787,15 +808,15 @@ router.get('/stats', authMiddleware, async (req, res) => {
         const cCount = parseInt(row.companyCountTotal || row.companycounttotal || 0);
         const pCount = parseInt(row.prepCountTotal || row.prepcounttotal || 0);
         const mCount = parseInt(row.melaCountTotal || row.melacounttotal || 0);
-        
+
         const jToday = parseInt(row.jobCountToday || row.jobcounttoday || 0);
         const cToday = parseInt(row.companyCountToday || row.companycounttoday || 0);
         const pToday = parseInt(row.prepCountToday || row.prepcounttoday || 0);
         const mToday = parseInt(row.melaCountToday || row.melacounttoday || 0);
-        
+
         const total = jCount + cCount + pCount + mCount;
         const today = jToday + cToday + pToday + mToday;
-        
+
         return {
           ...row,
           jobCountTotal: jCount,
@@ -911,10 +932,10 @@ router.put('/permissions', authMiddleware, managerMiddleware, async (req, res) =
          can_manage_companies=$6, can_manage_mela=$7, can_manage_prep=$8, updated_at=$9`,
       [role, !!can_post_job, !!can_edit_job, !!can_delete_job, !!can_view_applicants, !!can_manage_companies, !!can_manage_mela, !!can_manage_prep, Date.now()]
     );
-    
+
     await logActivity(req.user.id, req.user.name, req.user.role, 'Auth', `Updated permissions for role: ${role}`, role);
     if (req.io) req.io.emit('DATA_UPDATED', { module: 'Auth' });
-    
+
     res.json({ success: true });
   } catch (err) {
     console.error('[Permissions update error]', err);

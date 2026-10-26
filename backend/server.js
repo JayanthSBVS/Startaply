@@ -24,6 +24,7 @@ const io = new Server(server, {
 });
 
 const compression = require('compression');
+const { startGovernanceCron } = require('./utils/accountGovernance');
 
 // Middleware to inject IO into requests
 app.use((req, res, next) => {
@@ -63,4 +64,5 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Operational Server running on port ${PORT}`);
+  startGovernanceCron(io);
 });
