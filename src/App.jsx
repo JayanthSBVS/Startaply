@@ -1,22 +1,21 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { JobsProvider } from './context/JobsContext';
 import { Toaster } from 'react-hot-toast';
-
-import ScrollToTop from './components/common/ScrollToTop';
-import ScrollToTopButton from './components/common/ScrollToTopButton';
-import MobileBottomNav from './components/common/MobileBottomNav';
-import Navbar from './components/common/Navbar';
-import Footer from './components/common/Footer';
+import { JobsProvider } from './context/JobsContext';
+import { useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import ScrollToTop from './components/common/ScrollToTop';
 
-// Eager-load high-priority pages (above the fold, visited most)
-import Home from './pages/Home';
-import JobsPage from './pages/JobsPage';
+// Eager load only what's needed on first paint
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import { useAuth } from './context/AuthContext';
+import Home from './pages/Home';
+import JobsPage from './pages/JobsPage';
+import Navbar from './components/common/Navbar';
+import Footer from './components/common/Footer';
+import MobileBottomNav from './components/common/MobileBottomNav';
+import ScrollToTopButton from './components/common/ScrollToTopButton';
 
 // Safe chunk loader: retries once via reload, then shows error instead of infinite loop
 const lazyRetry = (componentImport) => {
@@ -41,19 +40,19 @@ const lazyRetry = (componentImport) => {
   });
 };
 
-// Lazy-load everything else - saves ~200KB+ from initial bundle
-const CompaniesPage     = lazyRetry(() => import('./pages/CompaniesPage'));
-const CompanyProfilePage = lazyRetry(() => import('./pages/CompanyProfilePage'));
-const CategoryJobsPage  = lazyRetry(() => import('./pages/CategoryJobsPage'));
-const JobMelaPage       = lazyRetry(() => import('./pages/JobMelaPage'));
-const JobMelaDetailPage = lazyRetry(() => import('./pages/JobMelaDetailPage'));
-const PreparationPage   = lazyRetry(() => import('./pages/PreparationPage'));
-const AboutUs           = lazyRetry(() => import('./pages/AboutUs'));
-const PrivacyPolicy     = lazyRetry(() => import('./pages/PrivacyPolicy'));
-const TermsOfService    = lazyRetry(() => import('./pages/TermsOfService'));
-// Admin is the biggest win - 110KB kept out of every user's bundle
-const AdminDashboard    = lazyRetry(() => import('./pages/AdminDashboard'));
-const AdminLogin        = lazyRetry(() => import('./pages/AdminLogin'));
+// Lazy-load everything else - saves bundle weight on initial load
+const CompaniesPage      = lazyRetry(() => import('./pages/CompaniesPage'));
+const CompanyProfilePage  = lazyRetry(() => import('./pages/CompanyProfilePage'));
+const CategoryJobsPage   = lazyRetry(() => import('./pages/CategoryJobsPage'));
+const JobMelaPage        = lazyRetry(() => import('./pages/JobMelaPage'));
+const JobMelaDetailPage  = lazyRetry(() => import('./pages/JobMelaDetailPage'));
+const PreparationPage    = lazyRetry(() => import('./pages/PreparationPage'));
+const AboutUs            = lazyRetry(() => import('./pages/AboutUs'));
+const PrivacyPolicy      = lazyRetry(() => import('./pages/PrivacyPolicy'));
+const TermsOfService     = lazyRetry(() => import('./pages/TermsOfService'));
+const AdminDashboard     = lazyRetry(() => import('./pages/AdminDashboard'));
+const AdminLogin         = lazyRetry(() => import('./pages/AdminLogin'));
+const EmployerPortal     = lazyRetry(() => import('./pages/employer/EmployerPortal'));
 
 // Simple full-screen spinner used by Suspense
 const PageLoader = () => (
@@ -64,6 +63,7 @@ const PageLoader = () => (
 
 function App() {
   const { user } = useAuth();
+  const isEmployer = user?.role === 'employer';
 
   return (
     <JobsProvider>
@@ -71,17 +71,24 @@ function App() {
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
         
-        {/* Render internal Application Navbar ONLY when user is authenticated */}
-        {user && <Navbar />}
+        {/* Render internal Application Navbar ONLY when user is authenticated and not employer */}
+        {user && !isEmployer && <Navbar />}
 
         <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public & Candidate Homepage */}
-              <Route path="/"               element={user ? <Home /> : <LandingPage />} />
+              <Route path="/"               element={isEmployer ? <Navigate to="/employer" replace /> : user ? <Home /> : <LandingPage />} />
               <Route path="/landing"        element={<LandingPage />} />
               <Route path="/login"          element={user ? <Navigate to="/" replace /> : <LoginPage />} />
               <Route path="/signup"         element={user ? <Navigate to="/" replace /> : <SignupPage />} />
+
+              {/* Employer Portal Routes */}
+              <Route path="/employer"           element={<EmployerPortal />} />
+              <Route path="/employer/login"     element={<EmployerPortal defaultTab="login" />} />
+              <Route path="/employer/signup"    element={<EmployerPortal defaultTab="signup" />} />
+              <Route path="/employer/dashboard" element={<EmployerPortal defaultTab="overview" />} />
+              <Route path="/post-a-job"         element={<EmployerPortal defaultTab="post" />} />
               
               {/* Admin Routes */}
               <Route path="/admin"          element={<AdminDashboard />} />
@@ -118,8 +125,8 @@ function App() {
           </Suspense>
         </ErrorBoundary>
 
-        {/* Render internal Application Footer, ScrollToTop, and Mobile Bottom Nav ONLY when authenticated */}
-        {user && (
+        {/* Render internal Application Footer, ScrollToTop, and Mobile Bottom Nav ONLY when authenticated and not employer */}
+        {user && !isEmployer && (
           <>
             <Footer />
             <ScrollToTopButton />
@@ -132,4 +139,3 @@ function App() {
 }
 
 export default App;
-

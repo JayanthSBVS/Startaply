@@ -1,5 +1,29 @@
 [
   {
+    "id": "ed59076b-bb45-4a02-a39e-4f0615ead672",
+    "collegeName": "Vellore Institute of Technology (VIT), Vellore",
+    "email": "cdc@vit.ac.in",
+    "phone": "9443210987",
+    "message": "Requesting verified recruiter access for over 3,500 circuit branch students seeking 6-month capstone internships.",
+    "createdAt": "2026-10-27T07:41:16.307Z"
+  },
+  {
+    "id": "ee09169a-08e3-4697-add9-44c067c61d76",
+    "collegeName": "Chitkara University Corporate Relations, Punjab",
+    "email": "corporate.connect@chitkara.edu.in",
+    "phone": "9876543110",
+    "message": "Looking to partner with Startaply for joint resume clinics, interview preparation bootcamps, and direct hiring melas.",
+    "createdAt": "2026-10-27T07:41:16.304Z"
+  },
+  {
+    "id": "a610ed1b-5b30-488a-aaaa-16c48f7b8e0f",
+    "collegeName": "RV College of Engineering (RVCE), Bengaluru",
+    "email": "placements@rvce.edu.in",
+    "phone": "9844011223",
+    "message": "Inviting Startaply partner enterprises for the upcoming 2026 on-campus mega recruitment drive for CS, IS and AI branches.",
+    "createdAt": "2026-10-27T07:41:16.299Z"
+  },
+  {
     "id": "collab-1",
     "collegeName": "IIT Madras Training & Placement Cell",
     "email": "placements@iitm.ac.in",

@@ -290,6 +290,13 @@ const LandingPage = () => {
             >
               Stories
             </button>
+            <Link
+              to="/employer"
+              className="px-3.5 py-1.5 rounded-full text-brand hover:bg-brand/10 font-bold text-[13px] transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Building2 size={13} />
+              <span>For Employers</span>
+            </Link>
           </nav>
 
           {/* Right Action Cluster (Carefully Aligned Sign In & Join Free) */}
@@ -393,6 +400,15 @@ const LandingPage = () => {
               <Quote size={17} className="text-brand shrink-0" />
               <span>Verified Stories</span>
             </button>
+
+            <Link
+              to="/employer"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 text-sm font-bold text-brand py-3 min-h-[44px] border-b border-slate-100 dark:border-slate-800 text-left cursor-pointer active:bg-brand/10 rounded-lg px-2 -mx-2 transition-colors"
+            >
+              <Building2 size={17} className="text-brand shrink-0" />
+              <span>For Employers (Post a Job)</span>
+            </Link>
 
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
               {user ? (

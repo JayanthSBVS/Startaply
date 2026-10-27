@@ -150,7 +150,9 @@ function mapRow(row) {
     applicationCount: Number(row.applicationcount || 0),
     createdByAdminId: row.createdbyadminid,
     createdByAdminName: row.createdbyadminname,
-    companyId: row.companyid
+    companyId: row.companyid,
+    isEmployerJob: nb(row.isemployerjob),
+    employerId: row.employerid
   };
 }
 
@@ -325,6 +327,13 @@ router.get('/search/suggestions', async (req, res) => {
 async function checkHierarchicalOwnership(itemAdminId, user) {
   if (user.role === 'manager') return true;
   if (itemAdminId === user.id) return true;
+  if (user.role === 'operational_manager' || user.role === 'operational_executive') {
+    // Op Staff can manage/moderate employer-submitted listings
+    try {
+      const { rows: empRows } = await pool.query('SELECT id FROM employers WHERE id=$1', [itemAdminId]);
+      if (empRows.length > 0) return true;
+    } catch {}
+  }
   if (user.role === 'operational_manager') {
     // Op Manager can edit if creator is operational_executive
     const { rows } = await pool.query('SELECT role FROM users WHERE id=$1', [itemAdminId]);
@@ -338,10 +347,10 @@ router.get('/admin/list', authMiddleware, async (req, res) => {
     let query = `SELECT j.*, (SELECT count(*) FROM applications a WHERE a.jobId = j.id) as applicationcount FROM jobs j`;
     let params = [];
     if (req.user.role === 'operational_executive') {
-      query += ` WHERE j.createdByAdminId = $1`;
+      query += ` WHERE (j.createdByAdminId = $1 OR j.isEmployerJob = TRUE)`;
       params.push(req.user.id);
     } else if (req.user.role === 'operational_manager') {
-      query += ` WHERE j.createdByAdminId = $1 OR j.createdByAdminId IN (SELECT id FROM users WHERE role = 'operational_executive')`;
+      query += ` WHERE (j.createdByAdminId = $1 OR j.createdByAdminId IN (SELECT id FROM users WHERE role = 'operational_executive') OR j.isEmployerJob = TRUE)`;
       params.push(req.user.id);
     }
     const { rows } = await pool.query(query, params);
@@ -438,11 +447,19 @@ router.get('/applications/all', authMiddleware, async (req, res) => {
     let query = 'SELECT * FROM applications ORDER BY appliedAt DESC';
     let params = [];
     if (req.user.role !== 'manager' && req.user.role !== 'operational_manager') {
-      query = 'SELECT * FROM applications WHERE createdByAdminId = $1 ORDER BY appliedAt DESC';
+      query = 'SELECT * FROM applications WHERE (createdByAdminId = $1 OR jobId IN (SELECT id FROM jobs WHERE isEmployerJob = TRUE)) ORDER BY appliedAt DESC';
       params.push(req.user.id);
     }
     const { rows } = await pool.query(query, params);
-    res.json(rows);
+    res.json(rows.map(r => ({
+      ...r,
+      jobTitle: r.jobtitle || r.jobTitle,
+      companyName: r.companyname || r.companyName,
+      appliedAt: Number(r.appliedat || r.appliedAt),
+      subId: r.subid || r.subId,
+      payrollStatus: r.payrollstatus || r.payrollStatus,
+      vehicleStatus: r.vehiclestatus || r.vehicleStatus
+    })));
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

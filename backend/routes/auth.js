@@ -421,6 +421,55 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // 3. Check Employers Roster
+    const { rows: empRows } = await pool.query(
+      'SELECT * FROM employers WHERE LOWER(email) = $1 LIMIT 1',
+      [normalizedIdentifier]
+    );
+
+    if (empRows && empRows.length > 0) {
+      const emp = empRows[0];
+      if (!(await bcrypt.compare(password, emp.password))) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign(
+        {
+          id: emp.id,
+          email: emp.email,
+          role: 'employer',
+          name: emp.name,
+          companyId: emp.company_id,
+          companyName: emp.company_name
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      await pool.query('UPDATE employers SET last_login = $1 WHERE id = $2', [Date.now(), emp.id]).catch(() => {});
+
+      if (req.io) {
+        req.io.emit('DATA_UPDATED', { module: 'Employers', action: 'login', employerName: emp.name });
+      }
+
+      return res.json({
+        token,
+        user: {
+          id: emp.id,
+          email: emp.email,
+          name: emp.name,
+          role: 'employer',
+          companyId: emp.company_id,
+          companyName: emp.company_name,
+          phone: emp.phone,
+          website: emp.website,
+          logo: emp.logo,
+          location: emp.location,
+          designation: emp.designation
+        }
+      });
+    }
+
   } catch (dbErr) {
     console.warn('[Auth DB Query Warning]', dbErr.message);
   }
@@ -463,6 +512,17 @@ router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const userEmail = req.user.email;
+
+    if (req.user.role === 'employer') {
+      const { rows: empRows } = await pool.query(
+        'SELECT id, name, email, company_name as "companyName", company_id as "companyId", phone, website, logo, location, designation, created_at as "createdAt" FROM employers WHERE id = $1 LIMIT 1',
+        [userId]
+      );
+      if (empRows.length > 0) {
+        return res.json({ ...empRows[0], role: 'employer' });
+      }
+    }
+
     touchCandidateActivity(userId).catch(() => {});
 
     const { rows: candRows } = await pool.query(

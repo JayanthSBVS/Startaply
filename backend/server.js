@@ -40,6 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 // ROUTES
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/employers', require('./routes/employers'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/job-mela', require('./routes/jobmela'));
 app.use('/api/hero-banners', require('./routes/heroBanners'));

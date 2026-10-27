@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const u = JSON.parse(storedUser);
           // Candidates and end-users do not use staff RBAC permissions table
-          if (u.role === 'candidate' || u.role === 'user') return;
+          if (u.role === 'candidate' || u.role === 'user' || u.role === 'employer') return;
         } catch {}
       }
 
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
         if (storedUser) {
           try {
             const u = JSON.parse(storedUser);
-            if (u.role === 'candidate' || u.role === 'user') return;
+            if (u.role === 'candidate' || u.role === 'user' || u.role === 'employer') return;
           } catch {}
         }
         // Token is expired or invalid for staff - clear auth state gracefully
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('startaply_user', JSON.stringify(normalizedUser));
     setUser(normalizedUser);
     // Fetch permissions right after login only if not candidate
-    if (normalizedUser.role !== 'candidate' && normalizedUser.role !== 'user') {
+    if (normalizedUser.role !== 'candidate' && normalizedUser.role !== 'user' && normalizedUser.role !== 'employer') {
       fetchPermissions(token).catch(() => {});
     }
   };
@@ -105,6 +105,7 @@ export const AuthProvider = ({ children }) => {
   const isManager   = () => user?.role === 'manager';
   const isOpManager = () => user?.role === 'operational_manager';
   const isExecutive = () => user?.role === 'operational_executive';
+  const isEmployer  = () => user?.role === 'employer';
 
   // Get the permissions row for the current user's role
   const getMyPermissions = useCallback(() => {
@@ -174,7 +175,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       user, loading, login, logout, updateProfile,
       // Role checks
-      isManager, isOpManager, isExecutive,
+      isManager, isOpManager, isExecutive, isEmployer,
       // Permission checks
       permissions, getMyPermissions, canDo, refreshPermissions,
       // Expose raw fetchPermissions for advanced usage
