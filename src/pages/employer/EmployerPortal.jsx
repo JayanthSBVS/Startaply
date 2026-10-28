@@ -52,6 +52,10 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
   // ATS View Mode: 'kanban' | 'table'
   const [applicantViewMode, setApplicantViewMode] = useState('kanban');
 
+  // Mobile View Specific Controls
+  const [mobilePostTab, setMobilePostTab] = useState('form'); // 'form' | 'preview'
+  const [mobileKanbanStage, setMobileKanbanStage] = useState('all'); // 'all' | specific stage
+
   // Selected Candidate Drawer State
   const [selectedApplicant, setSelectedApplicant] = useState(null);
 
@@ -538,11 +542,27 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
         </header>
 
         {/* Main Content Layout */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 lg:py-16">
 
-            {/* Left Column: Authentic Recruiter Platform Context */}
-            <div className="lg:col-span-6 space-y-6 lg:pr-4">
+          {/* Mobile Hero Summary (visible only on small screens before form) */}
+          <div className="lg:hidden mb-6 text-center space-y-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-widest bg-brand/10 text-brand border border-brand/20">
+              <Briefcase size={13} />
+              <span>Direct Hiring Platform</span>
+            </div>
+            <h1 className="text-2xl xs:text-3xl font-black tracking-tight text-slate-950 dark:text-white leading-tight">
+              Hire pre-verified talent directly. <br className="hidden xs:inline" />
+              <span className="text-brand">Zero intermediary commission.</span>
+            </h1>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium max-w-md mx-auto leading-relaxed">
+              Publish requisitions to thousands of candidates across engineering, operations, and delivery fleets with built-in ATS tracking.
+            </p>
+          </div>
+
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+
+            {/* Context & Requisition Mockup Column (Appears below form on mobile) */}
+            <div className="w-full lg:col-span-6 space-y-6 lg:pr-4 order-2 lg:order-1">
 
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-widest bg-brand/10 text-brand border border-brand/20">
@@ -616,8 +636,8 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
 
             </div>
 
-            {/* Right Column: Professional Enterprise Auth Form Card */}
-            <div className="lg:col-span-6">
+            {/* Right Column: Professional Enterprise Auth Form Card (Appears first on mobile) */}
+            <div className="w-full lg:col-span-6 order-1 lg:order-2">
               <div className="bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none">
 
                 {/* Segmented Auth Mode Switcher */}
@@ -1050,9 +1070,9 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
                 setEditingJobId(null);
                 setActiveTab('post');
               }}
-              className="h-9 px-3.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="min-h-[44px] px-3.5 sm:px-4 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <PlusCircle size={14} />
+              <PlusCircle size={16} />
               <span className="hidden sm:inline">Post Requisition</span>
               <span className="sm:hidden">Post</span>
             </button>
@@ -1062,15 +1082,15 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
             <button
               onClick={logout}
               title="Sign Out of Recruiter Workspace"
-              className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-500 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-all cursor-pointer"
+              className="min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-500 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-all cursor-pointer"
             >
-              <LogOut size={16} />
+              <LogOut size={17} />
             </button>
           </div>
         </div>
 
-        {/* Portal Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-slate-100 dark:border-slate-800/60 py-2">
+        {/* Desktop / Tablet Navigation Tabs (Hidden on mobile where bottom nav is active) */}
+        <div className="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-slate-100 dark:border-slate-800/60 py-2">
           {[
             { id: 'overview', label: 'Dashboard & Pipeline', icon: TrendingUp },
             { id: 'jobs', label: `Open Requisitions (${jobs.length})`, icon: Briefcase },
@@ -1098,8 +1118,8 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      {/* Main Content Area with safe-area padding for mobile bottom bar */}
+      <main className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-24 md:pb-10">
 
         {/* ────────────────────────────────────────────────────────
             TAB 1: BESPOKE RECRUITER OVERVIEW & FUNNEL ANALYTICS
@@ -1123,22 +1143,22 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
               </div>
 
               {/* Fast Action Cluster */}
-              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2.5 shrink-0 w-full sm:w-auto">
                 <button
                   onClick={() => {
                     setEditingJobId(null);
                     setActiveTab('post');
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                  className="min-h-[44px] px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <PlusCircle size={15} />
+                  <PlusCircle size={16} />
                   <span>New Requisition</span>
                 </button>
                 <button
                   onClick={handleExportCSV}
-                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs sm:text-sm font-bold border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                  className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs sm:text-sm font-bold border border-white/10 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <Download size={14} />
+                  <Download size={15} />
                   <span>Export CSV</span>
                 </button>
               </div>
@@ -1427,58 +1447,64 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
                     </div>
 
                     {/* Stats & Recruiter Action Cluster */}
-                    <div className="flex items-center gap-3 shrink-0 flex-wrap pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 text-xs font-semibold">
-                        <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400" title="Job Card Views">
-                          <Eye size={13} /> {job.views || 0} views
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-around sm:justify-start gap-3 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400" title="Job Card Views">
+                          <Eye size={14} /> {job.views || 0} views
                         </span>
-                        <span className="h-3 w-px bg-slate-200 dark:bg-slate-700" />
-                        <span className="flex items-center gap-1 text-brand font-bold" title="Candidate Applicants">
-                          <Users size={13} /> {job.applicationCount || 0} applied
+                        <span className="h-3.5 w-px bg-slate-200 dark:bg-slate-700" />
+                        <span className="flex items-center gap-1.5 text-brand font-bold" title="Candidate Applicants">
+                          <Users size={14} /> {job.applicationCount || 0} applied
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2">
                         <button
                           onClick={() => {
                             setApplicantJobFilter(job.id);
                             setActiveTab('applicants');
                           }}
-                          className="px-3 py-2 rounded-xl bg-brand/10 hover:bg-brand/20 text-brand text-xs font-bold transition-colors cursor-pointer"
+                          className="min-h-[44px] px-4 py-2 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
                         >
-                          Review Applicants
+                          <Users size={15} />
+                          <span>Review Applicants ({job.applicationCount || 0})</span>
                         </button>
 
-                        <button
-                          onClick={() => handleCopyJobLink(job)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                          title="Copy Shareable Job Link"
-                        >
-                          <Share2 size={15} />
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleCopyJobLink(job)}
+                            className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center"
+                            title="Copy Shareable Job Link"
+                            aria-label="Copy job link"
+                          >
+                            <Share2 size={16} />
+                          </button>
 
-                        <button
-                          onClick={() => handleToggleJobVisibility(job)}
-                          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
-                        >
-                          {job.isVisible ? 'Pause' : 'Activate'}
-                        </button>
+                          <button
+                            onClick={() => handleToggleJobVisibility(job)}
+                            className="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer flex items-center justify-center"
+                          >
+                            {job.isVisible ? 'Pause' : 'Activate'}
+                          </button>
 
-                        <button
-                          onClick={() => handleEditJob(job)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                          title="Edit Requisition"
-                        >
-                          <Edit3 size={15} />
-                        </button>
+                          <button
+                            onClick={() => handleEditJob(job)}
+                            className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center"
+                            title="Edit Requisition"
+                            aria-label="Edit job"
+                          >
+                            <Edit3 size={16} />
+                          </button>
 
-                        <button
-                          onClick={() => handleDeleteJob(job.id)}
-                          className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
-                          title="Delete Requisition"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                          <button
+                            onClick={() => handleDeleteJob(job.id)}
+                            className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer flex items-center justify-center"
+                            title="Delete Requisition"
+                            aria-label="Delete job"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1521,11 +1547,41 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
               )}
             </div>
 
+            {/* Mobile View Toggle: Form vs Preview */}
+            <div className="lg:hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => setMobilePostTab('form')}
+                className={`flex-1 min-h-[44px] py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  mobilePostTab === 'form'
+                    ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Edit3 size={15} />
+                <span>Requisition Form</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobilePostTab('preview')}
+                className={`flex-1 min-h-[44px] py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  mobilePostTab === 'preview'
+                    ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Eye size={15} />
+                <span>Candidate Preview</span>
+              </button>
+            </div>
+
             {/* Split Grid: Form (Left) & Real-Time Live Job Card Preview (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
               {/* Form Section */}
-              <form onSubmit={handleJobSubmit} className="lg:col-span-7 bg-white dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+              <form onSubmit={handleJobSubmit} className={`lg:col-span-7 bg-white dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-xs space-y-6 ${
+                mobilePostTab === 'preview' ? 'hidden lg:block' : 'block'
+              }`}>
 
                 {/* 1. Core Role Information */}
                 <div className="space-y-4">
@@ -1798,7 +1854,9 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
               </form>
 
               {/* Real-Time Live Feed Card Preview (Unique Recruiter Feature) */}
-              <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-3">
+              <div className={`lg:col-span-5 lg:sticky lg:top-28 space-y-3 ${
+                mobilePostTab === 'form' ? 'hidden lg:block' : 'block'
+              }`}>
                 <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
                   <span className="flex items-center gap-1.5 text-brand">
                     <Eye size={14} />
@@ -1965,11 +2023,48 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
 
             {/* ── ATS VIEW 1: KANBAN BOARD ──────────────────────── */}
             {applicantViewMode === 'kanban' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5 items-start">
-                {STAGES.map(stage => {
+              <div className="space-y-4">
+
+                {/* Mobile Stage Selector Filter Pills */}
+                <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                  <button
+                    onClick={() => setMobileKanbanStage('all')}
+                    className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      mobileKanbanStage === 'all'
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
+                        : 'bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800'
+                    }`}
+                  >
+                    All Stages ({filteredApplicants.length})
+                  </button>
+                  {STAGES.map(stage => {
+                    const count = filteredApplicants.filter(a => (a.stage || 'Under Review') === stage).length;
+                    return (
+                      <button
+                        key={stage}
+                        onClick={() => setMobileKanbanStage(stage)}
+                        className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                          mobileKanbanStage === stage
+                            ? 'bg-brand text-white shadow-xs'
+                            : 'bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800'
+                        }`}
+                      >
+                        <span>{stage}</span>
+                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+                          mobileKanbanStage === stage ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5 items-start">
+                {STAGES.filter(s => mobileKanbanStage === 'all' || s === mobileKanbanStage).map(stage => {
                   const stageApps = filteredApplicants.filter(a => (a.stage || 'Under Review') === stage);
                   return (
-                    <div key={stage} className="bg-slate-100/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-slate-200/80 dark:border-slate-800 space-y-3 min-h-[400px]">
+                    <div key={stage} className="bg-slate-100/70 dark:bg-slate-900/40 rounded-2xl p-3 border border-slate-200/80 dark:border-slate-800 space-y-3 min-h-[220px] sm:min-h-[400px]">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
                         <span className="text-xs font-black text-slate-800 dark:text-slate-200 truncate">{stage}</span>
                         <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
@@ -2013,14 +2108,96 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
                     </div>
                   );
                 })}
+                </div>
               </div>
             )}
 
-            {/* ── ATS VIEW 2: DATA TABLE ────────────────────────── */}
+            {/* ── ATS VIEW 2: DATA TABLE / MOBILE CARDS ─── */}
             {applicantViewMode === 'table' && (
-              <div className="bg-white dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+              <div className="space-y-4">
+
+                {/* Mobile Feed (Cards on small screens for comfortable touch ergonomics) */}
+                <div className="sm:hidden space-y-3">
+                  {filteredApplicants.map(app => (
+                    <div
+                      key={app.id}
+                      onClick={() => setSelectedApplicant(app)}
+                      className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-3 cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand to-indigo-600 text-white font-extrabold text-sm flex items-center justify-center shrink-0">
+                            {app.name?.split(' ').map(n => n[0]).join('') || 'C'}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                              {app.name}
+                            </h4>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              {app.city || 'India'} • {new Date(app.appliedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-brand">
+                          View →
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 text-xs">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Applied Position</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{app.jobTitle}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800" onClick={e => e.stopPropagation()}>
+                        <select
+                          value={app.stage || 'Under Review'}
+                          onChange={e => handleUpdateApplicantStage(app.id, e.target.value)}
+                          className="min-h-[44px] flex-1 px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none cursor-pointer focus:border-brand"
+                        >
+                          {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {app.resume && (
+                            <a
+                              href={app.resume}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-brand/10 hover:bg-brand/20 text-brand"
+                              title="View Resume"
+                              aria-label="View Resume"
+                            >
+                              <FileText size={17} />
+                            </a>
+                          )}
+                          <a
+                            href={`mailto:${app.email}?subject=${encodeURIComponent(`Update on application for ${app.jobTitle} at ${user?.companyName}`)}`}
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                            title="Email Candidate"
+                            aria-label="Email Candidate"
+                          >
+                            <Mail size={17} />
+                          </a>
+                          {app.phone && (
+                            <a
+                              href={`tel:${app.phone}`}
+                              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              title="Call Candidate"
+                              aria-label="Call Candidate"
+                            >
+                              <Phone size={17} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Data Table */}
+                <div className="hidden sm:block bg-white dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
                     <thead>
                       <tr className="bg-slate-50 dark:bg-slate-800/50 text-[10px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200 dark:border-slate-800">
                         <th className="px-5 py-3.5">Candidate</th>
@@ -2096,7 +2273,8 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -2241,7 +2419,7 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 <button
                   type="submit"
-                  className="h-10 px-5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-md shadow-brand/20 active:scale-95 transition-all cursor-pointer"
+                  className="w-full sm:w-auto min-h-[44px] px-6 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold shadow-md shadow-brand/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
                 >
                   Save Profile Changes
                 </button>
@@ -2255,11 +2433,77 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
       </main>
 
       {/* ────────────────────────────────────────────────────────
-          CANDIDATE DETAIL DRAWER MODAL (POPUP)
+          MOBILE RECRUITER FIXED BOTTOM NAVIGATION BAR
+      ──────────────────────────────────────────────────────── */}
+      <nav
+        aria-label="Mobile Recruiter Navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#070B14]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-slate-800/90 pb-[max(env(safe-area-inset-bottom),8px)] pt-1.5 px-2 shadow-lg shadow-black/5"
+      >
+        <div className="grid grid-cols-5 items-center justify-around">
+          {[
+            { id: 'overview', label: 'Overview', icon: TrendingUp },
+            { id: 'jobs', label: 'Jobs', icon: Briefcase, badge: jobs.length },
+            { id: 'post', label: 'Post', icon: PlusCircle, isPost: true },
+            { id: 'applicants', label: 'ATS', icon: Users, badge: applicants.length },
+            { id: 'profile', label: 'Profile', icon: Building2 }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  if (tab.id === 'post') setEditingJobId(null);
+                  setActiveTab(tab.id);
+                }}
+                className={`relative flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-xl transition-all cursor-pointer ${
+                  tab.isPost
+                    ? active
+                      ? 'text-brand font-black'
+                      : 'text-brand font-bold'
+                    : active
+                    ? 'text-slate-950 dark:text-white font-black'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
+                }`}
+              >
+                {tab.isPost ? (
+                  <div className={`w-10 h-7 rounded-xl flex items-center justify-center transition-all ${
+                    active ? 'bg-brand text-white shadow-sm shadow-brand/30' : 'bg-brand/10 text-brand'
+                  }`}>
+                    <Icon size={17} />
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Icon size={19} className={active ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+                    {tab.badge !== undefined && tab.badge > 0 && (
+                      <span className="absolute -top-1.5 -right-2 px-1 min-w-[15px] h-[15px] rounded-full bg-brand text-white text-[9px] font-black flex items-center justify-center">
+                        {tab.badge > 99 ? '99+' : tab.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <span className={`text-[10px] mt-0.5 leading-tight ${active ? 'font-black' : 'font-medium'}`}>
+                  {tab.label}
+                </span>
+                {active && !tab.isPost && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-950 dark:bg-white mt-0.5" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* ────────────────────────────────────────────────────────
+          CANDIDATE DETAIL DRAWER MODAL (RESPONSIVE BOTTOM SHEET)
       ──────────────────────────────────────────────────────── */}
       {selectedApplicant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-5 animate-in slide-in-from-bottom sm:zoom-in-95 duration-150">
+            {/* Mobile drag handle */}
+            <div className="sm:hidden w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto -mt-1 mb-1" />
+
             <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand to-indigo-600 text-white font-black text-base flex items-center justify-center shrink-0">
@@ -2277,9 +2521,10 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
 
               <button
                 onClick={() => setSelectedApplicant(null)}
-                className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                className="min-h-[44px] min-w-[44px] rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                aria-label="Close applicant details"
               >
-                <X size={15} />
+                <X size={17} />
               </button>
             </div>
 
@@ -2319,33 +2564,34 @@ const EmployerPortal = ({ defaultTab = 'overview' }) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="pt-2 flex items-center gap-2">
+            {/* Action Buttons with accessible touch targets */}
+            <div className="pt-2 flex items-center gap-2.5">
               {selectedApplicant.resume && (
                 <a
                   href={selectedApplicant.resume}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 h-10 px-3 rounded-xl bg-brand text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                  className="flex-1 min-h-[44px] px-3 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
-                  <FileText size={14} />
+                  <FileText size={16} />
                   <span>View Resume</span>
                 </a>
               )}
               <a
                 href={`mailto:${selectedApplicant.email}?subject=${encodeURIComponent(`Interview update for ${selectedApplicant.jobTitle} at ${user?.companyName}`)}`}
-                className="flex-1 h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-slate-800 dark:text-slate-200"
+                className="flex-1 min-h-[44px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer text-slate-800 dark:text-slate-200"
               >
-                <Mail size={14} />
+                <Mail size={16} />
                 <span>Email</span>
               </a>
               {selectedApplicant.phone && (
                 <a
                   href={`tel:${selectedApplicant.phone}`}
-                  className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-emerald-600 dark:text-emerald-400"
+                  className="min-h-[44px] min-w-[44px] px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-emerald-600 dark:text-emerald-400"
                   title="Call candidate"
+                  aria-label="Call candidate"
                 >
-                  <Phone size={14} />
+                  <Phone size={16} />
                 </a>
               )}
             </div>
